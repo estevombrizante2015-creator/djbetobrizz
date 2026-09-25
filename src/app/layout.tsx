@@ -13,17 +13,21 @@ const orbitron = Orbitron({
   display: "swap",
 });
 
+// 500 saiu: era usado só no " & " do hero (agora semibold). Um arquivo a menos no preload.
 const rajdhani = Rajdhani({
   variable: "--font-rajdhani",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["600", "700"],
   display: "swap",
 });
 
+// Texto corrido quase todo abaixo da dobra: sem preload (~48 KB a menos disputando com o CSS e a
+// imagem do LCP). `swap` + fallback ajustado do next/font mantêm o layout estável.
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
+  preload: false,
 });
 
 const vt323 = VT323({

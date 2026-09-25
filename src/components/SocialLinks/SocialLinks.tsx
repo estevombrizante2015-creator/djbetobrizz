@@ -15,7 +15,9 @@ const items = socialLinks
 /**
  * Barra social flutuante (§26) na borda esquerda — só em telas largas, onde há margem
  * livre ao lado do container (no mobile, as redes ficam no menu e no footer).
- * Rótulo "FOLLOW" girado, ícones com tooltip e uma linha fina descendo até a base.
+ * Rótulo "FOLLOW" girado, ícones com tooltip e uma linha fina que se apaga logo acima do
+ * player de música (botão SOM, fixo no canto inferior esquerdo): a barra fica em bottom-24
+ * para a linha não atravessar o botão.
  * Modo leve: estática e visível desde a primeira pintura (sem desfoque, sem entrada animada).
  */
 export function SocialLinks() {
@@ -24,7 +26,7 @@ export function SocialLinks() {
   return (
     <aside
       aria-label="Redes sociais do BetoBrizz"
-      className={cn(styles.bar, "fixed bottom-0 left-5 z-30 hidden flex-col items-center gap-4 min-[1360px]:flex")}
+      className={cn(styles.bar, "fixed bottom-24 left-5 z-30 hidden flex-col items-center gap-4 min-[1360px]:flex")}
     >
       <span
         aria-hidden
@@ -76,7 +78,7 @@ export function SocialLinks() {
 
       <span
         aria-hidden
-        className="h-24 w-px bg-linear-to-b from-line-strong via-magenta/60 to-transparent xl:h-28"
+        className="h-16 w-px bg-linear-to-b from-line-strong via-magenta/60 to-transparent xl:h-20"
       />
     </aside>
   );

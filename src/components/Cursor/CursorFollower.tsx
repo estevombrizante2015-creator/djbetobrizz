@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { m, useMotionValue, useSpring } from "motion/react";
+import { useMotionValue, useSpring } from "motion/react";
+import * as m from "motion/react-m";
 import { cn } from "@/lib/utils";
 
 const INTERACTIVE = 'a[href], button, [role="button"], [data-cursor], label, summary, select, input, textarea';

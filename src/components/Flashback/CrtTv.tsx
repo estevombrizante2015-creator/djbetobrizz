@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { AnimatePresence, m } from "motion/react";
+import { AnimatePresence } from "motion/react";
+import * as m from "motion/react-m";
 import { VhsOverlay } from "@/components/Effects/VhsOverlay";
 import { KnobIcon } from "@/components/ui/Icons";
 import { cn, timecode } from "@/lib/utils";
@@ -118,7 +119,7 @@ function StaticVhsOsd({ track, start }: { track: string; start: number }) {
     <div className="vhs pointer-events-none absolute inset-0 z-10 p-4 text-base text-white/90 sm:p-6 sm:text-xl">
       <div className="flex items-start justify-between">
         <span className="flex items-center gap-2">
-          PLAY <span>▶</span>
+          PLAY <span>▶︎</span>
         </span>
         <span className="flex items-center gap-2">
           <span className="text-red">●</span> REC

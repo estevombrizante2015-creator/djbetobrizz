@@ -19,11 +19,13 @@ import { SocialLinks } from "@/components/SocialLinks/SocialLinks";
 import { WhatsAppButton } from "@/components/WhatsAppButton/WhatsAppButton";
 import { SectionDivider } from "@/components/Visualizer/SectionDivider";
 import { MusicPlayer } from "@/components/MusicPlayer/MusicPlayer";
+import { AnchorNavigation } from "@/components/ui/AnchorNavigation";
 
 /**
  * Envolve uma seção abaixo da dobra com content-visibility:auto — o navegador só renderiza
  * quando ela se aproxima da tela. Não usar em seções com trilhas sticky/scroll-linked
  * (Flashback, Impact, DjVj, CTA) nem acima da dobra (Hero).
+ * Links de âncora para dentro delas: ver <AnchorNavigation /> (renderiza tudo durante o salto).
  */
 function Deferred({ children }: { children: React.ReactNode }) {
   return <div className="cv-auto">{children}</div>;
@@ -39,6 +41,9 @@ export default function Home() {
       <Loader />
       <Cursor />
       <Header />
+      <AnchorNavigation />
+      {/* Fixo no canto; vem logo após o header na ordem de Tab para o controle do som ficar acessível. */}
+      <MusicPlayer />
       <main id="conteudo">
         <Hero />
         <About />
@@ -74,7 +79,6 @@ export default function Home() {
         <Footer />
       </Deferred>
       <SocialLinks />
-      <MusicPlayer />
       <WhatsAppButton />
     </>
   );

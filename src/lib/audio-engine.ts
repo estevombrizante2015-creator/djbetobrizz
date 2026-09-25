@@ -3,13 +3,16 @@
  *
  * Decisão do cliente: o site abre com a música LIGADA.
  * - Ao carregar, tenta tocar sozinho. Os navegadores bloqueiam som antes de um gesto do visitante
- *   (exceto quem já ouviu mídia no site); nesse caso a música começa no PRIMEIRO toque/clique/tecla
- *   em qualquer lugar da página — o player já aparece ativo com a dica "Toque para ouvir".
+ *   (exceto quem já ouviu mídia no site); nesse caso a música começa no PRIMEIRO toque/clique
+ *   em qualquer lugar da página (teclado não conta) — o player já aparece ativo (borda acesa, equalizador) com ▶ e a dica "Toque para ouvir".
+ * - Faixa com erro → próxima; se a playlist inteira falhar (offline), o som desliga sem ficar tentando.
  * - Se o visitante pausar, a música não volta sozinha nesta sessão. "Economia de dados" → não liga sozinha.
  * - Toca a playlist (src/data/music.ts) em sequência, em loop.
  * - Web Audio AnalyserNode: os Visualizers reagem à música de verdade (ligado só dentro de um gesto,
  *   porque um AudioContext sem gesto fica suspenso e deixaria a música muda).
- * - Pausa quando um <video> do site começa a tocar; players externos (SoundCloud) chamam pauseBackgroundMusic().
+ * - Uma fonte de som por vez: pausa quando um <video> do site começa a tocar com som; players externos
+ *   (SoundCloud) chamam pauseBackgroundMusic(). No sentido inverso, play() pausa os vídeos e dispara
+ *   MUSIC_PLAY_EVENT para o SoundCloud pausar.
  * - Media Session: título/artista/capa e controles na tela de bloqueio do celular.
  */
 import { playlist, type Track } from "@/data/music";
@@ -28,6 +31,12 @@ export type MusicState = {
 };
 
 const OFF_KEY = "bb-music-off";
+
+/**
+ * Disparado em `window` quando a música de fundo vai começar por ação do visitante —
+ * players externos (widget do SoundCloud em SetsDeck) escutam e pausam, para nunca haver dois sons.
+ */
+export const MUSIC_PLAY_EVENT = "bb:music-play";
 
 // Estado inicial igual no servidor e no cliente (hidratação sem divergência).
 const initial: MusicState = {
@@ -58,6 +67,10 @@ let ctx: AudioContext | null = null;
 let analyser: AnalyserNode | null = null;
 let bins: Uint8Array<ArrayBuffer> | null = null;
 let disarmGesture: (() => void) | null = null;
+/** Próxima tentativa depois de uma faixa com erro (cancelada ao pausar). */
+let retryTimer = 0;
+/** Falhas seguidas: ao falhar a playlist inteira (offline, arquivo ausente) o som desliga. */
+let failures = 0;
 
 function ensureAudio() {
   if (audio) return audio;
@@ -65,19 +78,33 @@ function ensureAudio() {
   audio.preload = "none";
   audio.volume = 0.8;
   audio.addEventListener("ended", () => void play(state.index + 1, false));
-  audio.addEventListener("playing", () => emit({ playing: true, loading: false, blocked: false }));
+  audio.addEventListener("playing", () => {
+    failures = 0;
+    emit({ playing: true, loading: false, blocked: false });
+  });
   audio.addEventListener("waiting", () => emit({ loading: true }));
   audio.addEventListener("pause", () => emit({ playing: false, loading: false }));
+  // Faixa com erro → tenta a próxima, no máximo uma vez por faixa; se todas falharem, desliga.
   audio.addEventListener("error", () => {
     emit({ playing: false, loading: false });
-    if (playlist.length > 1 && state.enabled) window.setTimeout(() => void play(state.index + 1, false), 400);
+    window.clearTimeout(retryTimer);
+    if (state.enabled && ++failures < playlist.length) {
+      retryTimer = window.setTimeout(() => {
+        if (state.enabled) void play(state.index + 1, false);
+      }, 400);
+    } else {
+      failures = 0;
+      disarmGesture?.();
+      emit({ enabled: false, blocked: false });
+    }
   });
 
-  // Outro vídeo do site começou a tocar → a música de fundo sai de cena
+  // Outro vídeo do site começou a tocar COM SOM → a música de fundo sai de cena
+  // (loops decorativos mudos, como o vídeo do hero, não interrompem a música).
   document.addEventListener(
     "play",
     (e) => {
-      if (e.target instanceof HTMLMediaElement && e.target !== audio) pauseBackgroundMusic();
+      if (e.target instanceof HTMLMediaElement && e.target !== audio && !e.target.muted) pauseBackgroundMusic();
     },
     true,
   );
@@ -153,19 +180,40 @@ function rememberOff(off: boolean) {
  */
 export async function play(index = state.index, fromGesture = true) {
   if (!playlist.length) return;
+  window.clearTimeout(retryTimer);
+  // Uma fonte de som por vez: outro vídeo/áudio do site tocando com som...
+  const others = Array.from(document.querySelectorAll<HTMLMediaElement>("video, audio")).filter(
+    (m) => m !== audio && !m.paused && !m.muted,
+  );
+  // ...sem gesto (início automático, próxima faixa) a música não passa por cima dele;
+  if (!fromGesture && others.length) {
+    disarmGesture?.();
+    emit({ enabled: false, loading: false, blocked: false });
+    return;
+  }
   disarmGesture?.();
   const el = load(index);
+  // Mesma faixa que falhou antes (ex.: voltou a internet): recarrega, senão play() não tenta de novo.
+  if (el.error) el.load();
   if (fromGesture) ensureAnalyser(el);
   emit({ enabled: true, loading: true });
   rememberOff(false);
+  // ...com o gesto do visitante no player, é o outro que para (vídeos aqui; o SoundCloud escuta o evento).
+  if (fromGesture) {
+    others.forEach((m) => m.pause());
+    window.dispatchEvent(new Event(MUSIC_PLAY_EVENT));
+  }
   try {
     await el.play();
     // Começou sem gesto (navegador permitiu): o analisador liga no primeiro toque.
     if (!fromGesture && !ctx) armAnalyserOnGesture(el);
-  } catch {
-    // bloqueado pelo navegador → começa no primeiro gesto
-    emit({ loading: false, blocked: true });
-    armFirstGesture();
+  } catch (err) {
+    // Bloqueado pelo navegador → começa no primeiro gesto. Outras falhas (rede, formato) chegam
+    // pelos eventos 'error'/'playing' do elemento, que já tratam a próxima faixa.
+    if ((err as DOMException | null)?.name === "NotAllowedError") {
+      emit({ loading: false, blocked: true });
+      armFirstGesture();
+    }
   }
 }
 
@@ -180,6 +228,7 @@ function armAnalyserOnGesture(el: HTMLAudioElement) {
 
 /** Pausa pedida pelo visitante (botão/tela de bloqueio): não volta sozinha nesta sessão. */
 export function pause() {
+  window.clearTimeout(retryTimer);
   disarmGesture?.();
   audio?.pause();
   emit({ enabled: false, blocked: false, loading: false });
@@ -187,7 +236,7 @@ export function pause() {
 }
 
 export function toggle() {
-  if (state.enabled) pause();
+  if (state.playing || state.loading) pause();
   else void play();
 }
 
@@ -201,22 +250,21 @@ export function previous() {
 
 /** Outro player (vídeo, SoundCloud) começou: silencia sem marcar como "desligado pelo visitante". */
 export function pauseBackgroundMusic() {
+  window.clearTimeout(retryTimer);
   disarmGesture?.();
   audio?.pause();
   emit({ enabled: false, blocked: false, loading: false });
 }
 
 /**
- * Primeiro gesto do visitante em qualquer lugar → começa a música (e liga o analisador).
+ * Primeiro toque/clique do visitante em qualquer lugar → começa a música (e liga o analisador).
+ * Teclado NÃO conta: quem navega por teclado/leitor de tela (Enter no "Pular para o conteúdo")
+ * não recebe som por cima da leitura — liga pelo botão do player, logo no início da ordem de Tab.
  * Gestos dentro do próprio player são ignorados aqui (o botão dele decide).
  */
 function armFirstGesture() {
   if (disarmGesture) return;
   const onGesture = (e: Event) => {
-    if (e.type === "keydown") {
-      const key = (e as KeyboardEvent).key;
-      if (["Tab", "Escape", "Shift", "Control", "Alt", "Meta"].includes(key)) return;
-    }
     if (e.type === "pointerdown" && (e as PointerEvent).pointerType !== "mouse") return;
     const target = e.target as Element | null;
     if (target?.closest?.("[data-music-control]")) return;
@@ -224,7 +272,7 @@ function armFirstGesture() {
     if (state.enabled && !state.playing) void play(state.index, true);
   };
   const opts = { capture: true, passive: true } as const;
-  const events = ["pointerdown", "pointerup", "touchend", "keydown"] as const;
+  const events = ["pointerdown", "pointerup", "touchend"] as const;
   events.forEach((t) => window.addEventListener(t, onGesture, opts));
   disarmGesture = () => {
     events.forEach((t) => window.removeEventListener(t, onGesture, opts));

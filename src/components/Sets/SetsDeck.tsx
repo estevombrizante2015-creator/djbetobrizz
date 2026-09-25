@@ -7,7 +7,7 @@ import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 import { Platter } from "./Platter";
 import { Waveform } from "./Waveform";
-import { pauseBackgroundMusic } from "@/lib/audio-engine";
+import { MUSIC_PLAY_EVENT, pauseBackgroundMusic } from "@/lib/audio-engine";
 
 /** Faixa pronta para o deck (validada no servidor). */
 export type DeckTrack = {
@@ -90,6 +90,15 @@ export function SetsDeck({ tracks, className }: { tracks: DeckTrack[]; className
     }
   }, [loaded, index]);
 
+  // Música de fundo ligada pelo visitante → pausa o set (um áudio por vez).
+  useEffect(() => {
+    if (status !== "playing") return;
+    const onMusic = () =>
+      iframeRef.current?.contentWindow?.postMessage(JSON.stringify({ method: "pause" }), SC_ORIGIN);
+    window.addEventListener(MUSIC_PLAY_EVENT, onMusic);
+    return () => window.removeEventListener(MUSIC_PLAY_EVENT, onMusic);
+  }, [status]);
+
   // Escuta play/pause/finish do widget (API de postMessage do SoundCloud).
   useEffect(() => {
     if (!loaded) return;
@@ -161,7 +170,7 @@ export function SetsDeck({ tracks, className }: { tracks: DeckTrack[]; className
               onClick={eject}
               className="hud inline-flex h-10 items-center gap-2 rounded-full border border-line-strong px-4 text-[0.65rem] text-mute transition-colors hover:border-white/60 hover:text-white sm:h-9"
             >
-              <span aria-hidden>⏏</span>
+              <span aria-hidden>⏏︎</span>
               Fechar player
             </button>
           ) : (
@@ -324,7 +333,7 @@ function DeckFacade({
           </span>
         </div>
         <p className="ml-1 max-w-[15rem] text-sm leading-snug text-pretty text-mute">
-          Aperte <span className="text-white">▶</span> para ouvir aqui<span className="sm:hidden">.</span>
+          Aperte <span className="text-white">▶︎&#xFE0E;</span> para ouvir aqui<span className="sm:hidden">.</span>
           <span className="hidden sm:inline">
             {" "}
             mesmo. <span className="text-white">CUE</span> só carrega o player.

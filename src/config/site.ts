@@ -61,7 +61,8 @@ export const siteConfig = {
   heroImage: {
     desktop: "/images/events/betobrizz-telao-vermelho.webp",
     mobile: "/images/events/betobrizz-pista-magenta.webp",
-    alt: "DJ BetoBrizz se apresentando ao vivo diante de telões de LED",
+    // Vale para os dois recortes (desktop: telões de LED; celular: pista lotada vista do palco).
+    alt: "DJ BetoBrizz se apresentando ao vivo em um evento",
   },
 
   /** ID do Google Analytics 4 (ex.: "G-XXXXXXX"). Também pode vir de NEXT_PUBLIC_GA_ID. */

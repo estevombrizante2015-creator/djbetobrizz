@@ -23,7 +23,7 @@ export function Gallery() {
 
       <div className="container-bb relative">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <SectionHeading id="galeria-titulo" kicker="07 // GALERIA" title="DIGITAL CONTACT SHEET" accent="red" />
+          <SectionHeading id="galeria-titulo" kicker="07 // GALERIA" title="DIGITAL CONTACT SHEET" lang="en" accent="red" />
           <Reveal className="max-w-sm shrink-0 lg:max-w-[17rem] lg:pb-3 lg:text-right">
             <p className="text-base leading-relaxed text-mute">
               Pista, mixagem, telão e identidade visual. Selecione um frame para ampliar.

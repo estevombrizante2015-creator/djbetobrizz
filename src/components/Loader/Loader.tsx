@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useExperience } from "@/components/Effects/ExperienceContext";
+import { Logo } from "@/components/ui/Logo";
 import { cn } from "@/lib/utils";
 import styles from "./Loader.module.css";
 
@@ -10,6 +11,12 @@ const SESSION_KEY = "bb:intro-seen";
 const EXIT_AT = 460;
 /** Duração total (entrada + saída) — igual ao CSS (`.loader`). */
 const TOTAL = 680;
+/**
+ * `sizes` IDÊNTICO ao do logo do hero (HeroLogo): o navegador escolhe o mesmo candidato do srcset
+ * que o hero já pede com fetchPriority high — o logo da intro não baixa nenhum byte a mais.
+ * Se mudar lá, mude aqui.
+ */
+const LOGO_SIZES = "(max-height: 500px) 78vh, (min-width: 1280px) 760px, (min-width: 1024px) 700px, 92vw";
 
 /**
  * Roda no parse do HTML, antes da primeira pintura: se a intro já foi vista nesta sessão,
@@ -39,7 +46,7 @@ const WAVE_ECHO = wavePath(7, 31, 1.1, 0.72);
 
 /**
  * Intro de abertura (§47 + §10): tela preta → ruído → linha de frequência que ganha amplitude →
- * BETOBRIZZ + LOADING EXPERIENCE + medidor → a tela "desliga" como um CRT. ≤ 680 ms, uma vez por sessão.
+ * logo BetoBrizz + LOADING EXPERIENCE + medidor → a tela "desliga" como um CRT. ≤ 680 ms, uma vez por sessão.
  *
  * Só no modo completo (desktops capazes). No modo leve, com movimento reduzido ou se a intro já foi
  * vista, o CSS esconde a camada desde a primeira pintura e o componente sai do DOM ao montar.
@@ -96,11 +103,10 @@ export function Loader() {
           </div>
 
           <div className={styles.stage}>
-            <p className={cn(styles.brand, "font-display font-black tracking-[0.1em] uppercase")}>
-              <span className="text-white">BETO</span>
-              <span className="text-outline">BRIZZ</span>
-              <span className={styles.dj}>DJ</span>
-            </p>
+            {/* Logo oficial (disco de vinil no "O") — mesma imagem/`sizes` do hero, sem download extra */}
+            <span className={styles.brand}>
+              <Logo eager sizes={LOGO_SIZES} alt="" />
+            </span>
 
             <div className={styles.waveWrap}>
               <svg

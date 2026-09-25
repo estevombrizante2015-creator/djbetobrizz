@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { VideoItem } from "@/data/types";
-import { gallery } from "@/data/gallery";
+import { photoAlt } from "@/data/gallery";
 import { useExperience } from "@/components/Effects/ExperienceContext";
 import { InstagramIcon, KnobIcon, PlayIcon } from "@/components/ui/Icons";
 import { track } from "@/lib/analytics";
@@ -31,7 +31,7 @@ const PHOTOS: PhotoChannel[] = [
   kind: "photo",
   key: c.src,
   ...c,
-  alt: gallery.find((p) => p.src === c.src)?.alt ?? `DJ BetoBrizz — ${c.label}`,
+  alt: photoAlt(c.src) ?? `DJ BetoBrizz — ${c.label}`,
 }));
 
 /** Total de canais (cabe em 360px com botões de 40px). */

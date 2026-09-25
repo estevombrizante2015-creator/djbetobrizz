@@ -31,6 +31,10 @@ type Props = {
   className?: string;
   /** id para aria-labelledby da <section> */
   id?: string;
+  /** Idioma do título quando difere do pt-BR da página (ex.: "en" em "SEE THE VIBE.") — WCAG 3.1.2. */
+  lang?: string;
+  /** Idioma do kicker quando difere do pt-BR (ex.: "en" em "Turn up the moment"). */
+  kickerLang?: string;
   children?: React.ReactNode;
 };
 
@@ -47,6 +51,8 @@ export function SectionHeading({
   glitch = true,
   className,
   id,
+  lang,
+  kickerLang,
   children,
 }: Props) {
   const titleRef = useRef<HTMLSpanElement>(null);
@@ -76,13 +82,14 @@ export function SectionHeading({
   return (
     <div className={cn("flex flex-col gap-4", align === "center" && "items-center text-center", className)}>
       {kicker ? (
-        <p className={cn("reveal hud flex items-center gap-3", accentText[accent])}>
+        <p lang={kickerLang} className={cn("reveal hud flex items-center gap-3", accentText[accent])}>
           <span aria-hidden className={cn("h-px w-8", accentBar[accent])} />
           {kicker}
         </p>
       ) : null}
       <h2
         id={id}
+        lang={lang}
         className="reveal font-display text-[clamp(2.1rem,6.5vw,5.25rem)] leading-[1.05] font-black tracking-tight text-balance uppercase"
       >
         <span ref={titleRef} className={cn("glitch", glitching && "is-glitching")} data-text={title}>

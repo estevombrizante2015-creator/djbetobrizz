@@ -3,22 +3,31 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import type { CrtVideo } from "./CrtMonitor";
 import { VideoGrid } from "./VideoGrid";
 import { VideosShowcase } from "./VideosShowcase";
-import { resolveVideoSource } from "./video-source";
+import { VjReels } from "./VjReels";
+import { resolveVideoSource, videoOrientation } from "./video-source";
 
 /** A partir de quantos vídeos válidos a seção vira grade de cards. */
 const GRID_FROM = 3;
 
 /**
  * 08 // VÍDEOS — "SEE THE VIBE."
- * 0–2 vídeos válidos em `data/videos`: telão CRT (os vídeos tocam nele; sem vídeos, fotos reais)
- * + reel levando ao Instagram oficial. 3 ou mais: grade de cards com facade.
+ * Vídeos HORIZONTAIS: 0–2 válidos → telão CRT (tocam nele; sem vídeos, fotos reais) + reel levando
+ * ao Instagram; 3 ou mais → grade de cards com facade.
+ * Vídeos VERTICAIS (trabalho de VJ gravado no celular) → faixa "VJ // TELÕES" em molduras 9:16.
  * Em todos os casos o player só carrega no clique.
  */
 export function Videos() {
-  const playable: CrtVideo[] = videos.flatMap((item) => {
+  const landscapeItems = videos.filter((item) => videoOrientation(item) === "landscape");
+  const playable: CrtVideo[] = landscapeItems.flatMap((item) => {
     const source = resolveVideoSource(item);
     return source ? [{ item, source }] : [];
   });
+  const reels = videos
+    .filter((item) => videoOrientation(item) === "portrait")
+    .flatMap((item) => {
+      const source = resolveVideoSource(item);
+      return source?.kind === "file" ? [{ item, src: source.src }] : [];
+    });
 
   return (
     <section id="videos" aria-labelledby="videos-title" className="section-y relative overflow-hidden">
@@ -41,13 +50,15 @@ export function Videos() {
             id="videos-title"
             kicker="08 // VÍDEOS"
             title="SEE THE VIBE."
+            lang="en"
             subtitle="DJ + VJ em movimento"
             accent="magenta"
           />
           <OnAirSign />
         </div>
 
-        {playable.length >= GRID_FROM ? <VideoGrid items={videos} /> : <VideosShowcase videos={playable} />}
+        {playable.length >= GRID_FROM ? <VideoGrid items={landscapeItems} /> : <VideosShowcase videos={playable} />}
+        <VjReels items={reels} />
       </div>
     </section>
   );

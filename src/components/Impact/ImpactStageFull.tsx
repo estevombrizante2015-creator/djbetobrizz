@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
-import { m, useMotionValueEvent, useScroll, useTransform, type Variants } from "motion/react";
+import { useMotionValueEvent, useScroll, useTransform, type Variants } from "motion/react";
+import * as m from "motion/react-m";
 import { Lasers } from "@/components/Effects/Lasers";
 import { siteConfig } from "@/config/site";
 import {

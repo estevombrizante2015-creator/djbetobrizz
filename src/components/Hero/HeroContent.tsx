@@ -11,7 +11,7 @@ function splitTitle(title: string) {
   if (!m) return [{ text: title, tone: "text-white text-glow-magenta" }];
   return [
     { text: m[1], tone: "text-white text-glow-red" },
-    { text: " & ", tone: "font-hud font-medium text-white/55" },
+    { text: " & ", tone: "font-hud font-semibold text-white/55" },
     { text: m[2], tone: "text-white text-glow-cyan" },
   ];
 }

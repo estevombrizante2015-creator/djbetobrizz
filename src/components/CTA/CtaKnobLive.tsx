@@ -1,7 +1,8 @@
 "use client";
 
 import { useId, useRef, useState } from "react";
-import { m, useMotionValueEvent, useScroll, useSpring, useTransform } from "motion/react";
+import { useMotionValueEvent, useScroll, useSpring, useTransform } from "motion/react";
+import * as m from "motion/react-m";
 import { cn } from "@/lib/utils";
 import {
   C,

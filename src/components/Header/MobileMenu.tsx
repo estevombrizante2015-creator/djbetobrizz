@@ -87,7 +87,7 @@ export function MobileMenu({ id, open, items, active, firstLinkRef, onNavigate }
                     href={`#${item.id}`}
                     onClick={onNavigate}
                     aria-current={isActive ? "location" : undefined}
-                    className="group/row flex items-center gap-3.5 rounded-md py-2.5"
+                    className="group/row flex items-center gap-3.5 rounded-md py-2.5 [@media(max-height:800px)]:py-1.5"
                   >
                     <span
                       aria-hidden
@@ -107,7 +107,7 @@ export function MobileMenu({ id, open, items, active, firstLinkRef, onNavigate }
                       </span>
                       <span
                         className={cn(
-                          "font-display text-[1.35rem] leading-tight font-black tracking-tight uppercase",
+                          "font-display text-[1.35rem] leading-tight font-black tracking-tight uppercase [@media(max-height:800px)]:text-[1.15rem]",
                           isActive ? "text-white text-glow-cyan" : "text-white/90",
                         )}
                       >
@@ -126,8 +126,24 @@ export function MobileMenu({ id, open, items, active, firstLinkRef, onNavigate }
           <DeckControls />
         </div>
 
-        {/* Redes + CTA */}
+        {/* CTA + redes — o CTA vem primeiro (na ordem do DOM) para caber na dobra em telas baixas */}
         <div className={cn(styles.footer, "mt-auto flex flex-col gap-4 pt-6")}>
+          <NeonButton
+            href={siteConfig.whatsappUrl}
+            external
+            variant="magenta"
+            size="lg"
+            className="w-full"
+            icon={<WhatsAppIcon size={20} />}
+            event="whatsapp_click"
+            eventParams={{ source: "mobile_menu" }}
+            aria-label="Falar no WhatsApp com BetoBrizz (abre em nova aba)"
+          >
+            Falar no WhatsApp
+          </NeonButton>
+          <p className="hud text-center text-[0.65rem] text-mute">
+            WhatsApp <span className="text-white tabular-nums">{siteConfig.whatsappDisplay}</span>
+          </p>
           {socials.length ? (
             <ul className="flex items-center justify-center gap-3" aria-label="Redes sociais">
               {socials.map((s) => {
@@ -149,22 +165,6 @@ export function MobileMenu({ id, open, items, active, firstLinkRef, onNavigate }
               })}
             </ul>
           ) : null}
-          <NeonButton
-            href={siteConfig.whatsappUrl}
-            external
-            variant="magenta"
-            size="lg"
-            className="w-full"
-            icon={<WhatsAppIcon size={20} />}
-            event="whatsapp_click"
-            eventParams={{ source: "mobile_menu" }}
-            aria-label="Falar com BetoBrizz no WhatsApp (abre em nova aba)"
-          >
-            Falar no WhatsApp
-          </NeonButton>
-          <p className="hud text-center text-[0.65rem] text-mute">
-            WhatsApp <span className="text-white tabular-nums">{siteConfig.whatsappDisplay}</span>
-          </p>
         </div>
       </nav>
     </div>

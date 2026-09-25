@@ -70,7 +70,7 @@ export function CTA() {
 
         {/* ---------- Conteúdo ---------- */}
         <div className="flex min-w-0 flex-col gap-8 lg:order-1">
-          <SectionHeading id="contato-title" kicker="Turn up the moment" title="Vamos criar essa experiência?" accent="magenta" />
+          <SectionHeading id="contato-title" kicker="Turn up the moment" kickerLang="en" title="Vamos criar essa experiência?" accent="magenta" />
 
           <Reveal>
             <p className="max-w-xl text-lg leading-relaxed text-pretty text-mute sm:text-xl">

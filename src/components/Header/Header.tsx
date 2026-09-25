@@ -58,7 +58,10 @@ export function Header() {
   const firstLinkRef = useRef<HTMLAnchorElement>(null);
   const unlockRef = useRef<(() => void) | null>(null);
 
-  // Menu aberto: trava a rolagem da página (compensando a largura da barra de rolagem).
+  // Menu aberto: trava a rolagem da página (compensando a largura da barra de rolagem)
+  // e esconde o resto da página dos leitores de tela (o menu cobre a tela toda).
+  // aria-hidden em vez de `inert`: inert custa ~100ms de recálculo de estilo por abertura em
+  // celulares fracos; o foco já fica preso no header pelo trap de Tab abaixo.
   useEffect(() => {
     if (!open) return;
     const html = document.documentElement;
@@ -68,9 +71,21 @@ export function Header() {
     const prevPadding = body.style.paddingRight;
     html.style.overflow = "hidden";
     if (gap > 0) body.style.paddingRight = `${gap}px`;
+    const header = headerRef.current;
+    const hidden = Array.from(body.children).filter(
+      (el): el is HTMLElement =>
+        el instanceof HTMLElement &&
+        !(header && el.contains(header)) &&
+        !(el instanceof HTMLScriptElement) &&
+        el.tagName !== "NEXT-ROUTE-ANNOUNCER" &&
+        !el.hasAttribute("aria-hidden") &&
+        !el.inert,
+    );
+    hidden.forEach((el) => el.setAttribute("aria-hidden", "true"));
     const unlock = () => {
       html.style.overflow = prevOverflow;
       body.style.paddingRight = prevPadding;
+      hidden.forEach((el) => el.removeAttribute("aria-hidden"));
       unlockRef.current = null;
     };
     unlockRef.current = unlock;

@@ -75,6 +75,7 @@ export function Sets() {
             id="sets-title"
             kicker="09 // SETS"
             title="LISTEN TO THE MIX."
+            lang="en"
             subtitle="Direto do SoundCloud"
             accent="cyan"
             className="lg:col-span-7"
@@ -83,7 +84,7 @@ export function Sets() {
             <p className="max-w-md text-lg text-balance text-white">
               Sinta a vibe antes da festa: sets e mixes do {siteConfig.soundcloudName}.
             </p>
-            <p className="mt-2 max-w-md text-sm text-pretty text-mute">O player só carrega quando você aperta ▶ — nada toca sozinho.</p>
+            <p className="mt-2 max-w-md text-sm text-pretty text-mute">O player só carrega quando você aperta ▶︎&#xFE0E; — nada toca sozinho.</p>
             <NeonButton
               href={siteConfig.soundcloud}
               external

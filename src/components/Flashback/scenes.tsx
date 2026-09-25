@@ -339,7 +339,7 @@ function Mp3Player({ year }: { year: string }) {
   return (
     <div className={styles.mp3}>
       <div className={styles.mp3Screen}>
-        <span className={styles.mp3Line}>▶ NOW PLAYING</span>
+        <span className={styles.mp3Line}>▶︎ NOW PLAYING</span>
         <span className={styles.mp3Title}>{year} HITS</span>
         <span className={styles.mp3Eq}>
           {EQ_LEVELS.map((h, i) => (
@@ -350,9 +350,9 @@ function Mp3Player({ year }: { year: string }) {
       </div>
       <div className={styles.wheel}>
         <span className={cn(styles.wheelLabel, "top-[7%] left-1/2 -translate-x-1/2")}>MENU</span>
-        <span className={cn(styles.wheelLabel, "top-1/2 left-[9%] -translate-y-1/2")}>◀◀</span>
-        <span className={cn(styles.wheelLabel, "top-1/2 right-[9%] -translate-y-1/2")}>▶▶</span>
-        <span className={cn(styles.wheelLabel, "bottom-[7%] left-1/2 -translate-x-1/2")}>▶❚❚</span>
+        <span className={cn(styles.wheelLabel, "top-1/2 left-[9%] -translate-y-1/2")}>◀︎◀︎</span>
+        <span className={cn(styles.wheelLabel, "top-1/2 right-[9%] -translate-y-1/2")}>▶︎▶︎</span>
+        <span className={cn(styles.wheelLabel, "bottom-[7%] left-1/2 -translate-x-1/2")}>▶︎❚❚</span>
         <span className={styles.wheelBtn} />
       </div>
     </div>

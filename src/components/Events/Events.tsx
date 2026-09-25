@@ -2,7 +2,7 @@ import type { CSSProperties } from "react";
 import Image from "next/image";
 import { events } from "@/data/events";
 import { phrases } from "@/data/content";
-import type { EventItem } from "@/data/types";
+import type { EventItem, Photo } from "@/data/types";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Reveal } from "@/components/ui/Reveal";
 import { cn, getImageMeta } from "@/lib/utils";
@@ -25,6 +25,17 @@ const CONTAINER_PX = 1216;
 type Tile = { item: EventItem; index: number; ratio: number; weight: number; mobileRatio: number };
 /** `sum` = soma dos pesos (largura relativa) · `natural` = soma das proporções reais (altura da fileira). */
 type Row = { tiles: Tile[]; sum: number; natural: number };
+
+/**
+ * Ponto focal do recorte (object-position) das fotos que o centro corta mal. Um retrato numa
+ * fileira limitada por max-h perde ~35% da altura: centrado, cortava a cabeça e o HUD caía no
+ * rosto. `image.position` em data/events.ts, quando existir, tem prioridade.
+ */
+const FOCAL: Record<string, string> = {
+  "/images/events/betobrizz-controladora.webp": "50% 8%",
+};
+const focalPoint = (image: Photo): string | undefined =>
+  (image as Photo & { position?: string }).position ?? FOCAL[image.src];
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
 const total = (tiles: Tile[], key: "ratio" | "weight") => tiles.reduce((acc, t) => acc + t[key], 0);
@@ -89,6 +100,7 @@ function EventTile({ tile, rowSum, total }: { tile: Tile; rowSum: number; total:
   const highlighted = Boolean(item.title);
   const kicker = highlighted ? ["Evento destacado", item.type].filter(Boolean).join(" · ") : undefined;
   const big = highlighted || item.featured;
+  const focal = focalPoint(item.image);
 
   const style = {
     "--m-ar": mobileRatio,
@@ -97,6 +109,8 @@ function EventTile({ tile, rowSum, total }: { tile: Tile; rowSum: number; total:
     // Placeholder: a miniatura (12px) ampliada pelo navegador já fica desfocada — sem o SVG
     // com feGaussianBlur do placeholder="blur", caro de pintar na rolagem em celular.
     ...(meta.blurDataURL ? { backgroundImage: `url("${meta.blurDataURL}")` } : {}),
+    // o placeholder segue o mesmo recorte da foto
+    ...(focal ? { backgroundPosition: focal } : {}),
   } as CSSProperties;
 
   return (
@@ -115,6 +129,8 @@ function EventTile({ tile, rowSum, total }: { tile: Tile; rowSum: number; total:
         fill
         sizes={sizes}
         quality={60}
+        // o zoom do hover (modo completo) parte do mesmo ponto: o rosto não sai do quadro
+        style={focal ? { objectPosition: focal, transformOrigin: focal } : undefined}
         className={cn(styles.img, "object-cover")}
       />
 

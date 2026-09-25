@@ -1,5 +1,5 @@
 import type { VideoItem } from "@/data/types";
-import { safeExternalUrl } from "@/lib/utils";
+import { getImageMeta, safeExternalUrl } from "@/lib/utils";
 
 /** Como o vídeo é reproduzido depois do clique na capa (facade). */
 export type VideoSource =
@@ -69,6 +69,20 @@ export function resolveVideoPoster(item: VideoItem): VideoPoster {
     return { kind: "plain", src: `https://i.ytimg.com/vi/${item.id.trim()}/hqdefault.jpg` };
   }
   return { kind: "none" };
+}
+
+/**
+ * Vertical (9:16, gravado no celular) ou horizontal. Usa `item.orientation`; sem ele,
+ * detecta pelas dimensões da capa (image-meta). Sem capa conhecida → horizontal.
+ */
+export function videoOrientation(item: VideoItem): "landscape" | "portrait" {
+  if (item.orientation) return item.orientation;
+  const poster = item.poster?.trim();
+  if (poster && poster.startsWith("/images/")) {
+    const { width, height } = getImageMeta(poster);
+    if (height > width) return "portrait";
+  }
+  return "landscape";
 }
 
 /** Rótulo curto da plataforma para o HUD do card. */

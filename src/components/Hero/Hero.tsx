@@ -10,6 +10,9 @@ import styles from "./Hero.module.css";
 
 const corner = "absolute h-4 w-4 border-white/35 sm:h-5 sm:w-5";
 
+/** ▶ + VS15 (U+FE0E): força a apresentação em texto — sem isso o iOS/macOS pode pintar o emoji colorido. */
+const PLAY = "▶︎";
+
 /**
  * Moldura de monitor de VJ (continua a do Loader): cantos, REC, canal/local e timecode. Decorativa.
  * A base da moldura "pousa" sobre o piso de LED (HeroBottom) em vez de cruzar as barras.
@@ -22,7 +25,7 @@ function HeroHud() {
     >
       <span className={cn(corner, "top-0 left-0 border-t border-l")} />
       <span className={cn(corner, "top-0 right-0 border-t border-r")} />
-      <span className={cn(corner, "bottom-0 left-0 border-b border-l")} />
+      <span className={cn(corner, "bottom-0 left-0 border-b border-l md:hidden")} />
       <span className={cn(corner, "right-0 bottom-0 border-r border-b")} />
 
       <div className="hud absolute top-0 left-6 flex -translate-y-1/2 items-center gap-3 text-[0.62rem] text-white/75 sm:left-8">
@@ -36,7 +39,7 @@ function HeroHud() {
       </div>
 
       <div className="vhs absolute top-0 right-6 flex -translate-y-1/2 items-center gap-2 text-base text-white/80 sm:right-8 sm:text-lg">
-        <span>PLAY ▶</span>
+        <span>PLAY {PLAY}</span>
         <HeroTimecode />
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { siteConfig } from "@/config/site";
-import { gallery } from "@/data/gallery";
+import { photoAlt } from "@/data/gallery";
 import { NeonButton } from "@/components/ui/NeonButton";
 import { InstagramIcon } from "@/components/ui/Icons";
 import { Reveal } from "@/components/ui/Reveal";
@@ -10,7 +10,7 @@ import { ReelCard } from "./ReelCard";
 const CROWD_SRC = "/images/events/betobrizz-pista-magenta.webp";
 const CROWD_POSTER = {
   src: CROWD_SRC,
-  alt: gallery.find((p) => p.src === CROWD_SRC)?.alt ?? "Pista cheia vista do palco",
+  alt: photoAlt(CROWD_SRC) ?? "Pista cheia vista do palco",
 };
 
 /**
@@ -41,7 +41,8 @@ export function VideosShowcase({ videos = [] }: { videos?: CrtVideo[] }) {
               <span aria-hidden className="h-px w-8 bg-magenta shadow-neon-magenta" />
               Vídeos // Instagram
             </p>
-            <p className="mt-4 font-display text-xl leading-snug font-bold text-balance text-white uppercase sm:text-2xl">
+            {/* O til da Orbitron parece crase (Õ → Ò): texto com "apresentações" usa a fonte HUD. */}
+            <p className="mt-4 font-hud text-2xl leading-snug font-bold tracking-[0.04em] text-balance text-white uppercase sm:text-3xl">
               {hasVideos ? "Mais vídeos das apresentações no Instagram." : "Os vídeos das apresentações estão no Instagram."}
             </p>
             <p className="mt-3 text-base text-pretty text-mute">

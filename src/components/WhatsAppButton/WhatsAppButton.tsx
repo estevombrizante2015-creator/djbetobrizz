@@ -27,7 +27,7 @@ export function WhatsAppButton() {
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="Falar com BetoBrizz no WhatsApp"
+        aria-label="Falar com BetoBrizz no WhatsApp (abre em nova aba)"
         onClick={() => track("whatsapp_click", { source: "floating" })}
         className={cn(
           "group relative flex size-14 items-center justify-center rounded-full border border-magenta/60 bg-void/90",

@@ -126,6 +126,7 @@ export function TheExperience() {
               id="the-experience-title"
               kicker="// O conceito"
               title="The Experience"
+              lang="en"
               subtitle={siteConfig.experienceName}
               accent="cyan"
             />
@@ -167,7 +168,9 @@ export function TheExperience() {
 
 /**
  * Faixa com a frase — o knob da marca separa as frases.
- * Modo completo: loop contínuo (a 2ª metade repete a 1ª). Modo leve: parada, só a 1ª metade.
+ * Modo completo: loop contínuo (a 2ª metade repete a 1ª).
+ * Fora do modo completo (equilibrado/leve): faixa parada que mostra só a frase principal,
+ * centralizada e dimensionada para caber inteira (o sr-only mantém as duas frases).
  */
 function Marquee() {
   return (
@@ -180,16 +183,17 @@ function Marquee() {
           {[0, 1].map((half) => (
             <div key={half} className={cn("flex shrink-0 items-center", half === 1 && "fx-full-only")}>
               {marqueeRun.map((text, i) => (
-                <span key={`${half}-${i}`} className="flex items-center">
+                <span key={`${half}-${i}`} className={cn("flex items-center", styles.marqueeItem)}>
                   <span
                     className={cn(
                       "px-5 font-display text-[clamp(1.6rem,4.6vw,3.75rem)] leading-none font-black tracking-tight whitespace-nowrap uppercase sm:px-9",
                       i % 2 === 0 ? "text-white" : "text-outline",
+                      styles.marqueeText,
                     )}
                   >
                     {text}
                   </span>
-                  <KnobIcon size={30} className="shrink-0 text-red" />
+                  <KnobIcon size={30} className={cn("shrink-0 text-red", styles.marqueeKnob)} />
                 </span>
               ))}
             </div>
@@ -313,7 +317,7 @@ function CrtVisual() {
       <div className={styles.roll} />
       <div className="absolute inset-0 shadow-[inset_0_0_28px_8px_rgb(0_0_0/0.75)]" />
       <span className="vhs absolute top-1.5 left-3 text-base text-white">CH 02</span>
-      <span className="vhs absolute top-1.5 right-3 text-base text-white">▶ Play</span>
+      <span className="vhs absolute top-1.5 right-3 text-base text-white">▶︎ Play</span>
     </div>
   );
 }

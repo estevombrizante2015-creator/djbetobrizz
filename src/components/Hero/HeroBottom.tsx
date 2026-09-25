@@ -68,7 +68,7 @@ export function HeroBottom() {
     <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex flex-col items-center">
       <a
         href="#sobre"
-        className="hud group pointer-events-auto mb-2 flex flex-col items-center gap-2 rounded-md px-3 py-1.5 text-[0.65rem] text-white/80 transition-colors hover:text-white sm:mb-3 sm:text-[0.7rem] lg:mb-4 lg:flex-row-reverse lg:gap-3 [@media(max-height:500px)]:mb-1 [@media(max-height:500px)]:flex-row-reverse [@media(max-height:500px)]:gap-3"
+        className={`${styles.scrollCue} hud group pointer-events-auto mb-2 flex flex-col items-center gap-2 rounded-md px-3 py-1.5 text-[0.65rem] text-white/80 transition-colors hover:text-white sm:mb-3 sm:text-[0.7rem] lg:mb-4 lg:flex-row-reverse lg:gap-3 [@media(max-height:500px)]:mb-1 [@media(max-height:500px)]:flex-row-reverse [@media(max-height:500px)]:gap-3`}
       >
         <span lang="en">Scroll to enter the experience</span>
         <span

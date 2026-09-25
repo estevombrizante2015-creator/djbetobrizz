@@ -22,7 +22,7 @@ export function Flashback() {
           accent="magenta"
         />
         <p aria-hidden className="vhs flex items-center gap-3 text-xl text-white/80 md:pb-3 md:text-2xl">
-          <span className="text-magenta">◀◀</span> REW
+          <span className="text-magenta">◀︎◀︎</span> REW
           <span className="text-white/40">{first}</span>
           <span className="h-px w-10 bg-white/25" />
           <span className="text-white/40">{last}</span>

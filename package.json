@@ -9,7 +9,8 @@
     "lint": "eslint",
     "images": "node scripts/process-images.mjs",
     "typecheck": "tsc --noEmit",
-    "audio": "node scripts/process-audio.mjs"
+    "audio": "node scripts/process-audio.mjs",
+    "videos": "node scripts/process-videos.mjs"
   },
   "dependencies": {
     "motion": "^13.4.4",

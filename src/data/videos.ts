@@ -17,4 +17,26 @@ export const videos: VideoItem[] = [
     id: "/videos/betobrizz-intro.mp4",
     poster: "/images/art/betobrizz-intro-poster.webp",
   },
+  // Trabalho de VJ — vídeos verticais (gravados no celular), processados por `npm run videos`
+  {
+    title: "Valsa no telão",
+    subtitle: "Cenário de inverno nos telões de LED",
+    platform: "file",
+    id: "/videos/betobrizz-vj-telao.mp4",
+    poster: "/images/art/betobrizz-vj-telao-poster.webp",
+  },
+  {
+    title: "Telões personalizados",
+    subtitle: "Arte do evento nos painéis de LED",
+    platform: "file",
+    id: "/videos/betobrizz-vj-telao-2.mp4",
+    poster: "/images/art/betobrizz-vj-telao-2-poster.webp",
+  },
+  {
+    title: "Visuais ao vivo",
+    subtitle: "Conteúdo sincronizado no telão principal",
+    platform: "file",
+    id: "/videos/betobrizz-vj-telao-3.mp4",
+    poster: "/images/art/betobrizz-vj-telao-3-poster.webp",
+  },
 ];

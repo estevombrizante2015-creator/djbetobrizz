@@ -11,17 +11,8 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
-import {
-  AnimatePresence,
-  animate,
-  m,
-  useDragControls,
-  useMotionValue,
-  type DragControls,
-  type MotionValue,
-  type PanInfo,
-  type Variants,
-} from "motion/react";
+import { AnimatePresence, animate, useDragControls, useMotionValue, type DragControls, type MotionValue, type PanInfo, type Variants } from "motion/react";
+import * as m from "motion/react-m";
 import type { Photo } from "@/data/types";
 import { cn, getImageMeta } from "@/lib/utils";
 import { ease } from "@/lib/animations";
@@ -300,7 +291,7 @@ export function Lightbox({ photos, startIndex, onClose, returnFocus }: Props) {
         </div>
         <div className="flex items-center gap-2">
           <ControlButton
-            label={zoomed ? "Reduzir zoom" : "Ampliar foto"}
+            label="Ampliar foto"
             pressed={zoomed}
             onClick={() => setZoom(!zoomed)}
           >

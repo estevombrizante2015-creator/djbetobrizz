@@ -23,7 +23,9 @@ type Props = {
   boost?: number;
 };
 
-/** Cores (de baixo para cima) como variáveis CSS do tema, com fallback. */
+/** Cores (de baixo para cima): variável CSS do tema + hex. O SVG estático usa a variável; o canvas
+ *  usa o hex direto (sem getComputedStyle, que forçaria recalc de estilo no mount).
+ *  IMPORTANTE: manter os hex em sincronia com os tokens @theme de src/app/globals.css. */
 const PALETTES: Record<Palette, Array<[string, string]>> = {
   neon: [
     ["--color-cyan", "#00e5ff"],
@@ -45,6 +47,23 @@ const GAP_RATIO = 0.28; // espaço entre barras, em fração da largura de uma b
 const FRAME_MS = 33; // ~30 fps é suficiente para o efeito e metade do custo
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
+
+/** Posição do scroll compartilhada por todas as instâncias: um único listener passivo, ativo só
+ *  enquanto algum visualizer anima. Evita ler window.scrollY (que pode forçar recalc) a cada frame. */
+let sharedScrollY = 0;
+let scrollUsers = 0;
+const onSharedScroll = () => {
+  sharedScrollY = window.scrollY;
+};
+function subscribeScroll() {
+  if (scrollUsers++ === 0) {
+    sharedScrollY = window.scrollY;
+    window.addEventListener("scroll", onSharedScroll, { passive: true });
+  }
+}
+function unsubscribeScroll() {
+  if (--scrollUsers === 0) window.removeEventListener("scroll", onSharedScroll);
+}
 
 /** Todas as barras estáticas num único path (um nó de DOM em vez de N <rect>). Arredondado para
  *  evitar mismatch de hidratação (Math.sin difere nas últimas casas entre Node e navegador). */
@@ -98,18 +117,23 @@ export function Visualizer({
     const ctx = canvas?.getContext("2d", { alpha: true });
     if (!wrap || !canvas || !ctx) return;
 
-    const css = getComputedStyle(document.documentElement);
-    const colors = PALETTES[palette].map(([v, fallback]) => css.getPropertyValue(v).trim() || fallback);
+    // Hex fixos (em sincronia com os tokens @theme de globals.css): nada de getComputedStyle aqui,
+    // que forçaria recalc de estilo/layout síncrono — inclusive destravando seções content-visibility.
+    const colors = PALETTES[palette].map(([, hex]) => hex);
     const seeds = Array.from({ length: bars }, (_, i) => 0.6 + ((i * 7919) % 97) / 97);
     const gain = intensity === 2 ? 1.35 : 1;
 
     let w = 0;
     let h = 0;
     let fill: CanvasGradient | string = colors[0];
-    const resize = () => {
+    // Tamanho vem do contentRect do ResizeObserver (entregue após o layout do próprio navegador),
+    // sem leitura síncrona de clientWidth/clientHeight no mount.
+    const resize = (entries: ResizeObserverEntry[]) => {
+      const box = entries[entries.length - 1]?.contentRect;
+      if (!box) return;
       const dpr = Math.min(1.5, window.devicePixelRatio || 1);
-      w = wrap.clientWidth;
-      h = wrap.clientHeight;
+      w = box.width;
+      h = box.height;
       canvas.width = Math.max(1, Math.round(w * dpr));
       canvas.height = Math.max(1, Math.round(h * dpr));
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -119,13 +143,12 @@ export function Visualizer({
     };
     const ro = new ResizeObserver(resize);
     ro.observe(wrap);
-    resize();
 
     let raf = 0;
     let running = false;
     let visible = false;
     let last = 0;
-    let lastY = window.scrollY;
+    let lastY = 0; // definido em start(), antes do primeiro frame
     let energy = 0;
     const levels = new Float32Array(bars);
 
@@ -133,8 +156,9 @@ export function Visualizer({
       raf = requestAnimationFrame(draw);
       if (t - last < FRAME_MS) return;
       last = t;
-      // Velocidade do scroll lida no próprio frame (sem listener de scroll por instância)
-      const y = window.scrollY;
+      if (!w || !h) return; // ainda sem tamanho (o ResizeObserver não entregou) ou oculto
+      // Velocidade do scroll a partir da posição compartilhada (um listener para todas as instâncias)
+      const y = sharedScrollY;
       energy = Math.min(1, energy * 0.9 + Math.abs(y - lastY) / 400);
       lastY = y;
       const live = readLevels(levels);
@@ -164,13 +188,15 @@ export function Visualizer({
     const start = () => {
       if (running) return;
       running = true;
-      lastY = window.scrollY;
+      subscribeScroll();
+      lastY = sharedScrollY;
       raf = requestAnimationFrame(draw);
     };
     const stop = () => {
       if (!running) return;
       running = false;
       cancelAnimationFrame(raf);
+      unsubscribeScroll();
     };
     const sync = () => (visible && !document.hidden ? start() : stop());
 

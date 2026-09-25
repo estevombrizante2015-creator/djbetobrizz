@@ -49,12 +49,12 @@ export function Rows({
   ));
 }
 
-/** Aspas decorativas à esquerda (só em telas bem largas). */
+/** Aspas decorativas à esquerda (só a partir de 1600px — abaixo disso colidem com a barra FOLLOW fixa). */
 export function QuoteMark() {
   return (
     <span
       aria-hidden
-      className="text-glow-magenta pointer-events-none absolute hidden -top-[0.28em] -left-[0.08em] font-display text-[clamp(4rem,14vw,11rem)] leading-none text-magenta/80 select-none min-[1400px]:block"
+      className="text-glow-magenta pointer-events-none absolute hidden -top-[0.28em] -left-[0.08em] font-display text-[clamp(4rem,14vw,11rem)] leading-none text-magenta/80 select-none min-[1600px]:block"
       style={{ transform: "translateX(-100%)" }}
     >
       “

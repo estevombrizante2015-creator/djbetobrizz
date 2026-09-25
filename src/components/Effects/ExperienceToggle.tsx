@@ -2,7 +2,8 @@
 
 import { useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, m } from "motion/react";
+import { AnimatePresence } from "motion/react";
+import * as m from "motion/react-m";
 import { useExperience } from "./ExperienceContext";
 import { cn } from "@/lib/utils";
 import styles from "./ExperienceToggle.module.css";
@@ -24,7 +25,8 @@ type Props = {
 /**
  * Botão "ENTER EXPERIENCE" (§49): liga/desliga o Experience Mode.
  * Nunca toca áudio — apenas intensifica visualizer, partículas e luzes.
- * Nome acessível fixo ("Experience mode") + aria-pressed; o texto visível troca de estado.
+ * Nome acessível fixo ("Enter experience", igual ao rótulo visível padrão — WCAG 2.5.3) + aria-pressed;
+ * o texto visível troca de estado ("Experience on" = aria-pressed true).
  */
 export function ExperienceToggle({ className, labelClassName, size = "sm", withOverlay = true }: Props) {
   const { experienceMode, toggleExperience, reducedMotion } = useExperience();
@@ -48,7 +50,7 @@ export function ExperienceToggle({ className, labelClassName, size = "sm", withO
         )}
       >
         <EqGlyph active={experienceMode} animated={experienceMode && !reducedMotion} />
-        <span className="sr-only">Experience mode</span>
+        <span className="sr-only">Enter experience</span>
         {/* Os dois rótulos ocupam a mesma célula: a largura do botão não muda ao alternar. */}
         <span aria-hidden className={cn("grid", labelClassName)}>
           <span className={cn("whitespace-nowrap [grid-area:1/1]", experienceMode && "invisible")}>Enter experience</span>

@@ -22,7 +22,7 @@ export function MusicStyles() {
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between md:gap-10">
           <SectionHeading id="estilos-title" kicker="03 // ESTILOS" title="QUAL É A SUA VIBE?" accent="cyan" />
           <p className="max-w-xs text-mute md:pb-2 md:text-right">
-            <span className="hud mb-2 block text-cyan">Select your record</span>
+            <span lang="en" className="hud mb-2 block text-cyan">Select your record</span>
             Escolha o disco. Repertório ajustado para cada evento.
           </p>
         </div>

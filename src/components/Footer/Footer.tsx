@@ -13,7 +13,7 @@ const COPYRIGHT_YEAR = 2026;
 /**
  * Footer minimalista (§27): logo, DJ & VJ, redes, localização e copyright.
  * Uma linha de spectrum abre o rodapé e o nome gigante em contorno fecha a "apresentação"
- * (e ainda reserva espaço para o botão flutuante do WhatsApp no mobile).
+ * (e ainda reserva espaço para os controles flutuantes de SOM e WhatsApp em todas as larguras).
  */
 export function Footer() {
   const links = socialLinks
@@ -117,7 +117,7 @@ export function Footer() {
         </div>
 
         {/* ---------- Nome gigante: BETO sólido + BRIZZ em contorno (como no logo) ---------- */}
-        <div aria-hidden className="@container pointer-events-none mt-12 pb-24 select-none sm:mt-10 sm:pb-12">
+        <div aria-hidden className="@container pointer-events-none mt-12 pb-[calc(env(safe-area-inset-bottom)+6rem)] select-none sm:mt-10">
           <p className="text-center font-display text-[11.4cqi] leading-none font-black tracking-[-0.01em] whitespace-nowrap uppercase">
             <span className="text-white/[0.07]">Beto</span>
             <span className="text-transparent [-webkit-text-stroke:1px_rgb(255_255_255/0.16)]">Brizz</span>

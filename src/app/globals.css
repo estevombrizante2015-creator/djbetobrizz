@@ -93,7 +93,9 @@
     color-scheme: dark;
     background: var(--color-void);
     scroll-behavior: smooth;
-    scroll-padding-top: 5rem;
+    /* header fixo (~84px) + faixa da waveform; embaixo, o player e o WhatsApp flutuantes */
+    scroll-padding-top: 6rem;
+    scroll-padding-bottom: 5.5rem;
     -webkit-tap-highlight-color: transparent;
   }
 
@@ -102,6 +104,8 @@
     color: var(--color-white);
     font-family: var(--font-sans);
     text-rendering: optimizeLegibility;
+    /* ▶ ◀ ⏏ etc. sempre como texto — nunca emoji colorido (decisão do cliente: sem emojis) */
+    font-variant-emoji: text;
     overflow-x: clip;
   }
 
@@ -346,6 +350,18 @@ html[data-perf="lite"] .glitch::after {
 @utility cv-auto {
   content-visibility: auto;
   contain-intrinsic-size: auto 900px;
+}
+
+/* Durante um salto por âncora (AnchorNavigation.tsx) todas as seções renderizam de verdade, para o
+   destino ser calculado com as alturas reais. Fora de qualquer @layer de propósito: precisa vencer
+   o utilitário acima (camada utilities). */
+html.cv-off .cv-auto {
+  content-visibility: visible;
+}
+/* Página aberta com #âncora: salto inicial instantâneo até o AnchorNavigation corrigir a posição
+   (a rolagem suave nativa mira o alvo calculado com as seções ainda no tamanho provisório). */
+html[data-hash-jump] {
+  scroll-behavior: auto;
 }
 
 /* Elementos só para o modo completo / só para o leve */

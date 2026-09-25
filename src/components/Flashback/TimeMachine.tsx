@@ -1,14 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type RefObject } from "react";
-import {
-  AnimatePresence,
-  m,
-  useMotionValueEvent,
-  useScroll,
-  useTransform,
-  type MotionValue,
-} from "motion/react";
+import { AnimatePresence, useMotionValueEvent, useScroll, useTransform, type MotionValue } from "motion/react";
+import * as m from "motion/react-m";
 import type { decades as decadesData } from "@/data/content";
 import { useExperience } from "@/components/Effects/ExperienceContext";
 import { ArrowDownIcon } from "@/components/ui/Icons";
@@ -131,7 +125,7 @@ export function TimeMachine({ decades }: { decades: Decade[] }) {
           <div className={styles.info}>
             <p className="hud flex items-center gap-3 text-white/85">
               <span aria-hidden className={cn("size-2 rounded-full bg-red shadow-neon-red", fx && "animate-rec")} />
-              Time machine
+              <span lang="en">Time machine</span>
               <span aria-hidden className="text-white/30">
                 {"//"}
               </span>
@@ -235,7 +229,7 @@ export function TimeMachine({ decades }: { decades: Decade[] }) {
                 <>
                   <button type="button" onClick={() => step(-1)} className={deckBtn}>
                     <span aria-hidden className="text-(--acc)">
-                      ◀◀
+                      ◀︎◀︎
                     </span>
                     REW
                     <span className="sr-only"> (década anterior)</span>
@@ -244,7 +238,7 @@ export function TimeMachine({ decades }: { decades: Decade[] }) {
                     FF
                     <span className="sr-only"> (próxima década)</span>
                     <span aria-hidden className="text-(--acc)">
-                      ▶▶
+                      ▶︎▶︎
                     </span>
                   </button>
                 </>

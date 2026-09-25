@@ -51,7 +51,7 @@ export function VhsOverlay({ mode = "PLAY", track = "TRACK 04", start = 92, clas
         <span className="flex items-center gap-2">
           {mode === "REC" ? <span className="animate-rec text-red">●</span> : null}
           {mode}
-          {mode === "PLAY" ? <span>▶</span> : null}
+          {mode === "PLAY" ? <span>▶︎</span> : null}
         </span>
         <span className="flex items-center gap-2">
           <span className="animate-rec text-red">●</span> REC

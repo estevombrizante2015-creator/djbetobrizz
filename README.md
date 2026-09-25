@@ -50,6 +50,11 @@ O logo transparente é gerado por `python scripts/process_logo.py`.
 { title: "Festa Flashback", subtitle: "Mogi Guaçu - SP", platform: "youtube", id: "ID_DO_VIDEO" }
 ```
 
+Vídeos gravados no celular (verticais) aparecem sozinhos na faixa **"VJ // TELÕES"** em molduras 9:16;
+horizontais vão para o telão. Para vídeos próprios: coloque o arquivo em `trabalho/`, adicione-o em
+`scripts/process-videos.mjs` e rode `FFMPEG="<caminho>" npm run videos` (converte para 30 fps / ~1,2 Mbps
+e gera a capa) e depois `npm run images`. Nenhum vídeo baixa antes do visitante apertar ▶.
+
 ### Adicionando um set
 
 ```ts

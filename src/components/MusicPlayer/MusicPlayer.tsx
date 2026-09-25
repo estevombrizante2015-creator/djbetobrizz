@@ -3,7 +3,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 import Image from "next/image";
 import { playlist } from "@/data/music";
-import { autoStartMusic, getMusicState, getServerMusicState, next, subscribeMusic, toggle } from "@/lib/audio-engine";
+import { autoStartMusic, getMusicState, getServerMusicState, next, pause, play, subscribeMusic } from "@/lib/audio-engine";
 import { track as trackEvent } from "@/lib/analytics";
 import { NextIcon, PauseIcon, PlayIcon } from "@/components/ui/Icons";
 import { cn } from "@/lib/utils";
@@ -30,7 +30,9 @@ export function MusicPlayer() {
   if (!playlist.length) return null;
 
   const { enabled, playing, loading, blocked, track } = music;
-  const active = enabled; // o botão aparece "ligado" enquanto a intenção for som ligado
+  // Estado real do som (não a intenção): com o autoplay bloqueado o botão mostra "Tocar", e um toque
+  // nele chama play() dentro do gesto (liga o analisador e a música começa). `enabled` só arma a borda.
+  const active = playing || loading;
 
   const subtitle = blocked ? "Toque para ouvir" : loading && !playing ? "Carregando…" : track?.artist;
 
@@ -49,17 +51,17 @@ export function MusicPlayer() {
       <div
         className={cn(
           "flex h-14 max-w-[calc(100vw-6.5rem)] items-center gap-2 rounded-full border bg-void/92 p-1.5 text-white md:max-w-[22rem]",
-          active ? "border-magenta/70 shadow-[0_0_26px_-8px_rgb(255_20_147/0.8)]" : "border-line-strong",
+          enabled ? "border-magenta/70 shadow-[0_0_26px_-8px_rgb(255_20_147/0.8)]" : "border-line-strong",
         )}
       >
         <button
           type="button"
           onClick={() => {
             trackEvent("music_toggle", { action: active ? "pause" : "play", title: track?.title });
-            toggle();
+            if (active) pause();
+            else void play();
           }}
           aria-label={active ? "Pausar a música de fundo" : "Tocar a música de fundo"}
-          aria-pressed={active}
           className="relative grid size-11 shrink-0 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-magenta to-red"
         >
           {track?.cover ? (
@@ -73,9 +75,11 @@ export function MusicPlayer() {
             />
           ) : null}
           <span className="relative">{active ? <PauseIcon size={18} /> : <PlayIcon size={18} />}</span>
+          {/* Som ligado mas bloqueado pelo navegador: anel pulsando chamando o toque (parado no lite) */}
+          {blocked ? <span aria-hidden className="absolute inset-0 animate-pulse-glow rounded-full ring-2 ring-cyan/80" /> : null}
         </button>
 
-        {/* Equalizador (CSS; parado quando desligado e no nível lite) */}
+        {/* Equalizador (CSS): anima com o som LIGADO — o player abre "vivo"; parado no nível lite */}
         <span aria-hidden className="flex h-5 shrink-0 items-end gap-[3px]">
           {[0, 1, 2, 3].map((i) => (
             <span
@@ -84,7 +88,7 @@ export function MusicPlayer() {
               style={{
                 animationDelay: `${i * -0.27}s`,
                 animationDuration: `${0.9 + i * 0.17}s`,
-                animationPlayState: active ? "running" : "paused",
+                animationPlayState: active || enabled ? "running" : "paused",
               }}
             />
           ))}

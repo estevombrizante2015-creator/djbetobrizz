@@ -7,8 +7,8 @@ import styles from "./Gallery.module.css";
 /** Frame circulado com lápis dermatográfico (puramente decorativo). */
 const MARKED_FRAME = 3;
 
-/** 2 colunas no celular · 3 no tablet · 4 no desktop (container de 80rem). */
-const SIZES = "(min-width: 1280px) 290px, (min-width: 1024px) 23vw, (min-width: 640px) 31vw, 47vw";
+/** Colunas: 2 · 3 (640-767) · 4 (768+) (container de 80rem). */
+const SIZES = "(min-width: 1280px) 290px, (min-width: 768px) 23vw, (min-width: 640px) 31vw, 47vw";
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
 
@@ -92,7 +92,7 @@ function Frame({ photo, index }: { photo: Photo; index: number }) {
           {edge}
         </span>
         {photo.caption ? (
-          <span className="min-w-0 truncate font-hud text-[0.62rem] leading-none font-semibold tracking-[0.2em] text-mute uppercase sm:text-[0.66rem]">
+          <span className="min-w-0 truncate pt-[0.25em] font-hud text-[0.62rem] leading-none font-semibold tracking-[0.2em] text-mute uppercase sm:text-[0.66rem]">
             {photo.caption}
           </span>
         ) : null}
@@ -101,10 +101,10 @@ function Frame({ photo, index }: { photo: Photo; index: number }) {
   );
 }
 
-/** Folha de contato: tiras de filme em grade (2 · 3 · 4 colunas). Entrada por CSS (.reveal). */
+/** Folha de contato: tiras de filme em grade (2 · 3 (640-767) · 4 (768+) colunas). Entrada por CSS (.reveal). */
 export function FrameGrid({ photos }: { photos: readonly Photo[] }) {
   return (
-    <ul className="grid grid-cols-2 gap-y-4 sm:grid-cols-3 sm:gap-y-5 lg:grid-cols-4 lg:gap-y-6">
+    <ul className="grid grid-cols-2 gap-y-4 sm:grid-cols-3 sm:gap-y-5 md:grid-cols-4 lg:gap-y-6">
       {photos.map((photo, i) => (
         <li key={`${i}-${photo.src}`} className={cn("reveal relative min-w-0", i % 2 === 1 && "reveal-2")}>
           <Frame photo={photo} index={i} />

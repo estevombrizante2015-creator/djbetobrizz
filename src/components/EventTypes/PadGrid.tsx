@@ -90,7 +90,7 @@ export function PadGrid({ items }: Props) {
                 rel="noopener noreferrer"
                 data-tipo={item.title}
                 aria-label={`${item.title}: verificar disponibilidade no WhatsApp (abre em nova aba)`}
-                className="group relative block h-full rounded-xl outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan"
+                className="group relative block h-full rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-solid focus-visible:outline-cyan"
               >
                 <span
                   style={{ "--i": i } as CSSProperties}

@@ -218,13 +218,28 @@
 
 /* ---------- Faixa da frase ---------- */
 
-/* Pontas esmaecendo no fundo — no modo leve a faixa fica parada, como um letreiro. */
+/* Pontas esmaecendo no fundo (só no modo completo, com o letreiro correndo). */
 .marqueeFade {
   position: absolute;
   inset-block: 0;
   z-index: 1;
   width: 2.5rem;
   pointer-events: none;
+}
+
+/* Fora do modo completo a faixa fica parada: só a frase principal, centralizada e
+   dimensionada para caber inteira (sem pontas esmaecidas nem a 2ª frase cortada). */
+:global(html:not([data-perf="full"])) .marquee {
+  width: 100%;
+  justify-content: center;
+}
+:global(html:not([data-perf="full"])) .marqueeItem:not(:first-child),
+:global(html:not([data-perf="full"])) .marqueeKnob,
+:global(html:not([data-perf="full"])) .marqueeFade {
+  display: none;
+}
+:global(html:not([data-perf="full"])) .marqueeText {
+  font-size: clamp(1.05rem, 6vw, 3.75rem);
 }
 
 :global(html[data-perf="full"]) .marquee {

@@ -12,7 +12,8 @@ const variants: Record<NeonVariant, string> = {
   cyan: "border-cyan text-white hover:bg-cyan hover:text-void hover:shadow-neon-cyan focus-visible:bg-cyan focus-visible:text-void",
   purple:
     "border-purple text-white hover:bg-purple hover:text-white hover:shadow-neon-purple focus-visible:bg-purple",
-  red: "border-red text-white hover:bg-red hover:text-white hover:shadow-neon-red focus-visible:bg-red",
+  // Texto preto sobre o vermelho (~5.5:1); branco sobre #FF2414 fica abaixo de AA (~3.8:1).
+  red: "border-red text-white hover:bg-red hover:text-void hover:shadow-neon-red focus-visible:bg-red focus-visible:text-void",
   white: "border-white/70 text-white hover:bg-white hover:text-void focus-visible:bg-white focus-visible:text-void",
 };
 
@@ -81,6 +82,7 @@ export function NeonButton(props: LinkProps | ButtonProps) {
         {...(props.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
       >
         {content}
+        {props.external && !props["aria-label"] ? <span className="sr-only"> (abre em nova aba)</span> : null}
       </a>
     );
   }

@@ -31,6 +31,11 @@ export type VideoItem = {
   id: string;
   /** Capa (obrigatória para instagram e file; YouTube usa a capa oficial se omitida) */
   poster?: string;
+  /**
+   * Vídeo vertical (celular, 9:16) ou horizontal. Se omitido, é detectado pelas dimensões da capa.
+   * Verticais aparecem na faixa "VJ // TELÕES" em molduras de celular; horizontais no telão.
+   */
+  orientation?: "landscape" | "portrait";
 };
 
 export type SetItem = {
