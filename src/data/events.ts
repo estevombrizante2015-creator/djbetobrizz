@@ -25,19 +25,19 @@ export const events: EventItem[] = [
     type: "Pista cheia",
     image: {
       src: "/images/events/betobrizz-pista-verde.webp",
-      alt: "Vista da cabine do DJ BetoBrizz para o público dançando sob luzes verdes e moving heads",
+      alt: "Vista do palco do DJ BetoBrizz para o público dançando sob luzes verdes e moving heads",
     },
   },
   {
     type: "Palco completo",
     image: {
       src: "/images/events/betobrizz-palco-telas-retro.webp",
-      alt: "Palco com cabine do DJ BetoBrizz, telões em formato de TV retrô, treliça de iluminação e bateria",
+      alt: "Palco do DJ BetoBrizz com telões em formato de TV retrô, treliça de iluminação e bateria",
     },
     featured: true,
   },
   {
-    type: "Na cabine",
+    type: "Mixagem ao vivo",
     image: {
       src: "/images/events/betobrizz-controladora.webp",
       alt: "DJ BetoBrizz mixando em uma controladora Pioneer com fones de ouvido sob luz verde",
@@ -46,8 +46,8 @@ export const events: EventItem[] = [
   {
     type: "Set ao vivo",
     image: {
-      src: "/images/events/betobrizz-cabine-pioneer.webp",
-      alt: "DJ BetoBrizz na cabine com controladora Pioneer e notebook",
+      src: "/images/events/betobrizz-set-pioneer.webp",
+      alt: "DJ BetoBrizz tocando com controladora Pioneer e notebook",
     },
   },
 ];

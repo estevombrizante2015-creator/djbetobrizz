@@ -7,13 +7,39 @@
   --beat: 487.8ms;
   position: fixed;
   inset: 0;
-  z-index: 35; /* acima do conteúdo, abaixo do header (50) e do WhatsApp (40) */
+  z-index: 35; /* acima do conteúdo, abaixo do WhatsApp (40) e do header (50) */
   pointer-events: none;
   overflow: hidden;
   contain: strict;
 }
 
-/* Vinheta que pulsa na batida: ataque rápido, decaimento lento. */
+/* Rig de luz no teto: faixa quente que pisca na batida */
+.ceiling {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 28vh;
+  background:
+    radial-gradient(40% 100% at 0% 0%, rgb(255 20 147 / 0.35), transparent 70%),
+    radial-gradient(40% 100% at 100% 0%, rgb(0 229 255 / 0.3), transparent 70%);
+  opacity: 0.5;
+  animation: beat var(--beat) cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
+  will-change: opacity;
+}
+
+/* Luz batendo no "chão" da pista (a cada 2 batidas) */
+.floor {
+  position: absolute;
+  inset-inline: -10%;
+  bottom: -30vh;
+  height: 55vh;
+  background: radial-gradient(50% 50% at 50% 50%, rgb(255 36 20 / 0.22), rgb(138 43 226 / 0.12) 45%, transparent 72%);
+  opacity: 0.6;
+  animation: beat calc(var(--beat) * 2) cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
+  will-change: opacity;
+}
+
+/* Vinheta que pulsa na batida: ataque rápido, decaimento lento */
 .vignette {
   position: absolute;
   inset: 0;
@@ -28,19 +54,7 @@
   will-change: opacity;
 }
 
-/* Luz batendo no "chão" da pista. */
-.floor {
-  position: absolute;
-  inset-inline: -10%;
-  bottom: -30vh;
-  height: 55vh;
-  background: radial-gradient(50% 50% at 50% 50%, rgb(255 36 20 / 0.22), rgb(138 43 226 / 0.12) 45%, transparent 72%);
-  opacity: 0.6;
-  animation: beat calc(var(--beat) * 2) cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
-  will-change: opacity;
-}
-
-/* Feixe: cunha estreita no topo que abre para baixo, girando a partir do canto. */
+/* Feixe: cunha estreita no topo que abre para baixo, girando a partir do canto */
 .beam {
   position: absolute;
   top: -6vh;
@@ -57,19 +71,23 @@
   animation-direction: alternate;
 }
 
-.left {
+.left,
+.left2 {
   left: -18vmax;
   transform: rotate(-32deg);
   animation-name: sweep-left;
 }
 
-.right {
+.right,
+.right2 {
   right: -18vmax;
   transform: rotate(32deg);
   animation-name: sweep-right;
 }
 
-.slow {
+/* Segundo par: mais lento e defasado — os feixes se cruzam */
+.left2,
+.right2 {
   animation-duration: calc(var(--beat) * 12);
   animation-delay: calc(var(--beat) * -5);
   opacity: 0.22;
@@ -88,19 +106,22 @@
   --beam: rgb(255 36 20 / 0.85);
 }
 
-/* Desktop: luz somando com a cena. */
+/* Desktop: luz somando com a cena */
 .full .beam,
-.full .floor {
+.full .floor,
+.full .ceiling {
   mix-blend-mode: screen;
 }
-.full .beam {
+.full .left,
+.full .right {
   opacity: 0.4;
 }
-.full .slow {
+.full .left2,
+.full .right2 {
   opacity: 0.3;
 }
 
-/* Mobile: mais leve e mais estreito. */
+/* Mobile: mais leve (sem blend, feixes mais largos e fracos) */
 .lite .beam {
   width: 60vmax;
   opacity: 0.2;
@@ -115,17 +136,11 @@
   opacity: 0.32;
 }
 
-/* Reduced motion (ou fallback): pose estática, sem loops. */
-.still .beam,
-.still .vignette,
-.still .floor {
-  animation: none !important;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .beam,
   .vignette,
-  .floor {
+  .floor,
+  .ceiling {
     animation: none !important;
   }
 }

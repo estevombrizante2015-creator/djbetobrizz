@@ -43,14 +43,15 @@ function TypedTitle({ started, reduced }: { started: boolean; reduced: boolean }
     : { duration: count * 0.05, delay: T.title, ease: (t: number) => Math.ceil(t * count) / count };
 
   return (
-    <span aria-hidden className="mt-4 flex items-center justify-center gap-4 sm:mt-5 lg:justify-start">
+    <span className="mt-4 flex items-center justify-center gap-4 sm:mt-5 lg:justify-start">
       <motion.span
+        aria-hidden
         className="h-px w-10 origin-right bg-linear-to-l from-cyan/70 to-transparent sm:w-16 lg:hidden"
         initial={{ scaleX: 0 }}
         animate={{ scaleX: started ? 1 : 0 }}
         transition={reduced ? { duration: 0 } : { duration: 0.5, ease: ease.out, delay: T.line }}
       />
-      <span className="relative font-display text-[clamp(1.6rem,6.4vw,3rem)] leading-none font-black tracking-[0.2em] whitespace-pre">
+      <span className="relative font-display text-[clamp(1.35rem,min(6.4vw,7svh),3rem)] leading-none font-black tracking-[0.2em] whitespace-pre">
         <motion.span
           className="hero-reveal block"
           initial={{ clipPath: CLIP_HIDDEN }}
@@ -65,6 +66,7 @@ function TypedTitle({ started, reduced }: { started: boolean; reduced: boolean }
         </motion.span>
         {reduced ? null : (
           <motion.span
+            aria-hidden
             className="pointer-events-none absolute inset-0"
             initial={{ x: "0%" }}
             animate={{ x: started ? "100%" : "0%" }}
@@ -75,6 +77,7 @@ function TypedTitle({ started, reduced }: { started: boolean; reduced: boolean }
         )}
       </span>
       <motion.span
+        aria-hidden
         className="h-px w-10 flex-none origin-left bg-linear-to-r from-cyan/70 via-purple/50 to-transparent sm:w-16 lg:w-auto lg:flex-1"
         initial={{ scaleX: 0 }}
         animate={{ scaleX: started ? 1 : 0 }}
@@ -109,8 +112,9 @@ export function HeroContent() {
       style={parallax ? { y, opacity } : undefined}
     >
       <h1 id="hero-title">
-        <span className="sr-only">{`${siteConfig.name} — ${siteConfig.title}`}</span>
-        <HeroLogo className="mx-auto w-full lg:mx-0" />
+        <span className="sr-only">{`${siteConfig.name} — `}</span>
+        {/* limitado pela altura também: telas baixas (celular deitado, notebook 720p) */}
+        <HeroLogo className="mx-auto w-full max-w-[90svh] lg:mx-0" />
         <TypedTitle started={started} reduced={reduced} />
       </h1>
 

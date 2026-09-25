@@ -13,7 +13,7 @@ export const gallery: Photo[] = [
   },
   {
     src: "/images/events/betobrizz-pista-magenta.webp",
-    alt: "Pista lotada vista da cabine, luzes magenta e vermelhas",
+    alt: "Pista lotada vista do palco, luzes magenta e vermelhas",
     caption: "Pista",
   },
   {
@@ -29,10 +29,10 @@ export const gallery: Photo[] = [
   {
     src: "/images/events/betobrizz-controladora.webp",
     alt: "DJ BetoBrizz mixando na controladora sob luz verde",
-    caption: "Cabine",
+    caption: "Controladora",
   },
   {
-    src: "/images/events/betobrizz-na-cabine.webp",
+    src: "/images/events/betobrizz-fones-controladora.webp",
     alt: "DJ BetoBrizz de fones de ouvido ajustando a controladora",
     caption: "Ao vivo",
   },
@@ -52,8 +52,8 @@ export const gallery: Photo[] = [
     caption: "BetoBrizz",
   },
   {
-    src: "/images/events/betobrizz-cabine-pioneer.webp",
-    alt: "DJ BetoBrizz na cabine com controladora Pioneer e notebook",
+    src: "/images/events/betobrizz-set-pioneer.webp",
+    alt: "DJ BetoBrizz tocando com controladora Pioneer e notebook",
     caption: "Set",
   },
   {

@@ -1,0 +1,143 @@
+/* ==========================================================================
+   DIGITAL CONTACT SHEET — tiras de filme, perfurações, glitch de hover
+   e o flash de troca de foto do lightbox.
+   ========================================================================== */
+
+/* Base do filme (a tira): quase preta, com um leve brilho de acetato nas bordas. */
+.strip {
+  background-color: #0e0c14;
+  background-image: linear-gradient(
+    180deg,
+    rgb(255 255 255 / 0.045),
+    transparent 22%,
+    transparent 78%,
+    rgb(255 255 255 / 0.03)
+  );
+}
+
+/* Perfurações: 6 furos por frame (8 no desktop) — sempre alinhadas à largura do frame. */
+.perfs {
+  display: block;
+  height: 0.8rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 14'%3E%3Crect x='6.5' y='3' width='11' height='8' rx='1.8' fill='%23050505' stroke='%23ffffff' stroke-opacity='.13' stroke-width='.8'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  background-position: center;
+  background-size: calc(100% / 6) 100%;
+}
+@media (width >= 64rem) {
+  .perfs {
+    height: 0.95rem;
+    background-size: calc(100% / 8) 100%;
+  }
+}
+
+/* Faixas RGB do glitch — invisíveis até o hover/foco (um disparo só). */
+.glitch {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 16%,
+    rgb(0 229 255 / 0.55) 16% 19%,
+    transparent 19% 44%,
+    rgb(255 20 147 / 0.5) 44% 50%,
+    transparent 50% 69%,
+    rgb(255 255 255 / 0.4) 69% 70.5%,
+    transparent 70.5% 83%,
+    rgb(138 43 226 / 0.55) 83% 86%,
+    transparent 86%
+  );
+  mix-blend-mode: screen;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .frame:hover .glitch {
+    animation: sheet-glitch 0.5s steps(1, end) 1;
+  }
+  .frame:hover .jolt {
+    animation: sheet-jolt 0.45s steps(1, end) 1;
+  }
+}
+.frame:focus-visible .glitch {
+  animation: sheet-glitch 0.5s steps(1, end) 1;
+}
+
+@keyframes sheet-glitch {
+  0% {
+    opacity: 1;
+    transform: translateX(-4%);
+    clip-path: inset(0 0 58% 0);
+  }
+  20% {
+    opacity: 1;
+    transform: translateX(3%);
+    clip-path: inset(38% 0 22% 0);
+  }
+  40% {
+    opacity: 0.85;
+    transform: translateX(-2%);
+    clip-path: inset(8% 0 60% 0);
+  }
+  60% {
+    opacity: 0.6;
+    transform: translateX(2%);
+    clip-path: inset(64% 0 0 0);
+  }
+  80% {
+    opacity: 0.3;
+    transform: none;
+    clip-path: inset(28% 0 42% 0);
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes sheet-jolt {
+  0% {
+    translate: -3px 0;
+    filter: saturate(1.9) contrast(1.15) hue-rotate(-24deg);
+  }
+  25% {
+    translate: 3px 1px;
+  }
+  50% {
+    translate: -1px 0;
+    filter: none;
+  }
+  75% {
+    translate: 2px 0;
+  }
+  100% {
+    translate: 0 0;
+  }
+}
+
+/* Lightbox: flash de "troca de canal" a cada foto. */
+.flash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 22%,
+    rgb(0 229 255 / 0.35) 22% 24%,
+    transparent 24% 57%,
+    rgb(255 20 147 / 0.32) 57% 61%,
+    transparent 61% 78%,
+    rgb(255 255 255 / 0.22) 78% 79%,
+    transparent 79%
+  );
+  mix-blend-mode: screen;
+  animation: sheet-glitch 0.42s steps(1, end) 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glitch,
+  .flash {
+    display: none;
+  }
+}

@@ -141,16 +141,6 @@ function RecordSleeve({ item, index, track }: { item: StyleItem; index: number; 
               <KnobIcon className="size-[9cqw] text-white/70" />
             </div>
 
-            <span
-              aria-hidden
-              className={cn(
-                "absolute top-[36%] right-[7%] grid size-[19cqw] place-items-center rounded-full text-[length:9cqw] leading-none",
-                styles.sticker,
-              )}
-            >
-              {item.icon}
-            </span>
-
             <h3
               className={cn("absolute inset-x-[7%] bottom-[7%] font-display font-black text-white uppercase", styles.title)}
               style={{ fontSize: titleSize }}

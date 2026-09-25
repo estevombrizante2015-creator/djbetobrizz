@@ -41,6 +41,11 @@ export function VideoCard({ item, source, index, featured = false }: Props) {
     <>
       <Poster item={item} sizes={sizes} />
       <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-void/85 via-void/10 to-void/40" />
+      <span
+        aria-hidden
+        className="absolute inset-0 opacity-60"
+        style={{ background: "repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.25) 0 1px, transparent 1px 3px)" }}
+      />
       <VhsOverlay mode="PLAY" track={trackNo} start={92 + index * 37} className="text-sm sm:text-lg" />
       <span
         aria-hidden
@@ -58,18 +63,17 @@ export function VideoCard({ item, source, index, featured = false }: Props) {
   );
 
   const facadeClass =
-    "group absolute inset-0 block cursor-pointer overflow-hidden rounded-[inherit] outline-offset-4 [&_img]:transition-transform [&_img]:duration-700 [&_img]:ease-out hover:[&_img]:scale-[1.04]";
+    "group absolute inset-0 block cursor-pointer overflow-hidden rounded-[inherit] focus-visible:outline-offset-[-4px] [&_img]:transition-transform [&_img]:duration-700 [&_img]:ease-out hover:[&_img]:scale-[1.04]";
 
   return (
     <figure className="flex flex-col gap-4">
-      <div className="scanlines relative aspect-video overflow-hidden rounded-2xl border border-line bg-panel shadow-[0_30px_80px_-40px_rgb(255_20_147/0.45)] transition-[border-color,box-shadow] duration-300 hover:border-magenta/60">
+      <div className="relative aspect-video overflow-hidden rounded-2xl border border-line bg-panel shadow-[0_30px_80px_-40px_rgb(255_20_147/0.45)] transition-[border-color,box-shadow] duration-300 hover:border-magenta/60">
         {playing && source.kind === "iframe" ? (
           <iframe
             ref={playerRef}
             src={source.src}
             title={`${item.title} — player de vídeo`}
             allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-            allowFullScreen
             className="absolute inset-0 z-20 h-full w-full border-0 bg-black"
           />
         ) : playing && source.kind === "file" ? (

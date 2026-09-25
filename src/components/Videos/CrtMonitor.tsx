@@ -31,7 +31,7 @@ const NOISE =
 /**
  * Telão/TV CRT com seletor de canais (referência a mesa de VJ).
  * Liga como um CRT ao entrar na tela; troca de canal sozinho enquanto visível
- * (para ao interagir, fora da tela, em aba oculta ou com movimento reduzido).
+ * (pausa sob o mouse; para ao interagir/focar, fora da tela, em aba oculta ou com movimento reduzido).
  */
 export function CrtMonitor({ className }: { className?: string }) {
   const { reducedMotion } = useExperience();
@@ -40,6 +40,7 @@ export function CrtMonitor({ className }: { className?: string }) {
   const [loaded, setLoaded] = useState<number[]>([0, 1]);
   const [switchKey, setSwitchKey] = useState(0);
   const [manual, setManual] = useState(false);
+  const [hold, setHold] = useState(false);
 
   const tune = useCallback((next: number, byUser: boolean) => {
     const n = CHANNELS.length;
@@ -58,7 +59,7 @@ export function CrtMonitor({ className }: { className?: string }) {
 
   useEffect(() => {
     const el = rootRef.current;
-    if (!el || manual || reducedMotion) return;
+    if (!el || manual || hold || reducedMotion) return;
     let timer = 0;
     const io = new IntersectionObserver(
       ([entry]) => {
@@ -76,12 +77,19 @@ export function CrtMonitor({ className }: { className?: string }) {
       io.disconnect();
       window.clearInterval(timer);
     };
-  }, [manual, reducedMotion, tune]);
+  }, [manual, hold, reducedMotion, tune]);
 
   const current = CHANNELS[channel];
 
   return (
-    <figure ref={rootRef} className={cn("relative", className)}>
+    <figure
+      ref={rootRef}
+      className={cn("relative", className)}
+      // Pausa a troca automática sob o mouse; ao receber foco (teclado), para de vez.
+      onMouseEnter={() => setHold(true)}
+      onMouseLeave={() => setHold(false)}
+      onFocus={() => setManual(true)}
+    >
       {/* Carcaça da TV */}
       <div
         className="relative rounded-[1.6rem] border border-line-strong p-2.5 sm:rounded-[2.2rem] sm:p-4 lg:p-5"

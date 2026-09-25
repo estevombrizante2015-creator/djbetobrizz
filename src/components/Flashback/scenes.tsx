@@ -120,11 +120,11 @@ export function SceneScreen({ scene }: { scene: SceneKey }) {
           <div className={styles.checker} />
           <Zigzag className={cn(styles.zig, "top-[14%]")} color="var(--color-cyan)" />
           <Zigzag className={cn(styles.zig, "top-[20%] opacity-70")} color="var(--color-magenta)" />
-          <svg viewBox="0 0 100 100" className={cn(styles.tri, "top-[34%] left-[12%] w-[18%]")}>
-            <polygon points="50,6 94,90 6,90" fill="none" stroke="#fff" strokeWidth="5" />
+          <svg viewBox="0 0 100 100" className={cn(styles.tri, "top-[36%] left-[12%] w-[16%]")}>
+            <circle cx="50" cy="50" r="40" fill="none" stroke="#fff" strokeWidth="5" strokeDasharray="18 10" />
           </svg>
           <svg viewBox="0 0 100 100" className={cn(styles.tri, styles.triAlt, "top-[30%] right-[14%] w-[13%]")}>
-            <polygon points="50,6 94,90 6,90" fill="none" stroke="var(--color-cyan)" strokeWidth="7" />
+            <polygon points="50,6 94,90 6,90" fill="none" style={{ stroke: "var(--color-cyan)" }} strokeWidth="7" />
           </svg>
           <span className={styles.tracking} />
           <span className={cn(styles.tracking, styles.trackingThin)} />
@@ -140,8 +140,13 @@ export function SceneScreen({ scene }: { scene: SceneKey }) {
               style={{ left: `${b.l}%`, top: `${b.t}%`, width: `${b.s}%`, animationDelay: `${b.d}s` }}
             />
           ))}
+          <span className={styles.ringBack}>
+            <span className={styles.ringSpin} />
+          </span>
           <span className={styles.orb} />
-          <span className={styles.chromeRing} />
+          <span className={styles.ringFront}>
+            <span className={styles.ringSpin} />
+          </span>
           {SPARKS.map((s) => (
             <span
               key={`${s.l}-${s.t}`}
@@ -232,7 +237,7 @@ export function SceneProp({ scene, year }: { scene: SceneKey; year: string }) {
 
 /** Largura relativa de cada objeto (em % da coluna da TV). */
 export const propWidth: Record<SceneKey, string> = {
-  synth: "w-[38%]",
+  synth: "w-[34%]",
   rave: "w-[30%]",
   y2k: "w-[19%]",
   now: "w-[30%]",
@@ -311,7 +316,7 @@ function HoloCd({ year }: { year: string }) {
     <div className={styles.cd}>
       <svg viewBox="0 0 200 200" className={styles.cdPrint}>
         <defs>
-          <path id="bbfx-cd-ring" d="M100,100 m-64,0 a64,64 0 1,1 128,0 a64,64 0 1,1 -128,0" />
+          <path id="bbfx-cd-ring" d="M100,100 m-78,0 a78,78 0 1,1 156,0 a78,78 0 1,1 -156,0" />
         </defs>
         <text fill="rgb(255 255 255 / 0.85)" style={{ fontFamily: "var(--font-rajdhani), sans-serif" }} fontWeight="700" fontSize="10.5" letterSpacing="2.2">
           <textPath href="#bbfx-cd-ring">{ring}</textPath>

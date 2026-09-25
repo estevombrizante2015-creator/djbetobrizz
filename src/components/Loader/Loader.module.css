@@ -1,0 +1,380 @@
+/* ==========================================================================
+   Loader — abertura de show (≤ 900 ms), 100% CSS (começa na primeira pintura,
+   sem esperar o JavaScript; sem JS a camada some sozinha).
+   0      tela preta + ruído eletrônico
+   80     linha de frequência se desenha a partir do centro
+   300    a frequência ganha amplitude · BETOBRIZZ · LOADING EXPERIENCE · medidor
+   640    saída: a tela "desliga" como um CRT (colapsa na linha) — o hero assume
+   900    fim (visibility: hidden)
+   ========================================================================== */
+
+@property --bb-pct {
+  syntax: "<integer>";
+  inherits: false;
+  initial-value: 0;
+}
+
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #050505;
+  pointer-events: none;
+  animation: loader-out 260ms cubic-bezier(0.7, 0, 0.84, 0) 640ms forwards;
+}
+
+/* Scanlines CRT */
+.loader::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: repeating-linear-gradient(to bottom, rgb(255 255 255 / 0.035) 0 1px, transparent 1px 3px);
+}
+
+/* A linha brilhante que sobra quando a tela "desliga" */
+.loader::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  z-index: 3;
+  height: 2px;
+  margin-top: -1px;
+  background: linear-gradient(90deg, transparent, #00e5ff 22%, #fff 50%, #ff1493 78%, transparent);
+  box-shadow:
+    0 0 14px rgb(255 20 147 / 0.9),
+    0 0 36px rgb(0 229 255 / 0.5);
+  opacity: 0;
+  animation: line-flash 260ms linear 640ms forwards;
+}
+
+/* Ruído eletrônico: pisca forte no início e assenta */
+.noise {
+  position: absolute;
+  inset: -40%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+  opacity: 0;
+  animation:
+    noise-flicker 900ms steps(1, end) forwards,
+    noise-shift 180ms steps(3, end) infinite;
+}
+
+/* Brilho de palco atrás da linha — acende junto com a amplitude */
+.glow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(60rem, 150vw);
+  height: 22rem;
+  translate: -50% -50%;
+  background: radial-gradient(closest-side, rgb(138 43 226 / 0.28), rgb(255 20 147 / 0.07) 55%, transparent);
+  opacity: 0;
+  animation: fade-in 420ms ease-out 260ms forwards;
+}
+
+/* Moldura de câmera (cantos + REC) */
+.frame {
+  position: absolute;
+  inset: 1rem;
+  opacity: 0;
+  animation: fade-in 200ms ease-out 120ms forwards;
+}
+@media (min-width: 40rem) {
+  .frame {
+    inset: 1.75rem;
+  }
+}
+
+.rec {
+  animation: rec-blink 400ms steps(1, end) infinite;
+}
+
+/* Pilha central: [marca] [onda] [status]. As faixas de cima e de baixo têm a mesma altura,
+   então a onda fica exatamente no centro da tela — onde a tela "desliga". */
+.stage {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: 4.5rem auto 4.5rem;
+  justify-items: center;
+  width: min(36rem, calc(100vw - 2.5rem));
+}
+
+.brand {
+  align-self: end;
+  display: flex;
+  align-items: center;
+  gap: 0.16em;
+  padding-bottom: 0.5rem;
+  font-size: clamp(1.45rem, 6.6vw, 2.6rem);
+  line-height: 1;
+  transform: skewX(-8deg);
+  opacity: 0;
+  animation:
+    brand-in 340ms cubic-bezier(0.16, 1, 0.3, 1) 220ms forwards,
+    brand-glitch 160ms steps(1, end) 480ms;
+}
+
+.dj {
+  margin-left: 0.2em;
+  padding: 0.12em 0.22em 0.08em;
+  border-radius: 0.12em;
+  background: #ff2414;
+  color: #fff;
+  font-size: 0.56em;
+  letter-spacing: 0.02em;
+  box-shadow: 0 0 18px rgb(255 36 20 / 0.55);
+}
+
+.waveWrap {
+  width: 100%;
+  height: clamp(4.5rem, 16vw, 6.5rem);
+  filter: drop-shadow(0 0 6px rgb(255 20 147 / 0.55)) drop-shadow(0 0 14px rgb(0 229 255 / 0.25));
+  animation: wave-flatten 150ms cubic-bezier(0.7, 0, 0.84, 0) 640ms forwards;
+}
+
+.wave {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.main,
+.echo {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+  transform: scale(0, 0.03);
+}
+
+.main {
+  animation: wave-in 560ms cubic-bezier(0.22, 1, 0.36, 1) 80ms forwards;
+}
+
+.echo {
+  opacity: 0;
+  animation:
+    wave-in 560ms cubic-bezier(0.22, 1, 0.36, 1) 150ms forwards,
+    echo-in 400ms ease-out 260ms forwards;
+}
+
+.status {
+  align-self: start;
+  width: min(100%, 22rem);
+  padding-top: 0.75rem;
+  opacity: 0;
+  animation: fade-in 200ms ease-out 320ms forwards;
+}
+
+.dots::after {
+  content: "";
+  animation: dots 300ms steps(1, end) 320ms infinite;
+}
+
+.pct {
+  counter-reset: pct var(--bb-pct);
+  animation: pct 260ms steps(26, end) 360ms forwards;
+}
+.pct::after {
+  content: counter(pct) "%";
+}
+
+.meter {
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
+  gap: 3px;
+  margin-top: 0.5rem;
+}
+
+.seg {
+  height: 7px;
+  border-radius: 1px;
+  background: rgb(255 255 255 / 0.1);
+  animation: seg-on 1ms linear forwards;
+  animation-delay: calc(360ms + var(--i) * 15ms);
+}
+
+/* Movimento reduzido: nada de intro — o conteúdo aparece direto. */
+@media (prefers-reduced-motion: reduce) {
+  .loader {
+    display: none;
+  }
+}
+
+@keyframes loader-out {
+  0% {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+    visibility: visible;
+  }
+  55% {
+    clip-path: inset(calc(50% - 2px) 0 calc(50% - 2px) 0);
+    opacity: 1;
+  }
+  100% {
+    clip-path: inset(calc(50% - 2px) 50% calc(50% - 2px) 50%);
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@keyframes line-flash {
+  0% {
+    opacity: 0;
+  }
+  35%,
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes noise-flicker {
+  0% {
+    opacity: 0;
+  }
+  4% {
+    opacity: 0.32;
+  }
+  8% {
+    opacity: 0.1;
+  }
+  12% {
+    opacity: 0.26;
+  }
+  17% {
+    opacity: 0.07;
+  }
+  22%,
+  100% {
+    opacity: 0.05;
+  }
+}
+
+@keyframes noise-shift {
+  0% {
+    transform: translate(0, 0);
+  }
+  33% {
+    transform: translate(-7%, 4%);
+  }
+  66% {
+    transform: translate(5%, -6%);
+  }
+}
+
+@keyframes fade-in {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes rec-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0.2;
+  }
+}
+
+@keyframes brand-in {
+  from {
+    opacity: 0;
+    letter-spacing: 0.5em;
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    letter-spacing: 0.1em;
+    filter: blur(0);
+  }
+}
+
+/* Um único "tranco" RGB no nome (glitch pontual, não constante) */
+@keyframes brand-glitch {
+  0% {
+    text-shadow:
+      -3px 0 rgb(0 229 255 / 0.85),
+      3px 0 rgb(255 20 147 / 0.85);
+    transform: skewX(-8deg) translateX(3px);
+  }
+  40% {
+    text-shadow:
+      2px 0 rgb(0 229 255 / 0.8),
+      -2px 0 rgb(255 20 147 / 0.8);
+    transform: skewX(-8deg) translateX(-2px);
+  }
+  75% {
+    text-shadow: none;
+    transform: skewX(-8deg);
+  }
+}
+
+@keyframes wave-in {
+  0% {
+    transform: scale(0, 0.03);
+  }
+  38% {
+    transform: scale(1, 0.03);
+  }
+  58% {
+    transform: scale(1, 0.55);
+  }
+  70% {
+    transform: scale(1, 0.3);
+  }
+  86% {
+    transform: scale(1, 1.05);
+  }
+  100% {
+    transform: scale(1, 0.92);
+  }
+}
+
+@keyframes echo-in {
+  to {
+    opacity: 0.55;
+  }
+}
+
+@keyframes wave-flatten {
+  to {
+    transform: scaleY(0.02);
+    opacity: 0.6;
+  }
+}
+
+@keyframes dots {
+  0% {
+    content: "";
+  }
+  25% {
+    content: ".";
+  }
+  50% {
+    content: "..";
+  }
+  75% {
+    content: "...";
+  }
+}
+
+@keyframes pct {
+  to {
+    --bb-pct: 100;
+  }
+}
+
+@keyframes seg-on {
+  to {
+    background: var(--c);
+    box-shadow: 0 0 8px var(--c);
+  }
+}

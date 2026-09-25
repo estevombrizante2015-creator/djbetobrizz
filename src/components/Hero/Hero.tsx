@@ -13,7 +13,7 @@ const NO_JS_CSS = ".hero-reveal{opacity:1!important;transform:none!important;cli
 
 const corner = "absolute h-4 w-4 border-white/35 sm:h-5 sm:w-5";
 
-/** Moldura de monitor de VJ: cantos, canal, REC e timecode. Puramente decorativa. */
+/** Moldura de monitor de VJ (continua a do Loader): cantos, REC, canal/local e timecode. Decorativa. */
 function HeroHud() {
   return (
     <div
@@ -31,17 +31,13 @@ function HeroHud() {
           REC
         </span>
         <span className="text-white/45">CH-01</span>
-        <span className="hidden text-white/45 md:inline">Sound &amp; Visual Experience</span>
+        <span className="hidden text-white/55 md:inline">{siteConfig.location}</span>
       </div>
 
       <div className="vhs absolute top-0 right-6 flex -translate-y-1/2 items-center gap-2 text-base text-white/80 sm:right-8 sm:text-lg">
         <span>PLAY ▶</span>
         <HeroTimecode />
       </div>
-
-      <p className="hud absolute bottom-0 left-8 hidden translate-y-1/2 text-[0.62rem] text-white/60 lg:block">
-        {siteConfig.location}
-      </p>
     </div>
   );
 }
@@ -79,7 +75,7 @@ export function Hero() {
 
         <HeroHud />
 
-        <div className="container-bb relative z-10 flex flex-1 flex-col justify-end pt-32 pb-36 sm:pb-40 lg:justify-center lg:pt-36 lg:pb-40">
+        <div className="container-bb relative z-10 flex flex-1 flex-col justify-end pt-32 pb-36 sm:pb-40 lg:justify-center lg:pt-36 lg:pb-40 [@media(max-height:500px)]:pt-24 [@media(max-height:500px)]:pb-28">
           <HeroContent />
         </div>
 

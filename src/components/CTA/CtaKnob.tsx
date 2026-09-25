@@ -4,6 +4,7 @@ import { useId, useRef, useState } from "react";
 import { motion, useMotionValueEvent, useScroll, useSpring, useTransform } from "motion/react";
 import { useExperience } from "@/components/Effects/ExperienceContext";
 import { cn } from "@/lib/utils";
+import { useHydrated } from "@/components/Impact/useHydrated";
 
 /* Geometria do knob (viewBox 300×300): arco de 270°, de -135° (MIN) a +135° (MAX). */
 const C = 150;
@@ -52,7 +53,8 @@ export function CtaKnob({ className }: { className?: string }) {
   const [peak, setPeak] = useState(false);
   useMotionValueEvent(value, "change", (v) => setPeak(v > 0.96));
 
-  const still = reducedMotion;
+  // reducedMotion só existe no cliente: decidir após hidratar evita divergência de markup SSR/cliente.
+  const still = useHydrated() && reducedMotion;
   const isPeak = still || peak;
 
   return (

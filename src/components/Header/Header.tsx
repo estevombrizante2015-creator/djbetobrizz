@@ -1,180 +1,205 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { AnimatePresence } from "motion/react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { siteConfig } from "@/config/site";
-import { navItems, type NavId } from "@/data/social";
+import { navItems } from "@/data/social";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/Logo";
 import { NeonButton } from "@/components/ui/NeonButton";
 import { WhatsAppIcon } from "@/components/ui/Icons";
 import { ExperienceToggle } from "@/components/Effects/ExperienceToggle";
-import { useActiveSection } from "./useActiveSection";
 import { MixerNav } from "./MixerNav";
-import { MenuButton } from "./MenuButton";
 import { MobileMenu } from "./MobileMenu";
+import { MenuButton } from "./MenuButton";
 import { TrackWaveform } from "./TrackWaveform";
+import { useActiveSection } from "./useActiveSection";
 
-/** Ids das seções do menu — constante de módulo (referência estável para o scroll-spy). */
-const NAV_IDS: readonly NavId[] = navItems.map((item) => item.id);
 const MENU_ID = "menu-mobile";
-const FOCUSABLE = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
+const SECTION_IDS = navItems.map((item) => item.id);
+const FOCUSABLE = "a[href], button:not([disabled])";
+
+function subscribeScroll(onChange: () => void) {
+  window.addEventListener("scroll", onChange, { passive: true });
+  return () => window.removeEventListener("scroll", onChange);
+}
+
+/** true depois de rolar além do limite (false no SSR). Só re-renderiza quando cruza o limite. */
+function useScrolledPast(threshold: number) {
+  return useSyncExternalStore(
+    subscribeScroll,
+    () => window.scrollY > threshold,
+    () => false,
+  );
+}
 
 /**
- * Header fixo: transparente sobre o hero, vira uma barra de vidro escuro ao rolar.
- * Desktop: navegação estilo mixer (LED no canal ativo). Mobile: hamburger + menu em tela cheia (deck de DJ).
+ * Header fixo: transparente sobre o hero, vira uma barra de vidro escura ao rolar.
+ * Desktop: logo · faixa de canais de mixer (LED na seção ativa) · Experience Mode · CONTRATE.
+ * Mobile: logo · hamburger → menu em tela cheia estilo deck de DJ.
  */
 export function Header() {
-  const active = useActiveSection(NAV_IDS);
-  const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const scrolled = useScrolledPast(24);
+  const { active, missing } = useActiveSection(SECTION_IDS);
+  const items = missing.length ? navItems.filter((item) => !missing.includes(item.id)) : navItems;
+
   const headerRef = useRef<HTMLElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const firstLinkRef = useRef<HTMLAnchorElement>(null);
+  const unlockRef = useRef<(() => void) | null>(null);
 
-  // Estado "rolado" (throttle por frame).
-  useEffect(() => {
-    let raf = 0;
-    const update = () => {
-      raf = 0;
-      setScrolled(window.scrollY > 24);
-    };
-    const onScroll = () => {
-      if (!raf) raf = requestAnimationFrame(update);
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      cancelAnimationFrame(raf);
-    };
-  }, []);
-
-  const close = useCallback((restoreFocus: boolean) => {
-    setOpen(false);
-    if (restoreFocus) buttonRef.current?.focus();
-  }, []);
-
-  // Menu aberto: trava a rolagem, foca o primeiro link, Esc fecha, Tab circula dentro do header.
+  // Menu aberto: trava a rolagem da página (compensando a largura da barra de rolagem).
   useEffect(() => {
     if (!open) return;
-    const root = document.documentElement;
-    const prev = { overflow: root.style.overflow, gutter: root.style.scrollbarGutter };
-    root.style.overflow = "hidden";
-    root.style.scrollbarGutter = "stable";
-    const focusRaf = requestAnimationFrame(() => firstLinkRef.current?.focus());
+    const html = document.documentElement;
+    const body = document.body;
+    const gap = window.innerWidth - html.clientWidth;
+    const prevOverflow = html.style.overflow;
+    const prevPadding = body.style.paddingRight;
+    html.style.overflow = "hidden";
+    if (gap > 0) body.style.paddingRight = `${gap}px`;
+    const unlock = () => {
+      html.style.overflow = prevOverflow;
+      body.style.paddingRight = prevPadding;
+      unlockRef.current = null;
+    };
+    unlockRef.current = unlock;
+    return unlock;
+  }, [open]);
 
-    const onKey = (e: KeyboardEvent) => {
+  // Menu aberto: foco no primeiro link, Esc fecha e Tab circula dentro do header.
+  useEffect(() => {
+    if (!open) return;
+    const raf = requestAnimationFrame(() => firstLinkRef.current?.focus({ preventScroll: true }));
+
+    const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.preventDefault();
-        close(true);
+        setOpen(false);
+        buttonRef.current?.focus({ preventScroll: true });
         return;
       }
-      if (e.key !== "Tab" || !headerRef.current) return;
-      const items = Array.from(headerRef.current.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
-        (el) => el.getClientRects().length > 0,
+      const root = headerRef.current;
+      if (e.key !== "Tab" || !root) return;
+      const nodes = Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
+        (el) => el.getClientRects().length > 0 && !el.closest("[inert]"),
       );
-      if (items.length === 0) return;
-      const first = items[0];
-      const last = items[items.length - 1];
+      if (!nodes.length) return;
+      const first = nodes[0];
+      const last = nodes[nodes.length - 1];
       const current = document.activeElement;
-      if (e.shiftKey && (current === first || !headerRef.current.contains(current))) {
+      if (!root.contains(current)) {
+        e.preventDefault();
+        first.focus();
+      } else if (e.shiftKey && current === first) {
         e.preventDefault();
         last.focus();
-      } else if (!e.shiftKey && (current === last || !headerRef.current.contains(current))) {
+      } else if (!e.shiftKey && current === last) {
         e.preventDefault();
         first.focus();
       }
     };
-
-    // Se a tela crescer para o layout desktop, o menu mobile deixa de existir: fecha e destrava.
-    const mq = window.matchMedia("(min-width: 1024px)");
-    const onMq = () => {
-      if (mq.matches) setOpen(false);
-    };
-
-    document.addEventListener("keydown", onKey);
-    mq.addEventListener("change", onMq);
+    document.addEventListener("keydown", onKeyDown);
     return () => {
-      cancelAnimationFrame(focusRaf);
-      document.removeEventListener("keydown", onKey);
-      mq.removeEventListener("change", onMq);
-      root.style.overflow = prev.overflow;
-      root.style.scrollbarGutter = prev.gutter;
+      cancelAnimationFrame(raf);
+      document.removeEventListener("keydown", onKeyDown);
     };
-  }, [open, close]);
+  }, [open]);
 
-  const solid = scrolled && !open;
+  // Ao chegar no layout desktop o menu mobile deixa de existir: fecha e libera a rolagem.
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const onChange = (e: MediaQueryListEvent) => {
+      if (e.matches) setOpen(false);
+    };
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
+  const toggleMenu = useCallback(() => setOpen((v) => !v), []);
+
+  /** Link do menu: libera a rolagem ANTES da navegação por âncora do navegador e fecha o menu. */
+  const onNavigate = useCallback(() => {
+    unlockRef.current?.();
+    setOpen(false);
+  }, []);
 
   return (
     <header ref={headerRef} className="fixed inset-x-0 top-0 z-50">
-      <AnimatePresence>
-        {open ? (
-          <MobileMenu id={MENU_ID} active={active} onNavigate={() => close(false)} firstLinkRef={firstLinkRef} />
-        ) : null}
-      </AnimatePresence>
-
+      {/* Sobre o hero: só um véu escuro no topo para legibilidade */}
       <div
+        aria-hidden
         className={cn(
-          "relative z-10 border-b transition-[background-color,border-color,box-shadow] duration-500",
-          solid
-            ? "glass border-line shadow-[0_12px_40px_-24px_rgb(0_0_0/0.9)]"
-            : "border-transparent bg-transparent",
+          "pointer-events-none absolute inset-x-0 top-0 h-28 bg-linear-to-b from-void/85 via-void/40 to-transparent transition-opacity duration-500",
+          scrolled || open ? "opacity-0" : "opacity-100",
         )}
-      >
-        {/* Sombra superior para legibilidade sobre o hero (some quando a barra fica sólida). */}
-        <div
-          aria-hidden
-          className={cn(
-            "pointer-events-none absolute inset-x-0 top-0 -z-10 h-32 bg-linear-to-b from-void/85 via-void/40 to-transparent transition-opacity duration-500",
-            scrolled || open ? "opacity-0" : "opacity-100",
-          )}
-        />
+      />
+      {/* Após rolar: barra de vidro escura */}
+      <div
+        aria-hidden
+        className={cn(
+          "glass pointer-events-none absolute inset-0 border-b border-line transition-opacity duration-500",
+          scrolled && !open ? "opacity-100" : "opacity-0",
+        )}
+      />
 
-        <div
-          className={cn(
-            "container-bb grid grid-cols-[auto_1fr_auto] items-center gap-3 transition-[height] duration-500 ease-out lg:gap-5",
-            scrolled ? "h-16" : "h-[4.5rem] lg:h-20",
-          )}
+      <div className="relative z-20 mx-auto flex h-[72px] max-w-[96rem] items-center justify-between gap-3 px-4 sm:px-6 lg:grid lg:h-[84px] lg:grid-cols-[1fr_auto_1fr] lg:gap-5 lg:px-8">
+        <a
+          href="#inicio"
+          onClick={open ? onNavigate : undefined}
+          aria-label={`${siteConfig.name} — voltar ao início`}
+          className="group/logo relative block w-[108px] shrink-0 rounded-sm lg:w-[124px] xl:w-[136px]"
         >
-          <a
-            href="#inicio"
-            aria-label={`${siteConfig.name} — voltar ao início`}
-            onClick={() => close(false)}
-            className={cn(
-              "block w-[6.75rem] shrink-0 transition-[width,filter] duration-500 min-[380px]:w-28 lg:w-32 xl:w-36",
-              "hover:[filter:drop-shadow(-2px_0_0_rgb(0_229_255/0.75))_drop-shadow(2px_0_0_rgb(255_20_147/0.75))]",
-              scrolled && "lg:w-28 xl:w-32",
-            )}
-          >
-            <Logo eager sizes="(min-width: 1280px) 144px, (min-width: 1024px) 128px, 112px" alt="" />
-          </a>
+          <Logo
+            eager
+            alt=""
+            sizes="(min-width: 1280px) 136px, (min-width: 1024px) 124px, 108px"
+            className="transition-[filter] duration-300 group-hover/logo:drop-shadow-[0_0_12px_rgb(255_36_20/0.5)]"
+          />
+        </a>
 
-          <div className="flex min-w-0 justify-center">
-            <MixerNav active={active} />
+        <div className="hidden min-w-0 justify-center lg:flex">
+          <MixerNav items={items} active={active} />
+        </div>
+
+        <div className="flex shrink-0 items-center gap-2.5 justify-self-end xl:gap-3">
+          <div className="hidden lg:block">
+            <ExperienceToggle labelClassName="sr-only xl:not-sr-only" />
           </div>
-
-          <div className="flex items-center gap-2 sm:gap-3">
-            <ExperienceToggle />
+          <div className="hidden sm:block">
             <NeonButton
               href={siteConfig.whatsappUrl}
               external
-              event="whatsapp_click"
-              eventParams={{ source: "header" }}
               variant="red"
               size="sm"
               icon={<WhatsAppIcon size={16} />}
-              className="hidden bg-void/30 sm:inline-flex"
-              aria-label="Contrate o DJ BetoBrizz pelo WhatsApp"
+              event="whatsapp_click"
+              eventParams={{ source: "header" }}
+              aria-label="Contrate BetoBrizz pelo WhatsApp (abre em nova aba)"
             >
               Contrate
             </NeonButton>
-            <MenuButton ref={buttonRef} open={open} onToggle={() => setOpen((v) => !v)} controls={MENU_ID} className="lg:hidden" />
           </div>
+          <MenuButton
+            ref={buttonRef}
+            open={open}
+            onToggle={toggleMenu}
+            controls={MENU_ID}
+            className="lg:hidden"
+          />
         </div>
-
-        <TrackWaveform visible={scrolled && !open} />
       </div>
+
+      <TrackWaveform visible={scrolled && !open} />
+
+      <MobileMenu
+        id={MENU_ID}
+        open={open}
+        items={items}
+        active={active}
+        firstLinkRef={firstLinkRef}
+        onNavigate={onNavigate}
+      />
     </header>
   );
 }

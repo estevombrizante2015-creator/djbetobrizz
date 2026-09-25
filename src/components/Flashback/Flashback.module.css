@@ -1,0 +1,1253 @@
+/* ==========================================================================
+   VOLTE NO TEMPO — máquina do tempo 1980 → 1990 → 2000 → TODAY
+   --acc (cor da década) é definido no .stage via style.
+   ========================================================================== */
+
+.track {
+  position: relative;
+}
+
+.stage {
+  --acc: var(--color-magenta, #ff1493);
+  --acc-mid: color-mix(in oklab, var(--acc) 50%, transparent);
+  --acc-soft: color-mix(in oklab, var(--acc) 22%, transparent);
+  --expo: var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1));
+  position: relative;
+  overflow: hidden;
+  padding-block: 2.5rem 4.5rem;
+}
+
+/* Fora da tela: congela todas as animações CSS do palco */
+.stage[data-paused] * {
+  animation-play-state: paused !important;
+}
+
+.stageGrid {
+  position: relative;
+  display: grid;
+  align-items: center;
+  gap: 2.75rem;
+}
+
+.info {
+  position: relative;
+  z-index: 2;
+  order: 2;
+  min-width: 0;
+}
+
+.tvCol {
+  position: relative;
+  order: 1;
+  min-width: 0;
+  padding-bottom: 12%;
+}
+
+@media (min-width: 768px) {
+  .stageGrid {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: 2.5rem;
+  }
+  .info {
+    order: 1;
+  }
+  .tvCol {
+    order: 2;
+  }
+}
+
+@media (min-width: 1024px) {
+  .stageGrid {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: 4rem;
+  }
+}
+
+/* Sombreamento sobre o fundo (legibilidade do texto) */
+.stageShade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to bottom, var(--color-void, #050505) 0%, transparent 16%, transparent 80%, var(--color-void, #050505) 100%),
+    linear-gradient(to bottom, rgb(5 5 5 / 0.2), rgb(5 5 5 / 0.35) 45%, rgb(5 5 5 / 0.88) 75%);
+}
+@media (min-width: 768px) {
+  .stageShade {
+    background:
+      linear-gradient(to bottom, var(--color-void, #050505) 0%, transparent 16%, transparent 82%, var(--color-void, #050505) 100%),
+      linear-gradient(to right, rgb(5 5 5 / 0.9) 0%, rgb(5 5 5 / 0.72) 34%, rgb(5 5 5 / 0.2) 60%, rgb(5 5 5 / 0.45) 100%);
+  }
+}
+
+/* Rajada de "tracking" VHS na troca de década */
+.burst {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  mix-blend-mode: screen;
+  background:
+    repeating-linear-gradient(to bottom, rgb(255 255 255 / 0.07) 0 1px, transparent 1px 3px),
+    linear-gradient(
+      to bottom,
+      transparent 28%,
+      var(--acc-soft) 28% 33%,
+      transparent 33% 58%,
+      rgb(255 255 255 / 0.1) 58% 59.5%,
+      transparent 59.5% 74%,
+      var(--acc-soft) 74% 75%,
+      transparent 75%
+    );
+  animation: burst 0.55s steps(5, end) both;
+}
+@keyframes burst {
+  0% { opacity: 0; translate: 0 0; }
+  20% { opacity: 1; translate: 0 -3%; }
+  45% { opacity: 0.55; translate: 0 4%; }
+  70% { opacity: 0.8; translate: 0 -1%; }
+  100% { opacity: 0; translate: 0 0; }
+}
+
+/* ---------- Ano gigante ---------- */
+
+.yearWrap {
+  container-type: inline-size;
+  display: grid;
+}
+.yearWrap > * {
+  grid-area: 1 / 1;
+}
+
+.year {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 900;
+  line-height: 0.9;
+  letter-spacing: -0.01em;
+  padding-block: 0.03em;
+  font-size: min(7.5rem, calc(100cqi / (var(--chars, 5) * 0.84)));
+}
+
+.year_synth {
+  background: linear-gradient(to bottom, #fff 12%, #ffc3e6 34%, var(--color-magenta, #ff1493) 62%, var(--color-red, #ff2414) 96%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 22px rgb(255 20 147 / 0.45));
+}
+.year_rave {
+  color: rgb(138 43 226 / 0.22);
+  -webkit-text-stroke: 2px var(--color-cyan, #00e5ff);
+  filter: drop-shadow(0 0 10px rgb(0 229 255 / 0.55)) drop-shadow(0 0 26px rgb(138 43 226 / 0.55));
+}
+.year_y2k {
+  background: linear-gradient(
+    to bottom,
+    #fff 0%,
+    #e6edff 34%,
+    #8597c4 49%,
+    #0b1b44 50.5%,
+    #3c6ed8 62%,
+    #bcd3ff 84%,
+    #fff 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 18px rgb(0 102 255 / 0.65));
+}
+.year_now {
+  color: var(--color-red, #ff2414);
+  text-shadow:
+    0 0 20px rgb(255 36 20 / 0.6),
+    0 0 60px rgb(255 36 20 / 0.3);
+}
+
+/* Entrada com glitch (uma vez por troca) */
+.yearEnter {
+  animation: year-in 0.6s steps(1, end) both;
+}
+@keyframes year-in {
+  0% { clip-path: inset(0 0 72% 0); translate: -12px 0; }
+  10% { clip-path: inset(48% 0 18% 0); translate: 10px 0; }
+  20% { clip-path: inset(12% 0 52% 0); translate: -6px 0; }
+  30% { clip-path: inset(66% 0 4% 0); translate: 5px 0; }
+  40% { clip-path: inset(0 0 0 0); translate: -3px 0; }
+  55% { clip-path: inset(34% 0 38% 0); translate: 2px 0; }
+  70%, 100% { clip-path: none; translate: 0 0; }
+}
+
+.ghost {
+  pointer-events: none;
+  opacity: 0;
+  mix-blend-mode: screen;
+}
+.ghostA {
+  color: var(--color-cyan, #00e5ff);
+  animation: ghost-a 0.6s steps(1, end) both;
+}
+.ghostB {
+  color: var(--color-magenta, #ff1493);
+  animation: ghost-b 0.6s steps(1, end) both;
+}
+@keyframes ghost-a {
+  0% { opacity: 0.85; translate: -12px 0; clip-path: inset(18% 0 52% 0); }
+  25% { opacity: 0.7; translate: 9px 0; clip-path: inset(60% 0 12% 0); }
+  50% { opacity: 0.6; translate: -5px 0; clip-path: inset(4% 0 72% 0); }
+  75% { opacity: 0.4; translate: 3px 0; clip-path: inset(40% 0 32% 0); }
+  100% { opacity: 0; }
+}
+@keyframes ghost-b {
+  0% { opacity: 0.85; translate: 12px 0; clip-path: inset(56% 0 14% 0); }
+  25% { opacity: 0.7; translate: -8px 0; clip-path: inset(8% 0 64% 0); }
+  50% { opacity: 0.6; translate: 6px 0; clip-path: inset(44% 0 30% 0); }
+  75% { opacity: 0.4; translate: -3px 0; clip-path: inset(70% 0 6% 0); }
+  100% { opacity: 0; }
+}
+
+/* ---------- Abas (barra de progresso) ---------- */
+
+.fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  transform-origin: left center;
+  transform: scaleX(0);
+  background: var(--acc);
+  box-shadow: 0 0 10px var(--acc);
+}
+.fillFull {
+  transform: scaleX(1);
+}
+.fillRun {
+  animation-name: fill-run;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+}
+@keyframes fill-run {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* ---------- Mídia física (fita, CD, MP3, jog) ---------- */
+
+.propSlot {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+.prop {
+  position: absolute;
+  left: 3%;
+  bottom: 0;
+  container-type: inline-size;
+  filter: drop-shadow(0 22px 26px rgb(0 0 0 / 0.75));
+}
+@media (min-width: 1024px) {
+  .prop {
+    left: -3%;
+  }
+}
+
+/* ==========================================================================
+   Modo scroll (desktop): trilho alto + palco sticky de 100vh
+   ========================================================================== */
+
+@media (hover: hover) and (pointer: fine) and (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+  .track {
+    height: calc(var(--n, 4) * 75vh + 100vh);
+  }
+  .stage {
+    position: sticky;
+    top: 0;
+    display: flex;
+    align-items: center;
+    height: 100vh;
+    min-height: 38rem;
+    padding-block: 5.25rem 1.75rem;
+  }
+  .year {
+    font-size: min(9.5rem, 18vh, calc(100cqi / (var(--chars, 5) * 0.84)));
+  }
+  .tv {
+    width: min(100%, calc((100vh - 12.5rem) * 1.38));
+  }
+}
+
+/* ==========================================================================
+   TV CRT
+   ========================================================================== */
+
+.tv {
+  container-type: inline-size;
+  position: relative;
+  width: 100%;
+  max-width: 48rem;
+  margin-inline: auto;
+}
+
+.cabinet {
+  position: relative;
+  padding: 3cqi 3cqi 2cqi;
+  border-radius: 4.4cqi;
+  background: linear-gradient(165deg, #28242f 0%, #17141e 38%, #0b0a10 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.12),
+    inset 0 -3px 0 rgb(0 0 0 / 0.55),
+    0 0 0 1px rgb(255 255 255 / 0.06),
+    0 60px 100px -50px #000,
+    0 0 120px -40px var(--acc-mid);
+  transition: box-shadow 0.8s var(--expo);
+}
+.cabinet::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: repeating-linear-gradient(90deg, rgb(255 255 255 / 0.014) 0 1px, transparent 1px 3px);
+}
+
+.tvBody {
+  display: flex;
+  flex-direction: column;
+  gap: 3cqi;
+}
+
+.bezel {
+  flex: 1;
+  min-width: 0;
+  padding: 2.4cqi;
+  border-radius: 3.6cqi;
+  background: #040406;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.05),
+    inset 0 8px 24px rgb(0 0 0 / 0.9),
+    0 1px 0 rgb(255 255 255 / 0.06);
+}
+
+.screen {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 9% / 12%;
+  background: #000;
+  isolation: isolate;
+  container-type: inline-size;
+}
+
+/* Liga o canal: linha → imagem */
+.channelOn {
+  animation: channel-on 0.55s var(--expo) both;
+}
+@keyframes channel-on {
+  0% { transform: scale(0.7, 0.02); filter: brightness(4) saturate(0); }
+  40% { transform: scale(1, 1.04); filter: brightness(1.7) saturate(0.6); }
+  100% { transform: none; filter: none; }
+}
+
+/* Chuvisco curto na troca */
+.static {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  opacity: 0;
+  background-color: #6d6a78;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.4 -0.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.4) 0 2px, transparent 2px 4px);
+  background-size: 160px 160px, auto;
+  animation: static-flash 0.42s steps(4, end) both;
+}
+@keyframes static-flash {
+  0% { opacity: 0.95; background-position: 0 0, 0 0; }
+  50% { opacity: 0.7; background-position: 40px 20px, 0 2px; }
+  100% { opacity: 0; background-position: 80px -30px, 0 0; }
+}
+
+/* Scanlines + vinheta + reflexo do vidro */
+.screenFx {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.26) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse 78% 72% at 50% 50%, transparent 55%, rgb(0 0 0 / 0.72) 100%),
+    linear-gradient(155deg, rgb(255 255 255 / 0.13) 0%, rgb(255 255 255 / 0.03) 24%, transparent 36%);
+  box-shadow:
+    inset 0 0 3cqi rgb(0 0 0 / 0.85),
+    inset 0 0 0.6cqi rgb(0 0 0 / 0.9);
+}
+
+.rollbar {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  z-index: 4;
+  height: 26%;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent, rgb(255 255 255 / 0.055) 50%, transparent);
+  animation: roll 6.5s linear infinite;
+}
+@keyframes roll {
+  from { translate: 0 -100%; }
+  to { translate: 0 390%; }
+}
+
+/* OSD do canal ("CH 02") */
+.osd {
+  position: absolute;
+  z-index: 7;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  pointer-events: none;
+  font-size: 12cqi;
+  line-height: 1;
+  color: #d7fbff;
+  text-shadow:
+    0 0 12px var(--color-cyan, #00e5ff),
+    3px 0 rgb(255 20 147 / 0.6),
+    -3px 0 rgb(0 229 255 / 0.6);
+  animation: osd 1.5s linear both;
+}
+@keyframes osd {
+  0%, 72% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Painel lateral */
+.panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4cqi;
+  padding-inline: 2cqi;
+}
+
+.led {
+  display: grid;
+  place-items: center;
+  min-width: 12cqi;
+  padding: 0.8cqi 1.6cqi;
+  border-radius: 1cqi;
+  background: #0a0405;
+  box-shadow:
+    inset 0 1px 5px #000,
+    0 1px 0 rgb(255 255 255 / 0.06);
+  font-size: 5.5cqi;
+  line-height: 1;
+  text-shadow: 0 0 8px rgb(255 36 20 / 0.85);
+}
+
+.knobWrap {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 10cqi;
+  aspect-ratio: 1;
+  flex-shrink: 0;
+}
+.ticks {
+  position: absolute;
+  inset: -22%;
+  border-radius: 50%;
+  background: repeating-conic-gradient(from -1deg, rgb(255 255 255 / 0.4) 0 2deg, transparent 2deg 30deg);
+  mask-image: radial-gradient(circle, transparent 0 62%, #000 63% 71%, transparent 72%);
+}
+.knob {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: radial-gradient(circle at 36% 30%, #48434f 0%, #1a1720 55%, #0b0a0e 100%);
+  box-shadow:
+    0 6px 12px rgb(0 0 0 / 0.7),
+    inset 0 1px 0 rgb(255 255 255 / 0.18),
+    0 0 0 0.6cqi #0a090e,
+    0 0 0 0.8cqi rgb(255 255 255 / 0.07);
+  transition: rotate 0.9s var(--expo);
+}
+.knob::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 9%;
+  width: 9%;
+  height: 36%;
+  translate: -50% 0;
+  border-radius: 99px;
+  background: var(--acc);
+  box-shadow: 0 0 8px var(--acc);
+  transition: background-color 0.6s;
+}
+.knobSmall {
+  width: 7cqi;
+}
+.knobSmall::after {
+  background: rgb(255 255 255 / 0.7);
+  box-shadow: none;
+}
+
+.grille {
+  flex: 1;
+  align-self: stretch;
+  min-width: 10cqi;
+  border-radius: 1cqi;
+  background: repeating-linear-gradient(to bottom, #050407 0 0.7cqi, rgb(255 255 255 / 0.07) 0.7cqi 1.1cqi);
+  box-shadow: inset 0 1px 3px #000;
+}
+
+.power {
+  width: 1.8cqi;
+  aspect-ratio: 1;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--color-red, #ff2414);
+  box-shadow:
+    0 0 6px var(--color-red, #ff2414),
+    0 0 14px rgb(255 36 20 / 0.6);
+}
+
+/* TV larga: painel vira coluna lateral */
+@container (min-width: 30rem) {
+  .tvBody {
+    flex-direction: row;
+  }
+  .panel {
+    flex-direction: column;
+    width: 15%;
+    padding: 1.6cqi 0;
+    gap: 3cqi;
+  }
+  .led {
+    width: 100%;
+    min-width: 0;
+  }
+  .grille {
+    width: 100%;
+    min-height: 12cqi;
+  }
+  .plate {
+    justify-content: flex-end;
+    padding-right: 19%;
+  }
+}
+
+.plate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6em;
+  margin-top: 2cqi;
+  font-family: var(--font-hud);
+  font-weight: 700;
+  font-size: max(0.6rem, 1.8cqi);
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.62);
+}
+
+.feet {
+  display: flex;
+  justify-content: space-between;
+  padding-inline: 14%;
+}
+.feet span {
+  width: 14%;
+  height: 1.6cqi;
+  border-radius: 0 0 1cqi 1cqi;
+  background: linear-gradient(#17141d, #07060a);
+}
+
+/* ==========================================================================
+   Canais (conteúdo da tela)
+   ========================================================================== */
+
+/* ---- 1980: pôr do sol synthwave ---- */
+.scrSynth {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 44%, rgb(255 20 147 / 0.5), transparent 34%),
+    linear-gradient(
+      to bottom,
+      #06010d 0%,
+      #1c0533 30%,
+      #4a0a45 48%,
+      #a3155f 57%,
+      #ff3d86 63.4%,
+      #12031f 63.5%,
+      #06020b 100%
+    );
+}
+.stars {
+  position: absolute;
+  inset: 0 0 45% 0;
+  opacity: 0.85;
+  background-image:
+    radial-gradient(1.2px 1.2px at 12% 22%, #fff, transparent),
+    radial-gradient(1px 1px at 28% 12%, #fff, transparent),
+    radial-gradient(1.4px 1.4px at 38% 34%, #ffd6ef, transparent),
+    radial-gradient(1px 1px at 62% 8%, #fff, transparent),
+    radial-gradient(1.3px 1.3px at 78% 24%, #fff, transparent),
+    radial-gradient(1px 1px at 90% 14%, #cfe9ff, transparent),
+    radial-gradient(1px 1px at 6% 44%, #fff, transparent),
+    radial-gradient(1px 1px at 86% 44%, #fff, transparent);
+}
+.sun {
+  position: absolute;
+  left: 50%;
+  top: 16%;
+  width: 38%;
+  aspect-ratio: 1;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: linear-gradient(to bottom, #fff3f9 0%, #ff9ccc 26%, var(--color-magenta, #ff1493) 55%, var(--color-red, #ff2414) 85%);
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0 48%,
+    transparent 48% 52%,
+    #000 52% 60%,
+    transparent 60% 65%,
+    #000 65% 72%,
+    transparent 72% 78%,
+    #000 78% 84%,
+    transparent 84% 91%,
+    #000 91%
+  );
+}
+.mountains {
+  position: absolute;
+  left: 0;
+  bottom: 36.4%;
+  width: 100%;
+  height: 14%;
+}
+.floor {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 36.6%;
+  overflow: hidden;
+  perspective: 45cqi;
+  perspective-origin: 50% 0%;
+  background: linear-gradient(to bottom, #2a0535, #07020c 70%);
+  box-shadow:
+    0 -1px 0 rgb(255 140 200 / 0.9),
+    0 -6px 18px rgb(255 20 147 / 0.55);
+}
+.floor::before {
+  content: "";
+  position: absolute;
+  left: -70%;
+  right: -70%;
+  top: -6cqi;
+  height: 135%;
+  background-image:
+    linear-gradient(to right, rgb(255 20 147 / 0.85) 0.35cqi, transparent 0.35cqi),
+    linear-gradient(to bottom, rgb(255 20 147 / 0.85) 0.35cqi, transparent 0.35cqi);
+  background-size: 6cqi 6cqi;
+  transform-origin: 50% 0;
+  transform: rotateX(64deg);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 24%);
+  animation: floor-run 0.9s linear infinite;
+}
+@keyframes floor-run {
+  from { transform: rotateX(64deg) translateY(0); }
+  to { transform: rotateX(64deg) translateY(6cqi); }
+}
+
+/* ---- 1990: rave / eurodance ---- */
+.scrRave {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: linear-gradient(125deg, #14002e 0%, #3a0a7a 22%, #0d4fb0 40%, #00b8d4 52%, #8a2be2 68%, #ff1493 84%, #14002e 100%);
+  background-size: 260% 260%;
+  background-position: 30% 50%;
+}
+.checker {
+  position: absolute;
+  left: -50%;
+  right: -50%;
+  bottom: -4%;
+  height: 90%;
+  background: repeating-conic-gradient(rgb(245 250 255 / 0.92) 0 25%, rgb(12 6 30 / 0.95) 0 50%) 0 0 / 8cqi 8cqi;
+  transform: perspective(90cqi) rotateX(62deg);
+  transform-origin: 50% 100%;
+  mask-image: linear-gradient(to top, #000 30%, transparent 85%);
+}
+.zig {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 5%;
+}
+.tri {
+  position: absolute;
+  aspect-ratio: 1;
+  filter: drop-shadow(0 0 5px rgb(255 255 255 / 0.55));
+  animation: spin 9s linear infinite;
+}
+.triAlt {
+  animation-duration: 12s;
+  animation-direction: reverse;
+}
+.tracking {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  z-index: 2;
+  height: 9cqi;
+  mix-blend-mode: screen;
+  background:
+    linear-gradient(to bottom, transparent, rgb(255 255 255 / 0.32) 45%, rgb(255 255 255 / 0.1) 60%, transparent),
+    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.3) 0 2px, transparent 2px 7px, rgb(255 255 255 / 0.14) 7px 8px, transparent 8px 13px);
+  animation: tracking 4.2s linear infinite;
+}
+.trackingThin {
+  height: 2.5cqi;
+  opacity: 0.7;
+  animation-duration: 2.9s;
+  animation-delay: -1.3s;
+}
+@keyframes tracking {
+  from { translate: 0 -12cqi; }
+  to { translate: 0 80cqi; }
+}
+
+/* ---- 2000: Y2K cromado ---- */
+.scrY2k {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: radial-gradient(ellipse 120% 90% at 50% 115%, #22f0ff 0%, #0a7bff 28%, #0a3a9a 55%, #041233 80%, #020713 100%);
+}
+.scrY2k::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, transparent 0 62%, rgb(255 255 255 / 0.08) 62% 62.6%, transparent 62.6%),
+    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.035) 0 1px, transparent 1px 6cqi);
+}
+.bubble {
+  position: absolute;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 32% 28%,
+    rgb(255 255 255 / 0.95) 0 4%,
+    rgb(255 255 255 / 0.35) 11%,
+    rgb(140 210 255 / 0.16) 36%,
+    rgb(0 102 255 / 0.1) 60%,
+    rgb(200 240 255 / 0.55) 73%,
+    transparent 75%
+  );
+  animation: bob 6s ease-in-out infinite alternate;
+}
+@keyframes bob {
+  from { translate: 0 0; }
+  to { translate: 0 -14%; }
+}
+.orb {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 1;
+  width: 18%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff 0 6%, #d4e3ff 16%, #6a86c4 42%, #1b2c5c 70%, #0a1330 100%);
+  box-shadow:
+    0 0 5cqi rgb(0 229 255 / 0.55),
+    inset -1cqi -1.4cqi 3cqi rgb(0 0 0 / 0.45);
+}
+/* Anel cromado inclinado: metade de trás atrás da esfera, metade da frente na frente */
+.ringBack,
+.ringFront {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 52%;
+  aspect-ratio: 1;
+  /* translate dentro do transform: o minificador descarta `translate` quando há `transform` na mesma regra */
+  transform: translate(-50%, -50%) rotate(-16deg) perspective(240cqi) rotateX(72deg);
+}
+.ringBack {
+  z-index: 0;
+  clip-path: inset(0 0 50% 0);
+}
+.ringFront {
+  z-index: 2;
+  clip-path: inset(50% 0 0 0);
+}
+.ringSpin {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(from 210deg, #fff, #97a3c4, #f4f7ff, #3b4868, #dfe7ff, #7b89ad, #fff, #4b5a82, #fff);
+  mask-image: radial-gradient(circle, transparent 0 55%, #000 56.5% 69%, transparent 70.5%);
+  animation: spin 7s linear infinite;
+}
+.spark {
+  position: absolute;
+  aspect-ratio: 1;
+  background: #fff;
+  clip-path: polygon(50% 0, 58% 42%, 100% 50%, 58% 58%, 50% 100%, 42% 58%, 0 50%, 42% 42%);
+  animation: twinkle 2.4s ease-in-out infinite;
+}
+@keyframes twinkle {
+  0%, 100% { scale: 0.4; opacity: 0.4; }
+  50% { scale: 1; opacity: 1; }
+}
+
+/* ---- TODAY: LED + lasers ---- */
+.nowTint {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgb(255 20 147 / 0.28), transparent 60%),
+    linear-gradient(to bottom, rgb(255 36 20 / 0.16), transparent 42%, rgb(5 5 5 / 0.6) 84%);
+}
+.lasers {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+.beam {
+  position: absolute;
+  bottom: -4%;
+  left: var(--x);
+  width: max(1.5px, 0.45cqi);
+  height: 150%;
+  transform-origin: 50% 100%;
+  rotate: var(--r);
+  opacity: 0.8;
+  background: linear-gradient(to top, var(--c), color-mix(in oklab, var(--c) 40%, transparent) 45%, transparent 90%);
+  box-shadow: 0 0 1.2cqi var(--c);
+  animation: sweep var(--d) ease-in-out infinite alternate;
+}
+@keyframes sweep {
+  from { rotate: calc(var(--r) - 12deg); }
+  to { rotate: calc(var(--r) + 12deg); }
+}
+.ledDots {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.55;
+  background: radial-gradient(circle, transparent 0 42%, rgb(0 0 0 / 0.6) 62%) 0 0 / 1.1cqi 1.1cqi;
+}
+
+@keyframes spin {
+  to { rotate: 360deg; }
+}
+
+/* Animações de repintura (background-position) só em desktop */
+@media (hover: hover) and (min-width: 1024px) {
+  .scrRave {
+    animation: holo 10s ease-in-out infinite alternate;
+  }
+}
+@keyframes holo {
+  from { background-position: 0% 40%; }
+  to { background-position: 100% 60%; }
+}
+
+/* ==========================================================================
+   Fundo de tela cheia (por década)
+   ========================================================================== */
+
+.bd {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.bdPhoto {
+  opacity: 0.34;
+}
+
+.bdSynth {
+  background:
+    radial-gradient(ellipse 70% 60% at 72% 55%, rgb(255 20 147 / 0.22), transparent 70%),
+    linear-gradient(to bottom, #0a0214, #16052a 60%, #050505);
+}
+.bdSynth .bdPhoto {
+  opacity: 0.4;
+  mask-image: linear-gradient(to bottom, transparent 4%, #000 42%, #000 82%, transparent);
+}
+.bdSunGlow {
+  position: absolute;
+  right: 6%;
+  top: 14%;
+  width: 40vw;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(255 20 147 / 0.3), rgb(255 36 20 / 0.1) 45%, transparent 70%);
+}
+.bdGrid {
+  position: absolute;
+  left: -30%;
+  right: -30%;
+  bottom: -6%;
+  height: 40%;
+  overflow: hidden;
+  transform: perspective(500px) rotateX(64deg);
+  transform-origin: 50% 100%;
+  mask-image: linear-gradient(to top, #000 25%, transparent 95%);
+}
+.bdGrid::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: -64px;
+  bottom: 0;
+  background-image:
+    linear-gradient(to right, rgb(255 20 147 / 0.5) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(138 43 226 / 0.55) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+.bdRave {
+  background:
+    radial-gradient(ellipse 50% 60% at 18% 30%, rgb(138 43 226 / 0.38), transparent 70%),
+    radial-gradient(ellipse 45% 55% at 80% 60%, rgb(0 229 255 / 0.22), transparent 70%),
+    radial-gradient(ellipse 40% 40% at 60% 8%, rgb(255 20 147 / 0.2), transparent 70%),
+    #050308;
+}
+.bdChecker {
+  position: absolute;
+  left: -40%;
+  right: -40%;
+  bottom: -8%;
+  height: 42%;
+  background: repeating-conic-gradient(rgb(255 255 255 / 0.09) 0 25%, transparent 0 50%) 0 0 / 72px 72px;
+  transform: perspective(500px) rotateX(62deg);
+  transform-origin: 50% 100%;
+  mask-image: linear-gradient(to top, #000 20%, transparent 90%);
+}
+.bdZig {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 26px;
+}
+.bdTracking {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 14vh;
+  background:
+    linear-gradient(to bottom, transparent, rgb(255 255 255 / 0.05), transparent),
+    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.05) 0 2px, transparent 2px 9px);
+  animation: bd-track 7s linear infinite;
+}
+@keyframes bd-track {
+  from { translate: 0 -20vh; }
+  to { translate: 0 120vh; }
+}
+
+.bdY2k {
+  background:
+    radial-gradient(ellipse 70% 60% at 72% 50%, rgb(0 102 255 / 0.36), transparent 70%),
+    radial-gradient(ellipse 50% 50% at 15% 85%, rgb(0 229 255 / 0.14), transparent 70%),
+    linear-gradient(to bottom, #030814, #050505);
+}
+.bdSheen {
+  position: absolute;
+  inset: -20%;
+  background: linear-gradient(115deg, transparent 38%, rgb(255 255 255 / 0.04) 46%, rgb(200 225 255 / 0.09) 50%, rgb(255 255 255 / 0.03) 54%, transparent 62%);
+  animation: sheen 9s ease-in-out infinite;
+}
+@keyframes sheen {
+  0%, 100% { translate: -12% 0; }
+  50% { translate: 12% 0; }
+}
+.bdBubble {
+  opacity: 0.22;
+  box-shadow: inset 0 0 0 1px rgb(160 220 255 / 0.35);
+}
+
+.bdNow {
+  background:
+    radial-gradient(ellipse 60% 50% at 70% 100%, rgb(255 36 20 / 0.3), transparent 70%),
+    #050505;
+}
+.bdNow .bdPhoto {
+  opacity: 0.36;
+  mask-image: linear-gradient(to bottom, transparent, #000 30%, #000 72%, transparent);
+}
+.bdBeams {
+  opacity: 0.5;
+}
+.bdBeams .beam {
+  width: 2px;
+  box-shadow: 0 0 12px var(--c);
+}
+.bdLed {
+  opacity: 0.4;
+  background-size: 6px 6px;
+}
+
+/* Grid do fundo andando — só desktop */
+@media (hover: hover) and (min-width: 1024px) {
+  .bdGrid::before {
+    animation: bd-grid 1.4s linear infinite;
+  }
+}
+@keyframes bd-grid {
+  to { transform: translateY(64px); }
+}
+
+/* ==========================================================================
+   Objetos
+   ========================================================================== */
+
+.cassette {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 0 18px rgb(255 20 147 / 0.35));
+}
+.reel {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: reel 2.6s linear infinite;
+}
+@keyframes reel {
+  to { transform: rotate(360deg); }
+}
+
+.cd {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle,
+      transparent 0 15.5%,
+      rgb(255 255 255 / 0.55) 16% 16.8%,
+      rgb(210 225 255 / 0.22) 17.2% 31%,
+      rgb(255 255 255 / 0.35) 31.3% 32%,
+      transparent 32.4%
+    ),
+    conic-gradient(
+      from 20deg,
+      #c9f6ff,
+      #00e5ff 8%,
+      #6a5cff 16%,
+      #ff1493 24%,
+      #ffd0f0 30%,
+      #9ef0ff 38%,
+      #0066ff 46%,
+      #8a2be2 54%,
+      #ff5ab4 62%,
+      #e9fbff 70%,
+      #00e5ff 78%,
+      #8a2be2 88%,
+      #c9f6ff
+    );
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.35),
+    0 0 30px rgb(0 229 255 / 0.35),
+    0 0 60px rgb(138 43 226 / 0.3);
+}
+.cd::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: repeating-radial-gradient(circle, rgb(255 255 255 / 0.08) 0 1px, transparent 1px 3px);
+  mask-image: radial-gradient(circle, transparent 0 32%, #000 33%);
+}
+.cd::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgb(255 255 255 / 0.5), transparent 30%, transparent 70%, rgb(255 255 255 / 0.2));
+  mix-blend-mode: soft-light;
+}
+.cdPrint {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  animation: spin 9s linear infinite;
+}
+.cdHub {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 2;
+  width: 13%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: #050505;
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.4);
+}
+
+.mp3 {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10cqi;
+  width: 100%;
+  aspect-ratio: 0.6;
+  padding: 9cqi 9cqi 0;
+  border-radius: 16cqi;
+  background: linear-gradient(145deg, #f5f7fc 0%, #b8c0d2 30%, #eef1f7 52%, #7a8397 78%, #d9dee8 100%);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    inset 0 -2px 4px rgb(0 0 0 / 0.35),
+    0 0 0 1px rgb(0 0 0 / 0.4),
+    0 0 40px rgb(0 102 255 / 0.4);
+}
+.mp3Screen {
+  display: flex;
+  flex-direction: column;
+  gap: 3cqi;
+  width: 100%;
+  aspect-ratio: 1.15;
+  padding: 8cqi 9cqi;
+  border-radius: 5cqi;
+  color: #eaf6ff;
+  font-family: var(--font-vt323), monospace;
+  background: linear-gradient(160deg, #1a5bff, #0a2a8c 70%);
+  box-shadow:
+    inset 0 0 0 1.5cqi #1b1e27,
+    inset 0 3cqi 8cqi rgb(255 255 255 / 0.12);
+}
+.mp3Line {
+  font-size: 9cqi;
+  line-height: 1;
+  opacity: 0.8;
+}
+.mp3Title {
+  font-size: 14cqi;
+  line-height: 1;
+  text-shadow: 0 0 6px rgb(0 229 255 / 0.7);
+}
+.mp3Eq {
+  display: flex;
+  align-items: flex-end;
+  gap: 2.5cqi;
+  height: 16cqi;
+  margin-top: auto;
+}
+.mp3Eq span {
+  flex: 1;
+  height: 100%;
+  transform-origin: bottom;
+  background: linear-gradient(to top, #00e5ff, #fff);
+  animation: mp3-eq 0.9s ease-in-out infinite alternate;
+}
+@keyframes mp3-eq {
+  0% { transform: scaleY(0.2); }
+  50% { transform: scaleY(1); }
+  100% { transform: scaleY(0.45); }
+}
+.mp3Bar {
+  height: 2cqi;
+  border-radius: 99px;
+  background: linear-gradient(to right, #fff 0 62%, rgb(255 255 255 / 0.25) 62%);
+}
+.wheel {
+  position: relative;
+  width: 78%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 40%, #fdfdff, #cfd5e2 60%, #aab2c4);
+  box-shadow:
+    inset 0 2px 4px rgb(255 255 255 / 0.9),
+    inset 0 -3px 6px rgb(0 0 0 / 0.25),
+    0 1px 0 rgb(255 255 255 / 0.6);
+}
+.wheelLabel {
+  position: absolute;
+  font-family: var(--font-hud);
+  font-weight: 700;
+  font-size: 7cqi;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  color: #5b6475;
+}
+.wheelBtn {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 36%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #eef1f7, #aeb6c7);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 1px 3px rgb(0 0 0 / 0.3);
+}
+
+.jog {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, #16141b 0 60%, #0b0a0e 61% 100%);
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.12),
+    0 0 26px rgb(255 36 20 / 0.45),
+    0 0 60px rgb(255 20 147 / 0.2);
+}
+.jogRing {
+  position: absolute;
+  inset: 3%;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    var(--color-red, #ff2414),
+    var(--color-magenta, #ff1493) 20%,
+    transparent 32%,
+    transparent 50%,
+    var(--color-red, #ff2414) 62%,
+    var(--color-magenta, #ff1493) 76%,
+    transparent 88%
+  );
+  mask-image: radial-gradient(circle, transparent 0 87%, #000 88% 96%, transparent 97%);
+  animation: spin 2.4s linear infinite;
+}
+.jogPlatter {
+  position: absolute;
+  inset: 12%;
+  border-radius: 50%;
+  background:
+    repeating-radial-gradient(circle, rgb(255 255 255 / 0.05) 0 1px, transparent 1px 3px),
+    conic-gradient(from 0deg, #2c2933, #111016, #2c2933, #111016, #2c2933);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.08),
+    inset 0 2px 10px rgb(0 0 0 / 0.8);
+  animation: spin 3.2s linear infinite;
+}
+.jogCenter {
+  position: absolute;
+  inset: 34%;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #27232e, #0a090d);
+  box-shadow:
+    0 0 0 1px rgb(255 36 20 / 0.45),
+    0 0 14px rgb(255 36 20 / 0.45);
+}

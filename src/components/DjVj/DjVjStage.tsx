@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useState, type AnimationEvent } from "react";
+import { useRef, useState, useSyncExternalStore, type AnimationEvent } from "react";
 import {
   motion,
   useInView,
@@ -38,9 +38,19 @@ const decks: Record<
     code: "B",
     words: ["Vídeo", "Telões", "Visuais", "Sincronia"],
     photo: "/images/events/betobrizz-palco-telas-retro.webp",
-    alt: "Palco com a cabine de DJ BetoBrizz diante de telões de LED em formato de TVs retrô",
+    alt: "Palco do DJ BetoBrizz diante de telões de LED em formato de TVs retrô",
   },
 };
+
+const noopSubscribe = () => () => {};
+
+/**
+ * false no SSR e durante a hidratação, true depois. O prefers-reduced-motion só é
+ * conhecido no cliente — usá-lo no render antes disso quebraria a hidratação.
+ */
+function useHydrated() {
+  return useSyncExternalStore(noopSubscribe, () => true, () => false);
+}
 
 /** Progresso a partir do qual as duas metades estão "conectadas". */
 const LINK_AT = 0.9;
@@ -52,7 +62,8 @@ const LINK_AT = 0.9;
  */
 export function DjVjStage() {
   const stageRef = useRef<HTMLDivElement>(null);
-  const { isDesktop, reducedMotion } = useExperience();
+  const { isDesktop, reducedMotion: prefersReduced } = useExperience();
+  const reducedMotion = useHydrated() && prefersReduced;
   const inView = useInView(stageRef, { amount: 0.1 });
 
   const { scrollYProgress } = useScroll({ target: stageRef, offset: ["start 0.95", "center 0.68"] });

@@ -67,7 +67,7 @@ export function CTA() {
           <SectionHeading id="contato-title" kicker="Turn up the moment" title="Vamos criar essa experiência?" accent="magenta" />
 
           <Reveal>
-            <p className="max-w-xl text-lg leading-relaxed text-mute sm:text-xl">
+            <p className="max-w-xl text-lg leading-relaxed text-pretty text-mute sm:text-xl">
               Seu evento merece mais do que música.{" "}
               <span className="mt-1 block font-hud text-2xl font-bold tracking-[0.08em] text-white uppercase sm:text-3xl">
                 Merece uma <span className="text-magenta text-glow-magenta">atmosfera.</span>

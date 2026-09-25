@@ -268,7 +268,7 @@ function DeckFacade({
             <span aria-hidden className="absolute -inset-1.5 animate-pulse-glow rounded-full border border-magenta/50" />
             <PlayIcon size={28} className="translate-x-[2px]" />
           </button>
-          <span aria-hidden className="hud text-[0.55rem] text-dim">
+          <span aria-hidden className="hud text-[0.55rem] whitespace-nowrap text-dim">
             Play / Pause
           </span>
         </div>

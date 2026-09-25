@@ -73,8 +73,6 @@ export function CrtTv({ scene, index, total, mode, reducedMotion }: Props) {
         <div className={styles.plate}>
           <KnobIcon className="size-[1.1em]" />
           <span>BETOBRIZZ</span>
-          <span className="text-white/35">·</span>
-          <span className="text-white/45">Sound &amp; Visual</span>
         </div>
       </div>
       <div className={styles.feet}>

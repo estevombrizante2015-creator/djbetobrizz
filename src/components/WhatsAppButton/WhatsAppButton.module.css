@@ -1,0 +1,59 @@
+/* Entrada após a intro — só CSS: aparece mesmo se o JS demorar. */
+.dock {
+  animation: dock-in 600ms cubic-bezier(0.16, 1, 0.3, 1) 1.6s both;
+}
+
+/* Anel de pulso, ~123 BPM × 4 (uma "frase" por pulso). Só transform/opacity. */
+.ping {
+  position: absolute;
+  inset: -1px;
+  border-radius: 9999px;
+  border: 1.5px solid rgb(255 36 20 / 0.8);
+  box-shadow: 0 0 14px rgb(255 20 147 / 0.6);
+  opacity: 0;
+  pointer-events: none;
+  --sx: 1.4;
+  --sy: 1.4;
+}
+
+/* Na pílula (desktop) o anel abre menos na horizontal. */
+@media (min-width: 48rem) {
+  .ping {
+    --sx: 1.08;
+    --sy: 1.45;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ping {
+    animation: ping 1951ms cubic-bezier(0.2, 0.6, 0.35, 1) 2.4s infinite;
+  }
+  a:hover .ping {
+    animation: none;
+  }
+}
+
+@keyframes dock-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.92);
+    visibility: hidden;
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    visibility: visible;
+  }
+}
+
+@keyframes ping {
+  0% {
+    opacity: 0.75;
+    transform: scale(1);
+  }
+  55%,
+  100% {
+    opacity: 0;
+    transform: scale(var(--sx), var(--sy));
+  }
+}

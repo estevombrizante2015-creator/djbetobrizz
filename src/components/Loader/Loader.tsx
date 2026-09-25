@@ -13,10 +13,11 @@ const TOTAL = 900;
 const SEGMENTS = 16;
 
 /**
- * Roda antes da primeira pintura: se a intro já foi vista nesta sessão, esconde o overlay
- * (sem "flash" de tela preta). Só insere um <style> no <head> — não altera nós do React.
+ * Roda no parse do HTML, antes da primeira pintura: se a intro já foi vista nesta sessão,
+ * esconde o overlay (sem "flash" de tela preta). Só insere um <style> no <head> — não altera nós do React.
+ * Vai como innerHTML de um contêiner: executa no HTML do servidor e nunca é recriado como <script> no cliente.
  */
-const PRE_PAINT = `(function(){try{var s=window.sessionStorage;if(s.getItem("${SESSION_KEY}")){var e=document.createElement("style");e.textContent="[data-bb-loader]{display:none!important}";document.head.appendChild(e)}else{s.setItem("${SESSION_KEY}","1")}}catch(e){}})();`;
+const PRE_PAINT = `<script>(function(){try{var s=window.sessionStorage;if(s.getItem("${SESSION_KEY}")){var e=document.createElement("style");e.textContent="[data-bb-loader]{display:none!important}";document.head.appendChild(e)}else{s.setItem("${SESSION_KEY}","1")}}catch(e){}})();</script>`;
 
 /* Waveform "burst" determinística (mesma string no SSR e no cliente). */
 const WAVE_W = 600;
@@ -87,6 +88,7 @@ export function Loader() {
     <>
       <div ref={ref} data-bb-loader="" aria-hidden className={styles.loader}>
         <div className={styles.noise} />
+        <div className={styles.glow} />
 
         {/* Moldura de câmera/VJ */}
         <div className={styles.frame}>
@@ -145,7 +147,7 @@ export function Loader() {
 
           <div className={styles.status}>
             <div className="flex items-baseline justify-between gap-4">
-              <span className="hud text-[0.66rem] tracking-[0.34em] text-mute sm:text-xs">
+              <span className="font-hud text-[0.68rem] font-semibold tracking-[0.34em] text-mute uppercase sm:text-xs">
                 Loading experience<span className={styles.dots} />
               </span>
               <span className={cn(styles.pct, "font-vhs text-lg leading-none text-white")} />
@@ -158,7 +160,7 @@ export function Loader() {
           </div>
         </div>
       </div>
-      <script dangerouslySetInnerHTML={{ __html: PRE_PAINT }} />
+      <div hidden dangerouslySetInnerHTML={{ __html: PRE_PAINT }} />
     </>
   );
 }

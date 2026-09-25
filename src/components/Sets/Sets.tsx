@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { sampleSets as sets } from "../Videos/tmp-sample";
+import { sets } from "@/data/sets";
 import type { SetItem } from "@/data/types";
 import { siteConfig } from "@/config/site";
 import { SectionHeading } from "@/components/ui/SectionHeading";

@@ -134,16 +134,6 @@
   line-height: 0.92;
 }
 
-/* Adesivo redondo com o ícone (hype sticker) */
-.sticker {
-  background: radial-gradient(circle at 35% 30%, color-mix(in oklab, var(--acc) 70%, #fff), var(--acc) 60%);
-  box-shadow:
-    0 0 0 2px rgb(5 5 5 / 0.55),
-    0 6px 16px -4px rgb(0 0 0 / 0.7);
-  rotate: -10deg;
-  transition: rotate 0.6s var(--expo);
-}
-
 /* ---------- Estampas (uma por card, em ciclo) ---------- */
 
 /* 0 — anéis concêntricos */
@@ -243,9 +233,6 @@
       0 0 0 1px var(--acc-strong),
       0 0 34px -6px var(--acc-mid),
       0 36px 70px -30px var(--acc-mid);
-  }
-  .card:hover .sticker {
-    rotate: 6deg;
   }
 }
 

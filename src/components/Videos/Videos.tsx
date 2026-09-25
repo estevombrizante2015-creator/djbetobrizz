@@ -1,4 +1,4 @@
-import { sampleVideos as videos } from "./tmp-sample";
+import { videos } from "@/data/videos";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { VideoGrid } from "./VideoGrid";
 import { VideosShowcase } from "./VideosShowcase";

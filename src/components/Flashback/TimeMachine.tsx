@@ -1,6 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type CSSProperties,
+  type KeyboardEvent,
+} from "react";
 import {
   AnimatePresence,
   motion,
@@ -25,6 +33,16 @@ type Decade = (typeof decadesData)[number];
 const AUTO_MS = 5200;
 const pad = (n: number) => String(n).padStart(2, "0");
 
+const noopSubscribe = () => () => {};
+/** true só depois da hidratação — evita divergência SSR × cliente em valores lidos de media queries. */
+function useHydrated() {
+  return useSyncExternalStore(
+    noopSubscribe,
+    () => true,
+    () => false,
+  );
+}
+
 /**
  * Máquina do tempo 1980 → 1990 → 2000 → TODAY.
  * - Desktop (mouse + ≥1024px, sem reduced motion): trilho alto com palco "sticky";
@@ -35,8 +53,11 @@ const pad = (n: number) => String(n).padStart(2, "0");
  */
 export function TimeMachine({ decades }: { decades: Decade[] }) {
   const n = decades.length;
-  const { isDesktop, reducedMotion } = useExperience();
-  const scrollMode = isDesktop && !reducedMotion;
+  const experience = useExperience();
+  const hydrated = useHydrated();
+  // prefers-reduced-motion já vem "true" no 1º render do cliente; só aplicamos após hidratar.
+  const reducedMotion = hydrated && experience.reducedMotion;
+  const scrollMode = experience.isDesktop && !reducedMotion;
 
   const trackRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -166,7 +187,7 @@ export function TimeMachine({ decades }: { decades: Decade[] }) {
               <p className={cn("mt-3 font-hud text-xl font-bold tracking-[0.22em] uppercase sm:text-2xl", theme.label)}>
                 {decade.label}
               </p>
-              <p className="mt-2 max-w-md text-base leading-relaxed text-white/85 sm:text-lg">{decade.hint}</p>
+              <p className="mt-2 min-h-[3.25em] max-w-md text-base leading-relaxed text-white/85 sm:text-lg">{decade.hint}</p>
             </div>
 
             {/* Abas — 1980 · 1990 · 2000 · TODAY */}

@@ -92,7 +92,10 @@ function EventTile({ tile, rowSum, total }: { tile: Tile; rowSum: number; total:
   const sizes = `(min-width: 1280px) ${Math.round(share * CONTAINER_PX)}px, (min-width: 640px) ${Math.round(share * 100)}vw, 100vw`;
   const details = [item.location, item.date].filter(Boolean).join(" · ");
   const label = item.title ?? item.type;
-  const kicker = item.title ? item.type : undefined;
+  // Com nome de evento vira "EVENTO DESTACADO" (§18); o tipo passa a ser o rótulo de cima.
+  const highlighted = Boolean(item.title);
+  const kicker = highlighted ? ["Evento destacado", item.type].filter(Boolean).join(" · ") : undefined;
+  const big = highlighted || item.featured;
 
   const style = {
     "--m-ar": mobileRatio,
@@ -157,16 +160,20 @@ function EventTile({ tile, rowSum, total }: { tile: Tile; rowSum: number; total:
             />
             {kicker ? <span className={cn("hud", accent.text)}>{kicker}</span> : null}
           </span>
+          {/* Rajdhani: o til do Orbitron vira um traço inclinado ("TELÃO" parece "TELÀO") */}
           <span
             className={cn(
-              "font-display leading-[1.02] font-black tracking-tight text-balance text-white uppercase transition-[text-shadow] duration-500",
-              item.featured ? "text-2xl sm:text-3xl lg:text-4xl" : "text-xl sm:text-2xl lg:text-[1.7rem]",
+              "font-hud leading-[0.95] font-bold tracking-[0.04em] text-balance text-white uppercase transition-[text-shadow] duration-500",
+              big ? "text-[2rem] sm:text-[2.4rem] lg:text-[2.8rem]" : "text-[1.7rem] sm:text-[1.9rem] lg:text-[2.15rem]",
               accent.glow,
             )}
           >
             {label}
           </span>
-          {details ? <span className="font-hud text-sm font-semibold tracking-[0.18em] text-mute uppercase">{details}</span> : null}
+          {details ? <span className="font-hud text-sm font-semibold tracking-[0.18em] text-white/80 uppercase">{details}</span> : null}
+          {item.description ? (
+            <span className="line-clamp-2 max-w-prose text-sm leading-relaxed text-white/85">{item.description}</span>
+          ) : null}
         </figcaption>
       ) : null}
     </figure>
@@ -191,7 +198,14 @@ export function Events() {
 
       <div className="container-bb relative">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-          <SectionHeading id="eventos-titulo" kicker="05 // EVENTOS" title="ONDE A MÚSICA ACONTECE." accent="magenta" />
+          {/* leading local maior: o acento do "Ú" (MÚSICA) invadia a linha de cima */}
+          <SectionHeading
+            id="eventos-titulo"
+            kicker="05 // EVENTOS"
+            title="ONDE A MÚSICA ACONTECE."
+            accent="magenta"
+            className="[&_h2]:leading-[1.08]"
+          />
           <Reveal className="flex shrink-0 flex-col gap-2 lg:items-end lg:pb-3 lg:text-right">
             <p className="hud flex items-center gap-2 text-mute">
               <span aria-hidden className="size-1.5 animate-rec rounded-full bg-red" />
@@ -210,7 +224,7 @@ export function Events() {
                   w-full impede que o max-h encolha a largura via aspect-ratio. */}
               <div
                 style={{ "--row-ar": row.natural } as CSSProperties}
-                className="flex flex-col gap-3 sm:aspect-(--row-ar) sm:max-h-[34rem] sm:w-full sm:flex-row sm:gap-4"
+                className="flex flex-col gap-3 sm:aspect-(--row-ar) sm:max-h-[min(34rem,78svh)] sm:w-full sm:flex-row sm:gap-4"
               >
                 {row.tiles.map((tile) => (
                   <EventTile key={tile.index} tile={tile} rowSum={row.sum} total={events.length} />

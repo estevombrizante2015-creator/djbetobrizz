@@ -4,13 +4,13 @@ export const stats: { value: string; label: string }[] = [];
 export type Accent = "magenta" | "cyan" | "purple" | "blue" | "red";
 
 /** Estilos musicais ("QUAL É A SUA VIBE?") — ajuste conforme o repertório real. */
-export const musicStyles: { icon: string; title: string; text: string; accent: Accent }[] = [
-  { icon: "🪩", title: "Flashback", text: "Clássicos que marcaram gerações.", accent: "magenta" },
-  { icon: "🎛️", title: "Electronic", text: "House, dance e música eletrônica.", accent: "cyan" },
-  { icon: "📼", title: "Anos 80", text: "Synths, clássicos e nostalgia.", accent: "purple" },
-  { icon: "💿", title: "Anos 90", text: "Dance, eurodance e hits.", accent: "blue" },
-  { icon: "🎤", title: "Anos 2000", text: "Hits que marcaram uma geração.", accent: "magenta" },
-  { icon: "🔥", title: "Open Format", text: "Mistura de estilos para manter a pista em movimento.", accent: "red" },
+export const musicStyles: { title: string; text: string; accent: Accent }[] = [
+  { title: "Flashback", text: "Clássicos que marcaram gerações.", accent: "magenta" },
+  { title: "Electronic", text: "House, dance e música eletrônica.", accent: "cyan" },
+  { title: "Anos 80", text: "Synths, clássicos e nostalgia.", accent: "purple" },
+  { title: "Anos 90", text: "Dance, eurodance e hits.", accent: "blue" },
+  { title: "Anos 2000", text: "Hits que marcaram uma geração.", accent: "magenta" },
+  { title: "Open Format", text: "Mistura de estilos para manter a pista em movimento.", accent: "red" },
 ];
 
 /** Tipos de evento atendidos — exiba apenas serviços realmente oferecidos. */

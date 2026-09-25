@@ -1,6 +1,5 @@
 import { Fragment } from "react";
 import { siteConfig } from "@/config/site";
-import { stats } from "@/data/content";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Reveal } from "@/components/ui/Reveal";
 import { MapPinIcon } from "@/components/ui/Icons";
@@ -18,8 +17,8 @@ const signalChain = [
 
 /**
  * 01 — "MAIS QUE UM DJ."
- * Retrato em monitor CRT + texto de apresentação. Os números só aparecem
- * quando existem dados reais em `stats` (data/content.ts).
+ * Retrato em monitor CRT + texto de apresentação.
+ * (Os indicadores numéricos foram removidos por decisão do cliente.)
  */
 export function About() {
   return (
@@ -71,32 +70,9 @@ export function About() {
               {siteConfig.location}
             </p>
           </Reveal>
-
-          {stats.length > 0 ? <Stats /> : null}
         </div>
       </div>
     </section>
   );
 }
 
-/** Indicadores reais (eventos, anos, cidades…) como um painel de medidores. */
-function Stats() {
-  return (
-    <Reveal delay={0.16}>
-      <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-[repeat(auto-fit,minmax(8.5rem,1fr))]">
-        {stats.map((stat, i) => (
-          <div key={`${stat.label}-${i}`} className="group relative flex flex-col-reverse gap-1.5 bg-void p-4 sm:p-5">
-            <span
-              aria-hidden
-              className="absolute inset-x-0 top-0 h-px origin-left scale-x-0 bg-gradient-to-r from-magenta to-cyan transition-transform duration-500 group-hover:scale-x-100"
-            />
-            <dt className="hud text-[0.68rem] text-mute">{stat.label}</dt>
-            <dd className="font-display text-2xl font-black tracking-tight text-white text-glow-magenta sm:text-3xl">
-              {stat.value}
-            </dd>
-          </div>
-        ))}
-      </dl>
-    </Reveal>
-  );
-}

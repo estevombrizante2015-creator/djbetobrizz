@@ -25,10 +25,10 @@ const SOURCES = [
   ["WhatsApp Image 2026-09-25 at 08.59.59.jpeg", "events/betobrizz-pista-magenta.webp"],
   ["WhatsApp Image 2026-09-25 at 09.09.44.jpeg", "events/betobrizz-telao-vermelho.webp"],
   ["WhatsApp Image 2026-09-25 at 09.09.44 (1).jpeg", "events/betobrizz-palco-telas-retro.webp"],
-  ["WhatsApp Image 2026-09-25 at 09.09.44 (2).jpeg", "events/betobrizz-cabine-pioneer.webp"],
+  ["WhatsApp Image 2026-09-25 at 09.09.44 (2).jpeg", "events/betobrizz-set-pioneer.webp"],
   ["WhatsApp Image 2026-09-25 at 09.09.45.jpeg", "events/betobrizz-mixagem-close.webp"],
   ["WhatsApp Image 2026-09-25 at 09.09.45 (1).jpeg", "events/betobrizz-mixagem-close-azul.webp"],
-  ["WhatsApp Image 2026-09-25 at 09.09.45 (2).jpeg", "events/betobrizz-na-cabine.webp"],
+  ["WhatsApp Image 2026-09-25 at 09.09.45 (2).jpeg", "events/betobrizz-fones-controladora.webp"],
 ];
 
 const MAX = 1920;

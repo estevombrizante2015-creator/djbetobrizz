@@ -70,7 +70,7 @@ const closing = phrases.find((p) => /experience is everything/i.test(p));
 const marqueeItems = closing ? [statement, closing] : [statement];
 
 /**
- * 03 — THE EXPERIENCE: os três pilares (SOUND / VISUAL / ENERGY) como
+ * THE EXPERIENCE (conceito): os três pilares (SOUND / VISUAL / ENERGY) como
  * canais de uma mesa, cada um com um mini visual ao vivo.
  */
 export function TheExperience() {
@@ -94,7 +94,7 @@ export function TheExperience() {
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end lg:gap-12">
             <SectionHeading
               id="the-experience-title"
-              kicker="03 // The Experience"
+              kicker="// O conceito"
               title="The Experience"
               subtitle={siteConfig.experienceName}
               accent="cyan"
@@ -208,7 +208,7 @@ function PillarTile({ index, title, text, accent, kind }: PillarProps) {
       <span
         aria-hidden
         className={cn(
-          "text-outline pointer-events-none absolute right-4 bottom-2 font-display text-[4.5rem] leading-none font-black opacity-20 transition-[opacity,-webkit-text-stroke-color] duration-500 group-hover:opacity-60 sm:right-5 sm:text-[5.25rem]",
+          "text-outline pointer-events-none absolute right-4 bottom-2 font-display text-[4.5rem] leading-none font-black opacity-20 transition-[opacity,-webkit-text-stroke-color] duration-500 group-hover:opacity-60 sm:right-5 sm:text-[5.25rem] md:text-[3.5rem] lg:text-[4.25rem] xl:text-[5.25rem]",
           a.stroke,
         )}
       >
@@ -285,8 +285,8 @@ function EnergyVisual() {
     { scale: 1.15, delay: "-1.3s" },
   ];
   return (
-    <div className="absolute inset-0 flex items-center justify-center gap-10 px-5">
-      <div className="relative size-20">
+    <div className="absolute inset-0 flex items-center justify-center gap-8 px-4 lg:gap-10">
+      <div className="relative size-20 shrink-0">
         {rings.map((r) => (
           <span
             key={r.delay}
