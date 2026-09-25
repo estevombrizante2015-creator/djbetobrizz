@@ -1,0 +1,326 @@
+/* ==========================================================================
+   Hero — coreografia de entrada (glitch do logo), Ken Burns e fade dos efeitos.
+   Só transform/opacity/clip-path/filter por poucos ms; nada roda em loop pesado.
+   ========================================================================== */
+
+/* ---------- Logo: estados pre → intro → idle ⇄ glitch ---------- */
+
+.logo {
+  position: relative;
+  display: block;
+  isolation: isolate;
+}
+
+.base {
+  position: relative;
+  display: block;
+  filter: drop-shadow(0 0 22px rgb(255 36 20 / 0.18)) drop-shadow(0 0 1px rgb(0 0 0 / 0.9));
+}
+
+.slice {
+  position: absolute;
+  inset: 0;
+  display: block;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sliceA {
+  filter: drop-shadow(-5px 0 0 rgb(0 229 255 / 0.95));
+}
+
+.sliceB {
+  filter: drop-shadow(5px 0 0 rgb(255 20 147 / 0.95));
+}
+
+/* barra de varredura CRT que atravessa o logo durante a entrada */
+.scan {
+  position: absolute;
+  inset: -6% -4%;
+  opacity: 0;
+  pointer-events: none;
+}
+.scan::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.95) 20%, var(--color-cyan) 50%, rgb(255 255 255 / 0.95) 80%, transparent);
+  box-shadow: 0 0 18px 4px rgb(0 229 255 / 0.45);
+}
+
+.logo[data-state="pre"] .base {
+  opacity: 0;
+}
+
+.logo[data-state="intro"] .base {
+  animation: logo-in 0.56s linear both;
+}
+.logo[data-state="intro"] .sliceA {
+  animation: slice-a 0.5s steps(1, end) both;
+}
+.logo[data-state="intro"] .sliceB {
+  animation: slice-b 0.5s steps(1, end) both;
+}
+.logo[data-state="intro"] .scan {
+  animation: scan-down 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.logo[data-state="glitch"] .base {
+  animation: logo-rgb 0.38s linear both;
+}
+.logo[data-state="glitch"] .sliceA {
+  animation: slice-a 0.34s steps(1, end) both;
+}
+.logo[data-state="glitch"] .sliceB {
+  animation: slice-b 0.34s steps(1, end) both;
+}
+
+@keyframes logo-in {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(1.05);
+    filter: drop-shadow(-16px 0 0 rgb(0 229 255 / 0.9)) drop-shadow(16px 0 0 rgb(255 20 147 / 0.9));
+  }
+  8% {
+    opacity: 1;
+  }
+  16% {
+    opacity: 0.25;
+    transform: translate3d(-8px, 0, 0) skewX(-10deg) scale(1.03);
+  }
+  24% {
+    opacity: 1;
+    transform: translate3d(6px, 0, 0) skewX(5deg) scale(1.02);
+    filter: drop-shadow(-10px 0 0 rgb(0 229 255 / 0.85)) drop-shadow(10px 0 0 rgb(255 20 147 / 0.85));
+  }
+  34% {
+    opacity: 0.55;
+    transform: translate3d(-3px, 0, 0) skewX(-3deg);
+  }
+  44% {
+    opacity: 1;
+    transform: translate3d(2px, 0, 0);
+    filter: drop-shadow(-5px 0 0 rgb(0 229 255 / 0.7)) drop-shadow(5px 0 0 rgb(255 20 147 / 0.7));
+  }
+  60% {
+    transform: translate3d(0, 0, 0);
+    filter: drop-shadow(-2px 0 0 rgb(0 229 255 / 0.5)) drop-shadow(2px 0 0 rgb(255 20 147 / 0.5));
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+    filter: drop-shadow(0 0 22px rgb(255 36 20 / 0.18)) drop-shadow(0 0 1px rgb(0 0 0 / 0.9));
+  }
+}
+
+@keyframes logo-rgb {
+  0% {
+    transform: translate3d(0, 0, 0);
+    filter: drop-shadow(-7px 0 0 rgb(0 229 255 / 0.85)) drop-shadow(7px 0 0 rgb(255 20 147 / 0.85));
+  }
+  30% {
+    transform: translate3d(-4px, 0, 0) skewX(-6deg);
+  }
+  55% {
+    transform: translate3d(3px, 0, 0);
+    filter: drop-shadow(-3px 0 0 rgb(0 229 255 / 0.6)) drop-shadow(3px 0 0 rgb(255 20 147 / 0.6));
+  }
+  100% {
+    transform: none;
+    filter: drop-shadow(0 0 22px rgb(255 36 20 / 0.18)) drop-shadow(0 0 1px rgb(0 0 0 / 0.9));
+  }
+}
+
+@keyframes slice-a {
+  0% {
+    opacity: 1;
+    clip-path: inset(6% 0 74% 0);
+    transform: translate3d(-34px, 0, 0);
+  }
+  12% {
+    clip-path: inset(54% 0 28% 0);
+    transform: translate3d(26px, 0, 0);
+  }
+  24% {
+    clip-path: inset(30% 0 54% 0);
+    transform: translate3d(-18px, 0, 0);
+  }
+  36% {
+    clip-path: inset(80% 0 4% 0);
+    transform: translate3d(12px, 0, 0);
+  }
+  48% {
+    clip-path: inset(14% 0 68% 0);
+    transform: translate3d(-8px, 0, 0);
+  }
+  62% {
+    clip-path: inset(60% 0 22% 0);
+    transform: translate3d(5px, 0, 0);
+  }
+  76%,
+  100% {
+    opacity: 0;
+    clip-path: inset(50% 0 50% 0);
+    transform: none;
+  }
+}
+
+@keyframes slice-b {
+  0% {
+    opacity: 1;
+    clip-path: inset(62% 0 16% 0);
+    transform: translate3d(30px, 0, 0);
+  }
+  12% {
+    clip-path: inset(18% 0 64% 0);
+    transform: translate3d(-24px, 0, 0);
+  }
+  24% {
+    clip-path: inset(70% 0 10% 0);
+    transform: translate3d(16px, 0, 0);
+  }
+  36% {
+    clip-path: inset(40% 0 44% 0);
+    transform: translate3d(-12px, 0, 0);
+  }
+  48% {
+    clip-path: inset(4% 0 82% 0);
+    transform: translate3d(7px, 0, 0);
+  }
+  62% {
+    clip-path: inset(46% 0 38% 0);
+    transform: translate3d(-4px, 0, 0);
+  }
+  76%,
+  100% {
+    opacity: 0;
+    clip-path: inset(50% 0 50% 0);
+    transform: none;
+  }
+}
+
+@keyframes scan-down {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 100%, 0);
+  }
+}
+
+/* ---------- Fundo: Ken Burns lento (inicia após a intro) ---------- */
+
+.kenburns {
+  transform: scale(1.06);
+  transform-origin: 42% 38%;
+}
+
+.kenburnsOn {
+  animation: ken-burns 28s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes ken-burns {
+  from {
+    transform: scale(1.06) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.16) translate3d(-1.6%, -1.2%, 0);
+  }
+}
+
+/* ---------- Efeitos (lasers/partículas) entram depois do logo ---------- */
+
+.fxIn {
+  animation: fx-in 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both;
+}
+
+@keyframes fx-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---------- Caret do "DJ & VJ" digitado ---------- */
+
+.caret {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 0.5em;
+  height: 0.95em;
+  translate: 0 -50%;
+  background: var(--color-cyan);
+  box-shadow: 0 0 12px rgb(0 229 255 / 0.7);
+  animation: caret 0.9s steps(1, end) 3 both;
+}
+
+@keyframes caret {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  99% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ---------- Camadas de luz e sombra sobre a foto ---------- */
+
+/* retrato/mobile: texto embaixo → escurece de baixo para cima */
+.shadeBottom {
+  background: linear-gradient(
+    to top,
+    var(--color-void) 6%,
+    rgb(5 5 5 / 0.86) 34%,
+    rgb(5 5 5 / 0.35) 64%,
+    rgb(5 5 5 / 0.25) 80%,
+    rgb(5 5 5 / 0.7) 100%
+  );
+}
+
+/* desktop: texto à direita → escurece da direita para a esquerda, DJ fica visível */
+.shadeSide {
+  background:
+    linear-gradient(to left, rgb(5 5 5 / 0.94) 12%, rgb(5 5 5 / 0.72) 40%, rgb(5 5 5 / 0.2) 68%, rgb(5 5 5 / 0.1) 100%),
+    linear-gradient(to top, var(--color-void) 0%, rgb(5 5 5 / 0.5) 22%, transparent 45%),
+    linear-gradient(to bottom, rgb(5 5 5 / 0.75) 0%, transparent 22%);
+}
+
+/* lavagem de cor: magenta, roxo e o vermelho do logo */
+.wash {
+  opacity: 0.75;
+  transition: opacity 0.8s ease;
+  background:
+    radial-gradient(55% 45% at 88% 12%, rgb(255 20 147 / 0.34), transparent 70%),
+    radial-gradient(50% 55% at 6% 88%, rgb(138 43 226 / 0.4), transparent 70%),
+    radial-gradient(38% 34% at 72% 46%, rgb(255 36 20 / 0.16), transparent 72%),
+    radial-gradient(40% 40% at 20% 20%, rgb(0 102 255 / 0.16), transparent 70%);
+}
+
+:global(html[data-experience="on"]) .wash {
+  opacity: 1;
+}
+
+.vignette {
+  background: radial-gradient(ellipse 85% 75% at 50% 45%, transparent 55%, rgb(0 0 0 / 0.7) 100%);
+}
+
+/* scanlines sem mix-blend (barato para touch/mobile) */
+.scanlinesLite {
+  background: repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.22) 0 1px, transparent 1px 3px);
+}

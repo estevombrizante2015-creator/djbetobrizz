@@ -1,0 +1,154 @@
+"use client";
+
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
+import type { VideoItem } from "@/data/types";
+import { VhsOverlay } from "@/components/Effects/VhsOverlay";
+import { Logo } from "@/components/ui/Logo";
+import { InstagramIcon, PlayIcon } from "@/components/ui/Icons";
+import { track } from "@/lib/analytics";
+import { cn, getImageMeta } from "@/lib/utils";
+import { platformLabel, resolveVideoPoster, type VideoSource } from "./video-source";
+
+type Props = {
+  item: VideoItem;
+  source: VideoSource;
+  index: number;
+  featured?: boolean;
+};
+
+/**
+ * Card de vídeo com "facade": só a capa + botão ▶ neon são carregados.
+ * O player (YouTube/Vimeo/arquivo) entra apenas depois do clique; Instagram abre o post em nova aba.
+ */
+export function VideoCard({ item, source, index, featured = false }: Props) {
+  const [playing, setPlaying] = useState(false);
+  const playerRef = useRef<HTMLIFrameElement & HTMLVideoElement>(null);
+  const trackNo = `TRACK ${String(index + 1).padStart(2, "0")}`;
+  const sizes = featured ? "(min-width: 1024px) 66vw, (min-width: 640px) 100vw, 100vw" : "(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw";
+
+  // Leva o foco para o player recém-carregado (teclado continua de onde parou).
+  useEffect(() => {
+    if (playing) playerRef.current?.focus({ preventScroll: true });
+  }, [playing]);
+
+  const onPlay = () => {
+    track("video_play", { platform: item.platform, title: item.title });
+    if (source.kind !== "link") setPlaying(true);
+  };
+
+  const facade = (
+    <>
+      <Poster item={item} sizes={sizes} />
+      <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-void/85 via-void/10 to-void/40" />
+      <VhsOverlay mode="PLAY" track={trackNo} start={92 + index * 37} className="text-sm sm:text-lg" />
+      <span
+        aria-hidden
+        className={cn(
+          "absolute top-1/2 left-1/2 grid -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 border-white/85 bg-void/40 text-white backdrop-blur-sm",
+          "transition-[background-color,border-color,box-shadow,transform] duration-300 ease-out",
+          "group-hover:scale-110 group-hover:border-magenta group-hover:bg-magenta group-hover:text-void group-hover:shadow-neon-magenta",
+          "group-focus-visible:border-magenta group-focus-visible:bg-magenta group-focus-visible:text-void",
+          featured ? "size-20 sm:size-24" : "size-16 sm:size-[4.5rem]",
+        )}
+      >
+        {source.kind === "link" ? <InstagramIcon size={featured ? 34 : 28} /> : <PlayIcon size={featured ? 36 : 28} className="translate-x-[2px]" />}
+      </span>
+    </>
+  );
+
+  const facadeClass =
+    "group absolute inset-0 block cursor-pointer overflow-hidden rounded-[inherit] outline-offset-4 [&_img]:transition-transform [&_img]:duration-700 [&_img]:ease-out hover:[&_img]:scale-[1.04]";
+
+  return (
+    <figure className="flex flex-col gap-4">
+      <div className="scanlines relative aspect-video overflow-hidden rounded-2xl border border-line bg-panel shadow-[0_30px_80px_-40px_rgb(255_20_147/0.45)] transition-[border-color,box-shadow] duration-300 hover:border-magenta/60">
+        {playing && source.kind === "iframe" ? (
+          <iframe
+            ref={playerRef}
+            src={source.src}
+            title={`${item.title} — player de vídeo`}
+            allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+            allowFullScreen
+            className="absolute inset-0 z-20 h-full w-full border-0 bg-black"
+          />
+        ) : playing && source.kind === "file" ? (
+          <video
+            ref={playerRef}
+            src={source.src}
+            poster={item.poster}
+            controls
+            autoPlay
+            playsInline
+            className="absolute inset-0 z-20 h-full w-full bg-black object-contain"
+          />
+        ) : source.kind === "link" ? (
+          <a
+            href={source.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={onPlay}
+            aria-label={`Assistir no Instagram: ${item.title} (abre em nova aba)`}
+            className={facadeClass}
+          >
+            {facade}
+          </a>
+        ) : (
+          <button type="button" onClick={onPlay} aria-label={`Reproduzir vídeo: ${item.title}`} className={facadeClass}>
+            {facade}
+          </button>
+        )}
+      </div>
+      <figcaption className="flex items-start justify-between gap-4">
+        <span className="min-w-0">
+          <span className="block font-hud text-lg leading-tight font-bold tracking-[0.14em] text-white uppercase">{item.title}</span>
+          {item.subtitle ? <span className="mt-1 block text-sm text-mute">{item.subtitle}</span> : null}
+        </span>
+        <span className="hud shrink-0 pt-1 text-[0.65rem] text-magenta">{platformLabel[item.platform]}</span>
+      </figcaption>
+    </figure>
+  );
+}
+
+/** Capa: imagem local otimizada, capa remota (YouTube) ou capa neutra com o logo. */
+function Poster({ item, sizes }: { item: VideoItem; sizes: string }) {
+  const poster = resolveVideoPoster(item);
+
+  if (poster.kind === "local") {
+    const meta = getImageMeta(poster.src);
+    return (
+      <Image
+        src={poster.src}
+        alt=""
+        fill
+        sizes={sizes}
+        quality={75}
+        className="object-cover"
+        {...(meta.blurDataURL ? { placeholder: "blur" as const, blurDataURL: meta.blurDataURL } : {})}
+      />
+    );
+  }
+
+  if (poster.kind === "remote") {
+    return (
+      // Capas remotas (ex.: i.ytimg.com) não passam pelo otimizador do next/image.
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={poster.src} alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+    );
+  }
+
+  return (
+    <span
+      aria-hidden
+      className="absolute inset-0 grid place-items-center"
+      style={{
+        background:
+          "radial-gradient(ellipse at 30% 20%, rgb(138 43 226 / 0.45), transparent 60%), radial-gradient(ellipse at 80% 90%, rgb(255 20 147 / 0.35), transparent 55%), var(--color-ink)",
+      }}
+    >
+      <span className="w-1/2 max-w-64 opacity-80">
+        <Logo sizes="256px" alt="" />
+      </span>
+    </span>
+  );
+}

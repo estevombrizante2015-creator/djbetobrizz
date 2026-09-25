@@ -1,0 +1,129 @@
+/* Feixes de laser — apenas transform/opacity animados (GPU). */
+
+.root {
+  --speed: 1;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0.62;
+  transition: opacity 0.8s ease;
+}
+
+.root[data-mode="on"] {
+  --speed: 0.6;
+  opacity: 1;
+}
+
+.beam {
+  position: absolute;
+  left: var(--x);
+  width: 0;
+  height: 165%;
+  will-change: transform;
+  animation: sweep calc(var(--dur) * var(--speed)) cubic-bezier(0.45, 0, 0.55, 1) var(--delay) infinite alternate;
+}
+
+.top {
+  top: 0;
+  transform-origin: 50% 0;
+  --dir: to bottom;
+}
+
+.bottom {
+  bottom: 0;
+  transform-origin: 50% 100%;
+  --dir: to top;
+}
+
+.pulse {
+  position: absolute;
+  inset: 0;
+  animation: flash calc(var(--pdur) * var(--speed)) linear var(--pdelay) infinite;
+}
+
+.core {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -1px;
+  width: 2px;
+  background: linear-gradient(
+    var(--dir),
+    #fff 0%,
+    var(--c) 6%,
+    color-mix(in srgb, var(--c) 55%, transparent) 42%,
+    transparent 78%
+  );
+}
+
+.glow {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -22px;
+  width: 44px;
+  opacity: 0.55;
+  background: linear-gradient(var(--dir), color-mix(in srgb, var(--c) 70%, transparent), transparent 62%);
+  mask-image: linear-gradient(to right, transparent, #000 50%, transparent);
+}
+
+.root[data-fx="hi"] .glow {
+  filter: blur(4px);
+}
+
+.flare {
+  position: absolute;
+  left: -70px;
+  width: 140px;
+  height: 140px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--c) 80%, transparent) 0%, transparent 62%);
+  opacity: 0.7;
+}
+
+.top .flare {
+  top: -70px;
+}
+
+.bottom .flare {
+  bottom: -70px;
+}
+
+@keyframes sweep {
+  from {
+    transform: rotate(var(--a0));
+  }
+  to {
+    transform: rotate(var(--a1));
+  }
+}
+
+/* Ritmo de show: os feixes acendem, seguram e somem. */
+@keyframes flash {
+  0% {
+    opacity: 0.08;
+  }
+  6% {
+    opacity: 1;
+  }
+  28% {
+    opacity: 0.85;
+  }
+  40% {
+    opacity: 0.05;
+  }
+  52% {
+    opacity: 0.9;
+  }
+  70% {
+    opacity: 0.7;
+  }
+  84% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0.08;
+  }
+}

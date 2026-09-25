@@ -1,0 +1,74 @@
+/* Pacote de sinal que viaja do DJ para o VJ (path com pathLength="1"). */
+.pulse {
+  stroke-dasharray: 0.045 1.2;
+  stroke-dashoffset: 0.045;
+  animation: signal-travel 2.6s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+}
+
+.pulseLate {
+  animation-delay: -1.3s;
+}
+
+@keyframes signal-travel {
+  from {
+    stroke-dashoffset: 0.045;
+  }
+  to {
+    stroke-dashoffset: -1;
+  }
+}
+
+/* Solavanco RGB único na tela do VJ quando a conexão fecha (momento estratégico). */
+.jolt {
+  animation: jolt 0.55s steps(2, end) 1;
+}
+
+@keyframes jolt {
+  0% {
+    transform: translateX(-7px) skewX(-5deg);
+    filter: hue-rotate(60deg) saturate(1.8);
+    clip-path: inset(8% 0 22% 0);
+  }
+  25% {
+    transform: translateX(6px);
+    clip-path: inset(40% 0 12% 0);
+  }
+  50% {
+    transform: translateX(-4px) skewX(4deg);
+    filter: hue-rotate(-40deg) saturate(1.6);
+    clip-path: inset(0 0 55% 0);
+  }
+  75% {
+    transform: translateX(3px);
+    clip-path: inset(18% 0 0 0);
+  }
+  100% {
+    transform: none;
+    filter: none;
+    clip-path: inset(0);
+  }
+}
+
+/* Pulso do nó "=" quando conectado */
+.nodeRing {
+  animation: node-ring 1.95s ease-out infinite;
+}
+
+@keyframes node-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  70%,
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse,
+  .nodeRing {
+    display: none;
+  }
+}

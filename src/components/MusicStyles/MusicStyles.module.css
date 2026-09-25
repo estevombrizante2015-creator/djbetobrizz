@@ -1,0 +1,257 @@
+/* ==========================================================================
+   QUAL É A SUA VIBE? — capas de disco (sleeve) com o vinil saindo no hover.
+   Cada card define --acc (cor de destaque) via style.
+   ========================================================================== */
+
+.card {
+  --acc: var(--color-magenta, #ff1493);
+  --acc-strong: color-mix(in oklab, var(--acc) 78%, transparent);
+  --acc-mid: color-mix(in oklab, var(--acc) 48%, transparent);
+  --acc-soft: color-mix(in oklab, var(--acc) 24%, transparent);
+  --acc-faint: color-mix(in oklab, var(--acc) 10%, transparent);
+  --expo: var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+.lift {
+  transition:
+    translate 0.6s var(--expo),
+    scale 0.6s var(--expo);
+}
+
+/* ---------- Vinil (atrás da capa) ---------- */
+
+.recordTrack {
+  position: absolute;
+  top: 4%;
+  bottom: 4%;
+  left: 15%;
+  aspect-ratio: 1;
+  z-index: 0;
+  transition: translate 0.9s var(--expo);
+}
+
+.recordSpin {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  transition: rotate 1.6s var(--expo);
+  background:
+    /* rótulo central + furo */
+    radial-gradient(
+      circle,
+      #050505 0 1.7%,
+      var(--acc) 2% 15.5%,
+      color-mix(in oklab, var(--acc) 55%, #000) 15.5% 16.4%,
+      transparent 16.8%
+    ),
+    /* borda lisa (lead-out) */
+    radial-gradient(circle, transparent 0 46.5%, rgb(0 0 0 / 0.45) 47% 48%, transparent 48.5%),
+    /* sulcos */
+    repeating-radial-gradient(circle, rgb(0 0 0 / 0.34) 0 1px, transparent 1px 2.6px),
+    /* vinil colorido fumê — o redemoinho deixa o giro visível */
+    conic-gradient(
+      from 30deg,
+      color-mix(in oklab, var(--acc) 58%, #07060a),
+      color-mix(in oklab, var(--acc) 18%, #07060a) 22%,
+      color-mix(in oklab, var(--acc) 66%, #07060a) 48%,
+      color-mix(in oklab, var(--acc) 14%, #07060a) 71%,
+      color-mix(in oklab, var(--acc) 58%, #07060a)
+    );
+  box-shadow:
+    0 18px 40px -12px rgb(0 0 0 / 0.9),
+    0 0 26px -8px var(--acc-mid),
+    inset 0 0 0 1px color-mix(in oklab, var(--acc) 40%, rgb(255 255 255 / 0.2));
+}
+
+/* Reflexo de luz — fica parado enquanto o disco gira */
+.recordSheen {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgb(255 255 255 / 0.13) 28deg,
+    transparent 60deg,
+    transparent 180deg,
+    rgb(255 255 255 / 0.1) 208deg,
+    transparent 240deg
+  );
+  mask-image: radial-gradient(circle, transparent 0 17%, #000 17.5%);
+}
+
+/* ---------- Capa ---------- */
+
+.sleeve {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  aspect-ratio: 1;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: 3px;
+  container-type: inline-size;
+  background:
+    radial-gradient(120% 90% at 0% 0%, var(--acc-faint), transparent 60%),
+    linear-gradient(155deg, #13111b, #08070c 62%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.07),
+    0 0 0 1px rgb(255 255 255 / 0.08),
+    0 28px 50px -28px rgb(0 0 0 / 0.95);
+  filter: saturate(0.82) contrast(0.97) brightness(0.96);
+  transition:
+    box-shadow 0.6s var(--expo),
+    filter 0.6s var(--expo);
+}
+
+/* Brilho do papel + marca do disco na capa (ring wear) */
+.sleeve::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(128deg, rgb(255 255 255 / 0.09), transparent 32%, transparent 72%, rgb(255 255 255 / 0.035)),
+    radial-gradient(circle at 54% 50%, transparent 41.5%, rgb(255 255 255 / 0.045) 42.5%, transparent 44.5%);
+}
+
+.art {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to top, rgb(5 5 5 / 0.88) 4%, rgb(5 5 5 / 0.35) 38%, transparent 60%);
+}
+
+.title {
+  white-space: pre-line;
+  line-height: 0.92;
+}
+
+/* Adesivo redondo com o ícone (hype sticker) */
+.sticker {
+  background: radial-gradient(circle at 35% 30%, color-mix(in oklab, var(--acc) 70%, #fff), var(--acc) 60%);
+  box-shadow:
+    0 0 0 2px rgb(5 5 5 / 0.55),
+    0 6px 16px -4px rgb(0 0 0 / 0.7);
+  rotate: -10deg;
+  transition: rotate 0.6s var(--expo);
+}
+
+/* ---------- Estampas (uma por card, em ciclo) ---------- */
+
+/* 0 — anéis concêntricos */
+.p0 {
+  background:
+    repeating-radial-gradient(circle at 92% 30%, var(--acc-mid) 0 1px, transparent 1.6px 9px),
+    radial-gradient(circle at 92% 30%, var(--acc-soft), transparent 62%);
+  mask-image: radial-gradient(circle at 92% 30%, #000 18%, transparent 78%);
+}
+
+/* 1 — faixas diagonais anos 80 */
+.p1 {
+  background: linear-gradient(
+    162deg,
+    transparent 30%,
+    var(--acc) 30% 35%,
+    transparent 35% 38%,
+    var(--acc-strong) 38% 41.5%,
+    transparent 41.5% 44.5%,
+    var(--acc-mid) 44.5% 47%,
+    transparent 47% 50%,
+    var(--acc-soft) 50% 51.5%,
+    transparent 51.5%
+  );
+}
+
+/* 2 — sol synthwave + grid */
+.p2::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 16%;
+  width: 50%;
+  aspect-ratio: 1;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: linear-gradient(to bottom, #fff 0%, color-mix(in oklab, var(--acc) 55%, #fff) 28%, var(--acc) 62%);
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0 52%,
+    transparent 52% 56%,
+    #000 56% 64%,
+    transparent 64% 69%,
+    #000 69% 76%,
+    transparent 76% 82%,
+    #000 82% 88%,
+    transparent 88%
+  );
+  filter: drop-shadow(0 0 18px var(--acc-mid));
+}
+.p2::after {
+  content: "";
+  position: absolute;
+  inset-inline: -30%;
+  bottom: 0;
+  height: 44%;
+  background-image:
+    linear-gradient(to right, var(--acc-mid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--acc-mid) 1px, transparent 1px);
+  background-size: 9% 18%;
+  transform: perspective(160px) rotateX(58deg);
+  transform-origin: center top;
+  mask-image: linear-gradient(to bottom, #000, transparent 90%);
+}
+
+/* 3 — retícula (halftone) */
+.p3 {
+  background: radial-gradient(circle, var(--acc) 0 1.3px, transparent 1.7px) 0 0 / 9px 9px;
+  mask-image: linear-gradient(210deg, #000 8%, transparent 62%);
+}
+
+/* 4 e 5 usam SVG (onda / espectro) — ver StyleCrate.tsx */
+.svgArt {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* ---------- Hover (apenas dispositivos com mouse) ---------- */
+
+@media (hover: hover) {
+  .card:hover .lift {
+    translate: 0 -6px;
+    scale: 1.02;
+  }
+  .card:hover .recordTrack {
+    translate: 20% 0;
+  }
+  .card:hover .recordSpin {
+    rotate: 250deg;
+  }
+  .card:hover .sleeve {
+    filter: saturate(1.25) contrast(1.08) brightness(1.04);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.1),
+      0 0 0 1px var(--acc-strong),
+      0 0 34px -6px var(--acc-mid),
+      0 36px 70px -30px var(--acc-mid);
+  }
+  .card:hover .sticker {
+    rotate: 6deg;
+  }
+}
+
+/* Touch: o disco já aparece mais para fora */
+@media (hover: none) {
+  .recordTrack {
+    translate: 11% 0;
+  }
+}

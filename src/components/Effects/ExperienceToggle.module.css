@@ -1,0 +1,161 @@
+/* ==========================================================================
+   Experience mode — luzes de show sobre a página.
+   Só transform/opacity animados (compositor). 123 BPM → 1 batida = 487,8 ms.
+   ========================================================================== */
+
+.overlay {
+  --beat: 487.8ms;
+  position: fixed;
+  inset: 0;
+  z-index: 35; /* acima do conteúdo, abaixo do header (50) e do WhatsApp (40) */
+  pointer-events: none;
+  overflow: hidden;
+  contain: strict;
+}
+
+/* Vinheta que pulsa na batida: ataque rápido, decaimento lento. */
+.vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    130% 95% at 50% 42%,
+    transparent 52%,
+    rgb(138 43 226 / 0.3) 78%,
+    rgb(255 20 147 / 0.5) 100%
+  );
+  opacity: 0.4;
+  animation: beat var(--beat) cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
+  will-change: opacity;
+}
+
+/* Luz batendo no "chão" da pista. */
+.floor {
+  position: absolute;
+  inset-inline: -10%;
+  bottom: -30vh;
+  height: 55vh;
+  background: radial-gradient(50% 50% at 50% 50%, rgb(255 36 20 / 0.22), rgb(138 43 226 / 0.12) 45%, transparent 72%);
+  opacity: 0.6;
+  animation: beat calc(var(--beat) * 2) cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
+  will-change: opacity;
+}
+
+/* Feixe: cunha estreita no topo que abre para baixo, girando a partir do canto. */
+.beam {
+  position: absolute;
+  top: -6vh;
+  width: 36vmax;
+  height: 150vh;
+  transform-origin: 50% 0;
+  background: linear-gradient(to bottom, var(--beam) 0%, transparent 80%);
+  clip-path: polygon(48.5% 0, 51.5% 0, 100% 100%, 0 100%);
+  opacity: 0.3;
+  will-change: transform;
+  animation-duration: calc(var(--beat) * 8);
+  animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+.left {
+  left: -18vmax;
+  transform: rotate(-32deg);
+  animation-name: sweep-left;
+}
+
+.right {
+  right: -18vmax;
+  transform: rotate(32deg);
+  animation-name: sweep-right;
+}
+
+.slow {
+  animation-duration: calc(var(--beat) * 12);
+  animation-delay: calc(var(--beat) * -5);
+  opacity: 0.22;
+}
+
+.magenta {
+  --beam: rgb(255 20 147 / 0.9);
+}
+.cyan {
+  --beam: rgb(0 229 255 / 0.85);
+}
+.purple {
+  --beam: rgb(138 43 226 / 0.95);
+}
+.red {
+  --beam: rgb(255 36 20 / 0.85);
+}
+
+/* Desktop: luz somando com a cena. */
+.full .beam,
+.full .floor {
+  mix-blend-mode: screen;
+}
+.full .beam {
+  opacity: 0.4;
+}
+.full .slow {
+  opacity: 0.3;
+}
+
+/* Mobile: mais leve e mais estreito. */
+.lite .beam {
+  width: 60vmax;
+  opacity: 0.2;
+}
+.lite .left {
+  left: -30vmax;
+}
+.lite .right {
+  right: -30vmax;
+}
+.lite .vignette {
+  opacity: 0.32;
+}
+
+/* Reduced motion (ou fallback): pose estática, sem loops. */
+.still .beam,
+.still .vignette,
+.still .floor {
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .beam,
+  .vignette,
+  .floor {
+    animation: none !important;
+  }
+}
+
+@keyframes sweep-left {
+  from {
+    transform: rotate(-14deg);
+  }
+  to {
+    transform: rotate(-58deg);
+  }
+}
+
+@keyframes sweep-right {
+  from {
+    transform: rotate(14deg);
+  }
+  to {
+    transform: rotate(58deg);
+  }
+}
+
+@keyframes beat {
+  0% {
+    opacity: 0.85;
+  }
+  30% {
+    opacity: 0.45;
+  }
+  100% {
+    opacity: 0.32;
+  }
+}
