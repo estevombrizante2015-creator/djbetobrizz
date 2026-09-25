@@ -102,8 +102,8 @@ function useIsClient() {
  * Luzes do Experience Mode (opt-in do usuário). Fixa, sem eventos de ponteiro, decorativa.
  * Portal no <body>: `fixed` não pode ficar preso a um ancestral com filtro/containment.
  * - Desktops capazes: feixes varrendo a partir dos cantos superiores + teto/vinheta/chão pulsando
- *   a ~123 BPM. Só transform/opacity, sem blend mode; os feixes são atenuados na região do logo
- *   do hero (o vermelho do "DJ" não "lava").
+ *   a ~123 BPM. Só transform/opacity, sem blend mode; os feixes que cruzam o "DJ" vermelho do logo
+ *   do hero são quentes (o vermelho não "lava").
  * - Modo leve (celulares, computadores simples): só dois feixes estáticos subindo dos cantos
  *   inferiores, com pulso de opacidade — sem blend, blur, máscara ou varredura.
  * - Movimento reduzido: nada.
@@ -132,8 +132,9 @@ export function ExperienceOverlay() {
               <div className={styles.pulse} />
               <div className={styles.floor} />
               <div className={styles.beams}>
-                <div className={cn(styles.beam, styles.left, styles.magenta)} />
-                <div className={cn(styles.beam, styles.right, styles.cyan)} />
+                {/* esquerda: frias (cruzam o "BETO BRIZZ" preto/branco) · direita: quentes (cruzam o "DJ" vermelho) */}
+                <div className={cn(styles.beam, styles.left, styles.cyan)} />
+                <div className={cn(styles.beam, styles.right, styles.magenta)} />
                 <div className={cn(styles.beam, styles.left2, styles.purple)} />
                 <div className={cn(styles.beam, styles.right2, styles.red)} />
               </div>

@@ -52,13 +52,13 @@
   animation: beat calc(var(--beat) * 2) cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
 }
 
-/* Feixes: atenuados na região do logo do hero (centro-direita, terço superior) para não
-   "lavar" o vermelho do DJ. Máscara estática no contêiner; os feixes só giram. */
+/* Feixes. Para não "lavar" o vermelho do DJ no logo do hero (centro-direita): sem blend mode
+   (luz somada clareava o vermelho) e só cores quentes nos feixes da direita, os que cruzam o "DJ"
+   (vermelho/magenta sobre vermelho continua vermelho). Sem máscara no contêiner: ela criaria
+   uma superfície de tela cheia recomposta a cada frame. */
 .beams {
   position: absolute;
   inset: 0;
-  -webkit-mask-image: radial-gradient(34% 26% at 62% 38%, rgb(0 0 0 / 0.12) 35%, #000 100%);
-  mask-image: radial-gradient(34% 26% at 62% 38%, rgb(0 0 0 / 0.12) 35%, #000 100%);
 }
 
 /* Feixe: cone de luz com bordas suaves (conic-gradient) saindo do canto, que some ao descer */
