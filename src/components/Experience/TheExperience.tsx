@@ -90,14 +90,20 @@ const statement =
   phrases.find((p) => /^sound\.\s*visual\.\s*energy\.?$/i.test(p)) ?? pillars.map((p) => `${p.title}.`).join(" ");
 const closing = phrases.find((p) => /experience is everything/i.test(p));
 const marqueeItems = closing ? [statement, closing] : [statement];
+/** Metade da faixa (a outra metade repete para o loop): no mínimo duas frases, mais largas que a tela. */
+const marqueeRun = marqueeItems.length > 1 ? marqueeItems : [...marqueeItems, ...marqueeItems];
 
 /**
  * THE EXPERIENCE (conceito): os três pilares (SOUND / VISUAL / ENERGY) como
- * canais de uma mesa, cada um com um mini visual ao vivo.
+ * canais de uma mesa, cada um com um mini visual.
+ * - Modo leve: tudo estático (frames desenhados em CSS; zero animação contínua).
+ * - Modo completo: visuais ao vivo, pausados fora da tela (PauseOffscreen + Visualizer).
+ * Componente de servidor: só PauseOffscreen e Visualizer hidratam.
  */
 export function TheExperience() {
   return (
-    <section id="the-experience" aria-labelledby="the-experience-title" className="relative isolate overflow-hidden">
+    // overflow-clip (e não hidden): hidden vira "scroll container" e congela as entradas <Reveal> em CSS
+    <section id="the-experience" aria-labelledby="the-experience-title" className="relative isolate overflow-clip">
       <PauseOffscreen className="relative pb-20 md:pb-28 xl:pb-36">
         <Marquee />
 
@@ -105,7 +111,9 @@ export function TheExperience() {
         <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-[20rem]">
           <div className="absolute inset-0 overflow-hidden [mask-image:linear-gradient(to_bottom,transparent,black_30%)]">
             <div className="absolute inset-0 -scale-y-100">
-              <div className="retro-grid absolute -inset-x-1/4 top-0 h-[140%] opacity-35 motion-reduce:animate-none lg:[@media(hover:hover)]:animate-grid" />
+              <div className={cn("absolute -inset-x-1/4 top-0 h-[140%] opacity-35", styles.floor)}>
+                <div className={styles.floorGrid} />
+              </div>
             </div>
           </div>
           <div className="absolute inset-x-0 top-[30%] h-px bg-gradient-to-r from-transparent via-magenta/40 to-transparent" />
@@ -157,17 +165,21 @@ export function TheExperience() {
   );
 }
 
-/** Faixa com a frase em loop — o knob da marca separa as frases. */
+/**
+ * Faixa com a frase — o knob da marca separa as frases.
+ * Modo completo: loop contínuo (a 2ª metade repete a 1ª). Modo leve: parada, só a 1ª metade.
+ */
 function Marquee() {
-  const run = [...marqueeItems, ...marqueeItems];
   return (
     <div className="relative border-y border-line bg-ink/80 py-4 sm:py-6">
       <p className="sr-only">{marqueeItems.join(" ")}</p>
-      <div aria-hidden className="overflow-hidden">
+      <div aria-hidden className="relative overflow-hidden">
+        <span className={cn("left-0 bg-gradient-to-r from-ink to-transparent", styles.marqueeFade)} />
+        <span className={cn("right-0 bg-gradient-to-l from-ink to-transparent", styles.marqueeFade)} />
         <div className={cn("flex w-max", styles.marquee)}>
           {[0, 1].map((half) => (
-            <div key={half} className="flex shrink-0 items-center">
-              {run.map((text, i) => (
+            <div key={half} className={cn("flex shrink-0 items-center", half === 1 && "fx-full-only")}>
+              {marqueeRun.map((text, i) => (
                 <span key={`${half}-${i}`} className="flex items-center">
                   <span
                     className={cn(
@@ -196,76 +208,85 @@ function PillarTile({ index, title, text, accent, kind }: PillarProps) {
   const num = String(index + 1).padStart(2, "0");
 
   return (
-    <div
-      className={cn(
-        "group relative flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-gradient-to-b from-panel to-ink p-4 sm:p-5",
-        "transition-[transform,border-color,box-shadow] duration-500 ease-out-expo hover:-translate-y-2",
-        a.hover,
-      )}
-    >
+    <div className="group relative h-full transition-transform duration-500 ease-out-expo hover:-translate-y-2">
+      {/* Brilho do hover: só a opacidade anima (compositor) */}
       <span
         aria-hidden
         className={cn(
-          "pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent to-transparent opacity-70 transition-opacity duration-500 group-hover:opacity-100",
-          a.edge,
+          "pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-500 group-hover:opacity-100",
+          a.glow,
         )}
       />
-
-      {/* Cabeçalho do canal */}
-      <div aria-hidden className="hud flex items-center justify-between text-[0.62rem] text-mute">
-        <span>
-          CH {num} <span className={a.text}>·</span> {kind}
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className={cn("size-1.5 animate-pulse-glow rounded-full", a.led)} />
-          On
-        </span>
-      </div>
-
-      {/* Monitor com o mini visual */}
       <div
-        aria-hidden
-        className="relative mt-3 h-32 overflow-hidden rounded-xl border border-line bg-void shadow-[inset_0_0_30px_rgb(0_0_0/0.9)] sm:h-36"
-      >
-        {kind === "sound" ? <SoundVisual palette={a.palette} /> : null}
-        {kind === "visual" ? <CrtVisual /> : null}
-        {kind === "energy" ? <EnergyVisual /> : null}
-        <div className="scanlines pointer-events-none absolute inset-0" />
-        <div className="pointer-events-none absolute inset-0 rounded-xl shadow-[inset_0_0_24px_6px_rgb(0_0_0/0.7)]" />
-      </div>
-
-      {/* Número gigante do canal */}
-      <span
-        aria-hidden
         className={cn(
-          "text-outline pointer-events-none absolute right-4 bottom-2 font-display text-[4.5rem] leading-none font-black opacity-20 transition-[opacity,-webkit-text-stroke-color] duration-500 group-hover:opacity-60 sm:right-5 sm:text-[5.25rem] md:text-[3.5rem] lg:text-[4.25rem] xl:text-[5.25rem]",
-          a.stroke,
+          "relative flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-gradient-to-b from-panel to-ink p-4 transition-colors duration-500 sm:p-5",
+          a.hoverBorder,
         )}
       >
-        {num}
-      </span>
+        <span
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent to-transparent opacity-70 transition-opacity duration-500 group-hover:opacity-100",
+            a.edge,
+          )}
+        />
 
-      {/* Texto */}
-      <div className="relative mt-7 flex flex-1 flex-col">
-        <h3 className="relative font-display text-[clamp(1.85rem,3.1vw,2.75rem)] leading-none font-black tracking-tight uppercase">
-          <span className="sr-only">{title}</span>
-          <span aria-hidden className="glitch" data-text={title}>
-            {title}
+        {/* Cabeçalho do canal */}
+        <div aria-hidden className="hud flex items-center justify-between text-[0.62rem] text-mute">
+          <span>
+            CH {num} <span className={a.text}>·</span> {kind}
           </span>
-        </h3>
-        <p className="relative mt-3 text-base text-mute sm:text-lg">{text}</p>
-        <div className="mt-auto pt-7">
-          <span
-            aria-hidden
-            className={cn("block h-0.5 w-10 transition-[width] duration-700 ease-out-expo group-hover:w-full", a.bar)}
-          />
+          <span className="flex items-center gap-1.5">
+            <span className={cn("size-1.5 animate-pulse-glow rounded-full", a.led)} />
+            On
+          </span>
+        </div>
+
+        {/* Monitor com o mini visual */}
+        <div
+          aria-hidden
+          className="relative mt-3 h-32 overflow-hidden rounded-xl border border-line bg-void shadow-[inset_0_0_30px_rgb(0_0_0/0.9)] sm:h-36"
+        >
+          {kind === "sound" ? <SoundVisual palette={a.palette} /> : null}
+          {kind === "visual" ? <CrtVisual /> : null}
+          {kind === "energy" ? <EnergyVisual /> : null}
+          <div className="scanlines pointer-events-none absolute inset-0" />
+          <div className="pointer-events-none absolute inset-0 rounded-xl shadow-[inset_0_0_24px_6px_rgb(0_0_0/0.7)]" />
+        </div>
+
+        {/* Número gigante do canal */}
+        <span
+          aria-hidden
+          className={cn(
+            "text-outline pointer-events-none absolute right-4 bottom-2 font-display text-[4.5rem] leading-none font-black opacity-20 transition-[opacity,-webkit-text-stroke-color] duration-500 group-hover:opacity-60 sm:right-5 sm:text-[5.25rem] md:text-[3.5rem] lg:text-[4.25rem] xl:text-[5.25rem]",
+            a.stroke,
+          )}
+        >
+          {num}
+        </span>
+
+        {/* Texto */}
+        <div className="relative mt-7 flex flex-1 flex-col">
+          <h3 className="relative font-display text-[clamp(1.85rem,3.1vw,2.75rem)] leading-none font-black tracking-tight uppercase">
+            <span className="sr-only">{title}</span>
+            <span aria-hidden className="glitch" data-text={title}>
+              {title}
+            </span>
+          </h3>
+          <p className="relative mt-3 text-base text-mute sm:text-lg">{text}</p>
+          <div className="mt-auto pt-7">
+            <span
+              aria-hidden
+              className={cn("block h-0.5 w-10 transition-[width] duration-700 ease-out-expo group-hover:w-full", a.bar)}
+            />
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-/** SOUND: spectrum espelhado (onda) — pausa sozinho fora da tela. */
+/** SOUND: spectrum espelhado — SVG estático no modo leve; canvas que pausa fora da tela no completo. */
 function SoundVisual({ palette }: { palette: "neon" | "red" | "cyan" }) {
   return (
     <div className="absolute inset-0 flex items-center px-4">
@@ -280,26 +301,15 @@ function SoundVisual({ palette }: { palette: "neon" | "red" | "cyan" }) {
 const NOISE =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
 
-/** VISUAL: mini CRT com barras de cor, estática e faixa de rolagem. */
+/** VISUAL: mini CRT com barras de cor, estática e faixa de rolagem (congeladas no modo leve). */
 function CrtVisual() {
   return (
     <div className="absolute inset-2 overflow-hidden rounded-[1rem/1.35rem] bg-void">
       <div className={cn(styles.bars, "opacity-75")}>
-        <div className={styles.barsTop}>
-          {Array.from({ length: 7 }, (_, i) => (
-            <span key={i} />
-          ))}
-        </div>
-        <div className={styles.barsBottom}>
-          {Array.from({ length: 7 }, (_, i) => (
-            <span key={i} />
-          ))}
-        </div>
+        <div className={styles.barsTop} />
+        <div className={styles.barsBottom} />
       </div>
-      <div
-        className={cn("absolute -inset-[10%] mix-blend-overlay", styles.static)}
-        style={{ backgroundImage: NOISE, backgroundSize: "120px 120px" }}
-      />
+      <div className={styles.static} style={{ backgroundImage: NOISE, backgroundSize: "120px 120px" }} />
       <div className={styles.roll} />
       <div className="absolute inset-0 shadow-[inset_0_0_28px_8px_rgb(0_0_0/0.75)]" />
       <span className="vhs absolute top-1.5 left-3 text-base text-white">CH 02</span>
@@ -308,12 +318,13 @@ function CrtVisual() {
   );
 }
 
-/** ENERGY: strobe pulsando no tempo (~123 BPM) + medidores de LED L/R. */
+/** ENERGY: strobe pulsando no tempo (~123 BPM) + medidores de LED L/R (parados no modo leve). */
 function EnergyVisual() {
+  // scale/opacity = frame estático (modo leve); delay = fase da animação (modo completo)
   const rings = [
-    { scale: 0.55, delay: "0s" },
-    { scale: 0.85, delay: "-0.65s" },
-    { scale: 1.15, delay: "-1.3s" },
+    { scale: 0.55, opacity: 0.7, delay: "0s" },
+    { scale: 0.85, opacity: 0.4, delay: "-0.65s" },
+    { scale: 1.15, opacity: 0.18, delay: "-1.3s" },
   ];
   return (
     <div className="absolute inset-0 flex items-center justify-center gap-5 px-5 sm:gap-7 md:gap-4 md:px-4 xl:gap-7 xl:px-5">
@@ -322,7 +333,7 @@ function EnergyVisual() {
           <span
             key={r.delay}
             className={styles.ring}
-            style={{ "--ring-scale": r.scale, "--ring-delay": r.delay } as React.CSSProperties}
+            style={{ "--ring-scale": r.scale, "--ring-opacity": r.opacity, "--ring-delay": r.delay } as React.CSSProperties}
           />
         ))}
         <span className={cn("absolute inset-[36%] rounded-full bg-red shadow-neon-red", styles.beat)} />

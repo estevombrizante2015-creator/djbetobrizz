@@ -1,6 +1,7 @@
 /* ==========================================================================
-   Experience mode — luzes de show sobre a página.
-   Só transform/opacity animados (compositor). 123 BPM → 1 batida = 487,8 ms.
+   Experience mode — luzes de show sobre a página (opt-in).
+   Só transform/opacity animados (compositor), nenhum blend mode, nenhum blur.
+   123 BPM → 1 batida = 487,8 ms.
    ========================================================================== */
 
 .overlay {
@@ -13,18 +14,31 @@
   contain: strict;
 }
 
-/* Rig de luz no teto: faixa quente que pisca na batida */
-.ceiling {
+.magenta {
+  --beam: rgb(255 20 147 / 0.9);
+}
+.cyan {
+  --beam: rgb(0 229 255 / 0.85);
+}
+.purple {
+  --beam: rgb(138 43 226 / 0.95);
+}
+.red {
+  --beam: rgb(255 36 20 / 0.85);
+}
+
+/* ---------- Modo completo (desktops capazes) ---------- */
+
+/* Rig de luz no teto + vinheta: uma única camada pulsando na batida (ataque rápido, decaimento lento) */
+.pulse {
   position: absolute;
-  inset-inline: 0;
-  top: 0;
-  height: 28vh;
+  inset: 0;
   background:
-    radial-gradient(40% 100% at 0% 0%, rgb(255 20 147 / 0.35), transparent 70%),
-    radial-gradient(40% 100% at 100% 0%, rgb(0 229 255 / 0.3), transparent 70%);
-  opacity: 0.5;
+    radial-gradient(40% 28vh at 0% 0%, rgb(255 20 147 / 0.35), transparent 70%),
+    radial-gradient(40% 28vh at 100% 0%, rgb(0 229 255 / 0.3), transparent 70%),
+    radial-gradient(130% 95% at 50% 42%, transparent 52%, rgb(138 43 226 / 0.3) 78%, rgb(255 20 147 / 0.5) 100%);
+  opacity: 0.4;
   animation: beat var(--beat) cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
-  will-change: opacity;
 }
 
 /* Luz batendo no "chão" da pista (a cada 2 batidas) */
@@ -36,22 +50,15 @@
   background: radial-gradient(50% 50% at 50% 50%, rgb(255 36 20 / 0.22), rgb(138 43 226 / 0.12) 45%, transparent 72%);
   opacity: 0.6;
   animation: beat calc(var(--beat) * 2) cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
-  will-change: opacity;
 }
 
-/* Vinheta que pulsa na batida: ataque rápido, decaimento lento */
-.vignette {
+/* Feixes: atenuados na região do logo do hero (centro-direita, terço superior) para não
+   "lavar" o vermelho do DJ. Máscara estática no contêiner; os feixes só giram. */
+.beams {
   position: absolute;
   inset: 0;
-  background: radial-gradient(
-    130% 95% at 50% 42%,
-    transparent 52%,
-    rgb(138 43 226 / 0.3) 78%,
-    rgb(255 20 147 / 0.5) 100%
-  );
-  opacity: 0.4;
-  animation: beat var(--beat) cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
-  will-change: opacity;
+  -webkit-mask-image: radial-gradient(34% 26% at 62% 38%, rgb(0 0 0 / 0.12) 35%, #000 100%);
+  mask-image: radial-gradient(34% 26% at 62% 38%, rgb(0 0 0 / 0.12) 35%, #000 100%);
 }
 
 /* Feixe: cone de luz com bordas suaves (conic-gradient) saindo do canto, que some ao descer */
@@ -71,7 +78,6 @@
   -webkit-mask-image: linear-gradient(to bottom, #000 0%, rgb(0 0 0 / 0.55) 45%, transparent 85%);
   mask-image: linear-gradient(to bottom, #000 0%, rgb(0 0 0 / 0.55) 45%, transparent 85%);
   opacity: 0.3;
-  will-change: transform;
   animation-duration: calc(var(--beat) * 8);
   animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
   animation-iteration-count: infinite;
@@ -92,62 +98,50 @@
   animation-name: sweep-right;
 }
 
+.left,
+.right {
+  opacity: 0.3;
+}
+
 /* Segundo par: mais lento e defasado — os feixes se cruzam */
 .left2,
 .right2 {
   animation-duration: calc(var(--beat) * 12);
   animation-delay: calc(var(--beat) * -5);
-  opacity: 0.22;
-}
-
-.magenta {
-  --beam: rgb(255 20 147 / 0.9);
-}
-.cyan {
-  --beam: rgb(0 229 255 / 0.85);
-}
-.purple {
-  --beam: rgb(138 43 226 / 0.95);
-}
-.red {
-  --beam: rgb(255 36 20 / 0.85);
-}
-
-/* Desktop: luz somando com a cena */
-.full .beam,
-.full .floor,
-.full .ceiling {
-  mix-blend-mode: screen;
-}
-.full .left,
-.full .right {
-  opacity: 0.34;
-}
-.full .left2,
-.full .right2 {
-  opacity: 0.24;
-}
-
-/* Mobile: mais leve (sem blend, feixes mais largos e fracos) */
-.lite .beam {
-  width: 60vmax;
   opacity: 0.2;
 }
-.lite .left {
-  left: -30vmax;
+
+/* ---------- Modo leve (celulares, computadores simples) ---------- */
+
+/* Dois feixes estáticos subindo dos cantos inferiores (longe do logo e do header).
+   Um gradiente só, sem máscara; a única animação é o pulso de opacidade. */
+.uplight {
+  position: absolute;
+  bottom: -4vh;
+  width: 46vw;
+  height: 68vh;
+  transform-origin: 50% 100%;
+  background: radial-gradient(50% 100% at 50% 100%, var(--beam), transparent);
+  opacity: 0.22;
+  animation: uplight calc(var(--beat) * 2) ease-in-out infinite alternate;
 }
-.lite .right {
-  right: -30vmax;
+
+.upLeft {
+  left: -14vw;
+  transform: rotate(12deg);
 }
-.lite .vignette {
-  opacity: 0.32;
+
+.upRight {
+  right: -14vw;
+  transform: rotate(-12deg);
+  animation-delay: calc(var(--beat) * -1);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .beam,
-  .vignette,
+  .pulse,
   .floor,
-  .ceiling {
+  .uplight {
     animation: none !important;
   }
 }
@@ -179,5 +173,14 @@
   }
   100% {
     opacity: 0.32;
+  }
+}
+
+@keyframes uplight {
+  from {
+    opacity: 0.14;
+  }
+  to {
+    opacity: 0.3;
   }
 }

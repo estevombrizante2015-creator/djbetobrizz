@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, m } from "motion/react";
 import { useExperience } from "./ExperienceContext";
 import { cn } from "@/lib/utils";
 import styles from "./ExperienceToggle.module.css";
@@ -99,10 +99,14 @@ function useIsClient() {
 }
 
 /**
- * Luzes do Experience Mode: feixes neon varrendo a partir dos cantos superiores
- * e vinheta pulsando a ~123 BPM. Fixa, sem eventos de ponteiro, decorativa.
- * Portal no <body>: o header tem backdrop-filter, que prenderia um `fixed` dentro dele.
- * Desktop: efeito completo · mobile: versão leve · reduced motion: nada.
+ * Luzes do Experience Mode (opt-in do usuário). Fixa, sem eventos de ponteiro, decorativa.
+ * Portal no <body>: `fixed` não pode ficar preso a um ancestral com filtro/containment.
+ * - Desktops capazes: feixes varrendo a partir dos cantos superiores + teto/vinheta/chão pulsando
+ *   a ~123 BPM. Só transform/opacity, sem blend mode; os feixes são atenuados na região do logo
+ *   do hero (o vermelho do "DJ" não "lava").
+ * - Modo leve (celulares, computadores simples): só dois feixes estáticos subindo dos cantos
+ *   inferiores, com pulso de opacidade — sem blend, blur, máscara ou varredura.
+ * - Movimento reduzido: nada.
  */
 export function ExperienceOverlay() {
   const { experienceMode, reducedMotion, isDesktop } = useExperience();
@@ -114,7 +118,7 @@ export function ExperienceOverlay() {
   return createPortal(
     <AnimatePresence>
       {show ? (
-        <motion.div
+        <m.div
           key="experience-overlay"
           aria-hidden
           className={cn(styles.overlay, isDesktop ? styles.full : styles.lite)}
@@ -123,18 +127,24 @@ export function ExperienceOverlay() {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.7, ease: "easeOut" }}
         >
-          <div className={styles.ceiling} />
-          <div className={styles.floor} />
-          <div className={cn(styles.beam, styles.left, styles.magenta)} />
-          <div className={cn(styles.beam, styles.right, styles.cyan)} />
           {isDesktop ? (
             <>
-              <div className={cn(styles.beam, styles.left2, styles.purple)} />
-              <div className={cn(styles.beam, styles.right2, styles.red)} />
+              <div className={styles.pulse} />
+              <div className={styles.floor} />
+              <div className={styles.beams}>
+                <div className={cn(styles.beam, styles.left, styles.magenta)} />
+                <div className={cn(styles.beam, styles.right, styles.cyan)} />
+                <div className={cn(styles.beam, styles.left2, styles.purple)} />
+                <div className={cn(styles.beam, styles.right2, styles.red)} />
+              </div>
             </>
-          ) : null}
-          <div className={styles.vignette} />
-        </motion.div>
+          ) : (
+            <>
+              <div className={cn(styles.uplight, styles.upLeft, styles.magenta)} />
+              <div className={cn(styles.uplight, styles.upRight, styles.cyan)} />
+            </>
+          )}
+        </m.div>
       ) : null}
     </AnimatePresence>,
     document.body,

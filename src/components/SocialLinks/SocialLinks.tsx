@@ -16,6 +16,7 @@ const items = socialLinks
  * Barra social flutuante (§26) na borda esquerda — só em telas largas, onde há margem
  * livre ao lado do container (no mobile, as redes ficam no menu e no footer).
  * Rótulo "FOLLOW" girado, ícones com tooltip e uma linha fina descendo até a base.
+ * Modo leve: estática e visível desde a primeira pintura (sem desfoque, sem entrada animada).
  */
 export function SocialLinks() {
   if (items.length === 0) return null;
@@ -45,7 +46,9 @@ export function SocialLinks() {
                 aria-label={`${s.label}: ${s.handle} (abre em nova aba)`}
                 onClick={() => track(socialEvent(s.key), { source: "floating_bar" })}
                 className={cn(
-                  "group relative grid size-10 place-items-center rounded-full border border-line bg-void/70 text-mute backdrop-blur-sm",
+                  "group relative grid size-10 place-items-center rounded-full border border-line bg-void/90 text-mute",
+                  // desfoque só nos desktops capazes; no modo leve, fundo sólido
+                  "[html[data-perf=full]_&]:bg-void/70 [html[data-perf=full]_&]:backdrop-blur-sm",
                   "transition-[color,border-color,box-shadow,translate] duration-300 ease-out",
                   "hover:-translate-y-0.5 hover:border-magenta/70 hover:text-white hover:shadow-neon-magenta",
                   "focus-visible:border-magenta/70 focus-visible:text-white",

@@ -1,6 +1,7 @@
-/* Entrada discreta depois da intro (CSS puro). */
-.bar {
-  animation: bar-in 700ms cubic-bezier(0.16, 1, 0.3, 1) 1.2s both;
+/* Entrada discreta logo depois da intro — só no modo completo (CSS puro, transform/opacity).
+   No modo leve a barra já nasce visível e parada. */
+:global(html[data-perf="full"]) .bar {
+  animation: bar-in 700ms cubic-bezier(0.16, 1, 0.3, 1) 700ms both;
 }
 
 @keyframes bar-in {

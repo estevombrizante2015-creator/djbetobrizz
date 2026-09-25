@@ -47,7 +47,7 @@ export function CTA() {
           fill
           sizes="(min-width: 1024px) 75vw, 60vw"
           quality={60}
-          className="object-cover object-[62%_50%] opacity-30 lg:object-[40%_50%] [html[data-perf=full]_&]:scale-110 [html[data-perf=full]_&]:opacity-40 [html[data-perf=full]_&]:[filter:saturate(1.15)_brightness(0.75)_blur(4px)]"
+          className="object-cover object-[62%_50%] opacity-25 lg:object-[40%_50%] [html[data-perf=full]_&]:scale-110 [html[data-perf=full]_&]:opacity-40 [html[data-perf=full]_&]:[filter:saturate(1.15)_brightness(0.75)_blur(4px)]"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-void via-void/70 to-void" />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgb(5_5_5/0.2),rgb(5_5_5/0.75)_40%,rgb(5_5_5/0.92))] lg:bg-[linear-gradient(90deg,rgb(5_5_5/0.92)_0%,rgb(5_5_5/0.6)_45%,rgb(5_5_5/0.25)_100%)]" />

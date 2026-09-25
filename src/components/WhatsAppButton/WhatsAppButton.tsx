@@ -9,7 +9,8 @@ import styles from "./WhatsAppButton.module.css";
 /**
  * WhatsApp flutuante (§25), canto inferior direito.
  * Desktop: pílula "WhatsApp" + balão "FALE COM BETOBRIZZ" no hover/foco. Mobile: só o ícone.
- * Entra depois da intro (CSS, sem depender de JS) e respeita a safe area do iOS.
+ * Modo leve: visível desde a primeira pintura, estático (sem pulso, sem desfoque).
+ * Modo completo: entra logo após a intro e pulsa (só transform/opacity). Respeita a safe area do iOS.
  */
 export function WhatsAppButton() {
   const href = safeExternalUrl(siteConfig.whatsappUrl);
@@ -29,7 +30,9 @@ export function WhatsAppButton() {
         aria-label="Falar com BetoBrizz no WhatsApp"
         onClick={() => track("whatsapp_click", { source: "floating" })}
         className={cn(
-          "group relative flex size-14 items-center justify-center rounded-full border border-magenta/60 bg-void/75 backdrop-blur-md",
+          "group relative flex size-14 items-center justify-center rounded-full border border-magenta/60 bg-void/90",
+          // vidro com desfoque só nos desktops capazes (no modo leve, fundo sólido)
+          "[html[data-perf=full]_&]:bg-void/75 [html[data-perf=full]_&]:backdrop-blur-md",
           "shadow-[0_10px_30px_-10px_rgb(0_0_0/0.9),0_0_22px_-6px_rgb(255_20_147/0.7)]",
           "transition-[border-color,box-shadow,background-color,scale] duration-300 ease-out active:scale-95",
           "hover:border-magenta hover:bg-void/90 hover:shadow-neon-magenta focus-visible:border-magenta focus-visible:shadow-neon-magenta",
