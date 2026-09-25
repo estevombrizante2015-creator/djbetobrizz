@@ -18,6 +18,16 @@ import { Footer } from "@/components/Footer/Footer";
 import { SocialLinks } from "@/components/SocialLinks/SocialLinks";
 import { WhatsAppButton } from "@/components/WhatsAppButton/WhatsAppButton";
 import { SectionDivider } from "@/components/Visualizer/SectionDivider";
+import { MusicPlayer } from "@/components/MusicPlayer/MusicPlayer";
+
+/**
+ * Envolve uma seção abaixo da dobra com content-visibility:auto — o navegador só renderiza
+ * quando ela se aproxima da tela. Não usar em seções com trilhas sticky/scroll-linked
+ * (Flashback, Impact, DjVj, CTA) nem acima da dobra (Hero).
+ */
+function Deferred({ children }: { children: React.ReactNode }) {
+  return <div className="cv-auto">{children}</div>;
+}
 
 /**
  * One page — a ordem segue a jornada do visitante:
@@ -33,21 +43,38 @@ export default function Home() {
         <Hero />
         <About />
         <DjVj />
-        <TheExperience />
+        <Deferred>
+          <TheExperience />
+        </Deferred>
         <SectionDivider palette="red" />
-        <MusicStyles />
+        <Deferred>
+          <MusicStyles />
+        </Deferred>
         <Flashback />
-        <Events />
-        <EventTypes />
-        <Gallery />
+        <Deferred>
+          <Events />
+        </Deferred>
+        <Deferred>
+          <EventTypes />
+        </Deferred>
+        <Deferred>
+          <Gallery />
+        </Deferred>
         <SectionDivider />
-        <Videos />
-        <Sets />
+        <Deferred>
+          <Videos />
+        </Deferred>
+        <Deferred>
+          <Sets />
+        </Deferred>
         <Impact />
         <CTA />
       </main>
-      <Footer />
+      <Deferred>
+        <Footer />
+      </Deferred>
       <SocialLinks />
+      <MusicPlayer />
       <WhatsAppButton />
     </>
   );

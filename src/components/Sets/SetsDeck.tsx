@@ -7,6 +7,7 @@ import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 import { Platter } from "./Platter";
 import { Waveform } from "./Waveform";
+import { pauseBackgroundMusic } from "@/lib/audio-engine";
 
 /** Faixa pronta para o deck (validada no servidor). */
 export type DeckTrack = {
@@ -72,6 +73,7 @@ export function SetsDeck({ tracks, className }: { tracks: DeckTrack[]; className
     setIndex(i);
     setAutoPlay(play);
     setStatus(play ? "playing" : "cued");
+    if (play) pauseBackgroundMusic();
   };
 
   const eject = () => {
@@ -103,7 +105,10 @@ export function SetsDeck({ tracks, className }: { tracks: DeckTrack[]; className
       }
       const method = typeof data === "object" && data !== null ? (data as { method?: unknown }).method : undefined;
       if (method === "ready") subscribe(iframeRef.current);
-      else if (method === "play") setStatus("playing");
+      else if (method === "play") {
+        pauseBackgroundMusic(); // um set por vez: a música de fundo sai de cena
+        setStatus("playing");
+      }
       else if (method === "pause" || method === "finish") setStatus("paused");
     };
     window.addEventListener("message", onMessage);

@@ -257,7 +257,6 @@
 @utility glass {
   background: rgb(10 9 16 / 0.62);
   backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
 }
 
 /* ==========================================================================
@@ -282,24 +281,26 @@
 .glitch::before {
   color: var(--color-cyan);
   transform: translate(-2px, 0);
-  mix-blend-mode: screen;
 }
 .glitch::after {
   color: var(--color-magenta);
   transform: translate(2px, 0);
+}
+/* Só durante o disparo: blend + fatias. `forwards` termina escondido (sem "rastro" no hover). */
+html:not([data-perf="lite"]) :is(.glitch.is-glitching, .glitch:hover, .group:hover .glitch)::before {
+  opacity: 0.85;
   mix-blend-mode: screen;
+  animation: glitch-a 0.45s steps(2, end) 1 forwards;
 }
-.glitch.is-glitching::before,
-.glitch:hover::before,
-.group:hover .glitch::before {
+html:not([data-perf="lite"]) :is(.glitch.is-glitching, .glitch:hover, .group:hover .glitch)::after {
   opacity: 0.85;
-  animation: glitch-a 0.45s steps(2, end) 1;
+  mix-blend-mode: screen;
+  animation: glitch-b 0.45s steps(2, end) 1 forwards;
 }
-.glitch.is-glitching::after,
-.glitch:hover::after,
-.group:hover .glitch::after {
-  opacity: 0.85;
-  animation: glitch-b 0.45s steps(2, end) 1;
+/* Nível lite: sem cópias (zero camadas extras) */
+html[data-perf="lite"] .glitch::before,
+html[data-perf="lite"] .glitch::after {
+  content: none;
 }
 @keyframes glitch-a {
   0% { clip-path: inset(10% 0 70% 0); transform: translate(-4px, -1px); }
@@ -333,13 +334,6 @@
   }
 }
 
-/* Modo econômico (sem hover fino = touch): remove camadas caras */
-@media (hover: none) {
-  .fx-desktop-only {
-    display: none !important;
-  }
-}
-
 /* ==========================================================================
    Performance — níveis de efeito em <html data-perf="lite|balanced|full">
    Decidido antes da pintura por PERF_TIER_SCRIPT (src/lib/perf-tier.ts).
@@ -366,7 +360,6 @@ html[data-perf="full"] .fx-lite-only {
 html:not([data-perf="full"]) .glass {
   background: rgb(8 7 13 / 0.94);
   backdrop-filter: none;
-  -webkit-backdrop-filter: none;
 }
 
 /* Camadas de textura sem blend mode (blend força recomposição de tela inteira) */
@@ -378,16 +371,9 @@ html:not([data-perf="full"]) .scanlines::after {
   opacity: 0.55;
 }
 
-/* Animações decorativas infinitas ficam paradas só no nível "lite" */
-html[data-perf="lite"] :is(
-    .animate-eq,
-    .animate-flicker,
-    .animate-scan,
-    .animate-grid,
-    .animate-marquee,
-    .animate-pulse-glow,
-    .animate-spin-slow
-  ) {
+/* Nível "lite": todas as animações utilitárias (animate-*, inclusive com variantes como
+   lg:motion-safe:animate-grid) ficam paradas. */
+html[data-perf="lite"] [class*="animate-"] {
   animation: none !important;
 }
 

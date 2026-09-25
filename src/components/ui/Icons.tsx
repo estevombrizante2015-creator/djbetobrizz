@@ -169,6 +169,33 @@ export function SparkIcon(props: IconProps) {
   );
 }
 
+export function PauseIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <rect x="6" y="5" width="4" height="14" rx="1.2" fill="currentColor" />
+      <rect x="14" y="5" width="4" height="14" rx="1.2" fill="currentColor" />
+    </svg>
+  );
+}
+
+export function NextIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path fill="currentColor" d="M5 6.2v11.6a1 1 0 0 0 1.53.85l8.7-5.8a1 1 0 0 0 0-1.7l-8.7-5.8A1 1 0 0 0 5 6.2Z" />
+      <rect x="17" y="5.5" width="2.6" height="13" rx="1.1" fill="currentColor" />
+    </svg>
+  );
+}
+
+export function VolumeOffIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" {...stroke} />
+      <path d="m16 9.5 5 5m0-5-5 5" {...stroke} />
+    </svg>
+  );
+}
+
 export function CalendarIcon(props: IconProps) {
   return (
     <svg {...base(props)}>

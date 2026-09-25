@@ -19,12 +19,14 @@ type Props = {
  * Posicionado absolutamente dentro de um pai `relative`. Puramente decorativo.
  */
 export function VhsOverlay({ mode = "PLAY", track = "TRACK 04", start = 92, className }: Props) {
-  const { reducedMotion } = useExperience();
+  const { intensity } = useExperience();
+  // Nível lite / movimento reduzido (intensity 0): timecode estático, sem re-render por segundo.
+  const ticking = intensity > 0;
   const [seconds, setSeconds] = useState(start);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (reducedMotion) return;
+    if (!ticking) return;
     const el = ref.current;
     if (!el) return;
     let id = 0;
@@ -37,7 +39,7 @@ export function VhsOverlay({ mode = "PLAY", track = "TRACK 04", start = 92, clas
       io.disconnect();
       window.clearInterval(id);
     };
-  }, [reducedMotion]);
+  }, [ticking]);
 
   return (
     <div

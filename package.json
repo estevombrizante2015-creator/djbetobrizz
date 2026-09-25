@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "images": "node scripts/process-images.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "audio": "node scripts/process-audio.mjs"
   },
   "dependencies": {
     "motion": "^13.4.4",

@@ -11,14 +11,14 @@ export const musicStyles: { title: string; text: string; accent: Accent }[] = [
 ];
 
 /** Tipos de evento atendidos — exiba apenas serviços realmente oferecidos. */
-export const eventTypes: { icon: string; title: string }[] = [
-  { icon: "🎉", title: "Festas" },
-  { icon: "🪩", title: "Flashback" },
-  { icon: "🏢", title: "Eventos corporativos" },
-  { icon: "🥂", title: "Confraternizações" },
-  { icon: "🎂", title: "Aniversários" },
-  { icon: "💃", title: "Clubes" },
-  { icon: "🎧", title: "Eventos temáticos" },
+export const eventTypes: { title: string }[] = [
+  { title: "Festas" },
+  { title: "Flashback" },
+  { title: "Eventos corporativos" },
+  { title: "Confraternizações" },
+  { title: "Aniversários" },
+  { title: "Clubes" },
+  { title: "Eventos temáticos" },
 ];
 
 /** Décadas da seção "VOLTE NO TEMPO". */

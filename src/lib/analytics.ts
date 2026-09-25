@@ -11,7 +11,8 @@ export type AnalyticsEvent =
   | "video_play"
   | "gallery_open"
   | "cta_click"
-  | "experience_mode";
+  | "experience_mode"
+  | "music_toggle";
 
 type Params = Record<string, string | number | boolean | undefined>;
 

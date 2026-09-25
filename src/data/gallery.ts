@@ -7,14 +7,19 @@ import type { Photo } from "./types";
  */
 export const gallery: Photo[] = [
   {
+    src: "/images/events/betobrizz-pista-dourada.webp",
+    alt: "Pista lotada sob feixes de luz dourados",
+    caption: "Pista",
+  },
+  {
     src: "/images/events/betobrizz-telao-vermelho.webp",
     alt: "DJ BetoBrizz mixando diante de telões de LED com visuais vermelhos",
     caption: "DJ + VJ",
   },
   {
-    src: "/images/events/betobrizz-pista-magenta.webp",
-    alt: "Pista lotada vista do palco, luzes magenta e vermelhas",
-    caption: "Pista",
+    src: "/images/events/betobrizz-moving-heads.webp",
+    alt: "Feixes brancos de moving heads sobre o público",
+    caption: "Luz",
   },
   {
     src: "/images/events/betobrizz-mixagem-close.webp",
@@ -22,9 +27,34 @@ export const gallery: Photo[] = [
     caption: "Mixagem",
   },
   {
+    src: "/images/events/betobrizz-pista-lotada-feixes.webp",
+    alt: "Salão lotado com feixes amarelos e azuis",
+    caption: "Energia",
+  },
+  {
     src: "/images/events/betobrizz-palco-telas-retro.webp",
     alt: "Palco com telões em formato de TV retrô e iluminação em treliça",
     caption: "Telões",
+  },
+  {
+    src: "/images/events/betobrizz-pista-danca.webp",
+    alt: "Público dançando sob luzes rosa e roxas",
+    caption: "Dança",
+  },
+  {
+    src: "/images/events/betobrizz-pista-magenta.webp",
+    alt: "Pista lotada vista do palco, luzes magenta e vermelhas",
+    caption: "Ao vivo",
+  },
+  {
+    src: "/images/events/betobrizz-equipe-palco.webp",
+    alt: "Equipe reunida no palco ao lado das controladoras, sob luz amarela",
+    caption: "Equipe",
+  },
+  {
+    src: "/images/events/betobrizz-pista-feixes-centro.webp",
+    alt: "Feixes de luz convergindo no centro do salão sobre a pista cheia",
+    caption: "Feixes",
   },
   {
     src: "/images/events/betobrizz-controladora.webp",
@@ -32,14 +62,24 @@ export const gallery: Photo[] = [
     caption: "Controladora",
   },
   {
+    src: "/images/events/betobrizz-pista-registro.webp",
+    alt: "Público registrando a festa com o celular sob luzes azuis",
+    caption: "Registro",
+  },
+  {
     src: "/images/events/betobrizz-fones-controladora.webp",
     alt: "DJ BetoBrizz de fones de ouvido ajustando a controladora",
-    caption: "Ao vivo",
+    caption: "Fones",
+  },
+  {
+    src: "/images/events/betobrizz-pista-azul.webp",
+    alt: "Salão com luzes azuis e amarelas e o público dançando",
+    caption: "Salão",
   },
   {
     src: "/images/events/betobrizz-pista-verde.webp",
-    alt: "Público dançando sob luzes verdes e feixes roxos",
-    caption: "Energia",
+    alt: "Público dançando sob luzes verdes e feixes roxos, visto do palco",
+    caption: "Vista do palco",
   },
   {
     src: "/images/events/betobrizz-mixagem-close-azul.webp",

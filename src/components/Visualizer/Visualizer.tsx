@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef } from "react";
 import { useExperience } from "@/components/Effects/ExperienceContext";
+import { readLevels } from "@/lib/audio-engine";
 import { cn } from "@/lib/utils";
 
 type Palette = "neon" | "red" | "cyan";
@@ -45,16 +46,30 @@ const FRAME_MS = 33; // ~30 fps é suficiente para o efeito e metade do custo
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
+/** Todas as barras estáticas num único path (um nó de DOM em vez de N <rect>). Arredondado para
+ *  evitar mismatch de hidratação (Math.sin difere nas últimas casas entre Node e navegador). */
+function staticBarsPath(bars: number, unit: number, mirror: boolean) {
+  let d = "";
+  for (let i = 0; i < bars; i++) {
+    const bh = round2(restingLevel(i) * 100);
+    const x = round2(i * unit);
+    const y = round2(mirror ? (100 - bh) / 2 : 100 - bh);
+    d += `M${x} ${y}h1v${bh}h-1z`;
+  }
+  return d;
+}
+
 /** Altura estática (0..1) da barra i — usada no SSR, no modo leve e com movimento reduzido. */
 function restingLevel(i: number) {
   return 0.22 + 0.62 * Math.abs(Math.sin(i * 0.7) * Math.cos(i * 0.23 + 0.4));
 }
 
 /**
- * Spectrum analyzer simulado — sem áudio.
- * - Modo leve / movimento reduzido / SSR: SVG estático (zero JS por frame, zero camadas de GPU).
- * - Modo completo: um único <canvas> a ~30 fps, reagindo a um "beat" sintético e à velocidade
- *   do scroll; pausa fora da tela e com a aba oculta. Mais intenso no Experience Mode.
+ * Spectrum analyzer.
+ * - Nível lite / movimento reduzido / SSR: SVG estático (um único path — zero JS por frame).
+ * - Demais níveis: um único <canvas> a ~30 fps. Com a música de fundo tocando, as barras seguem
+ *   o espectro real (Web Audio); sem música, um "beat" sintético + velocidade do scroll.
+ *   Pausa fora da tela e com a aba oculta. Mais intenso no Experience Mode.
  */
 export function Visualizer({
   bars = 32,
@@ -112,19 +127,18 @@ export function Visualizer({
     let last = 0;
     let lastY = window.scrollY;
     let energy = 0;
-
-    const onScroll = () => {
-      const y = window.scrollY;
-      energy = Math.min(1, energy + Math.abs(y - lastY) / 400);
-      lastY = y;
-    };
+    const levels = new Float32Array(bars);
 
     const draw = (t: number) => {
       raf = requestAnimationFrame(draw);
       if (t - last < FRAME_MS) return;
       last = t;
+      // Velocidade do scroll lida no próprio frame (sem listener de scroll por instância)
+      const y = window.scrollY;
+      energy = Math.min(1, energy * 0.9 + Math.abs(y - lastY) / 400);
+      lastY = y;
+      const live = readLevels(levels);
       const time = t / 1000;
-      energy *= 0.9;
       const beat = Math.pow(Math.max(0, Math.sin(time * Math.PI * 2 * 2.05)), 8); // ~123 BPM
       const barW = w / (bars + (bars - 1) * GAP_RATIO);
       const step = barW * (1 + GAP_RATIO);
@@ -133,10 +147,15 @@ export function Visualizer({
       ctx.fillStyle = fill;
       ctx.globalAlpha = 0.9;
       for (let i = 0; i < bars; i++) {
-        const x = i / bars;
-        const bass = (1 - x) * 0.55 * beat;
-        const wave = 0.5 + 0.5 * Math.sin(time * (2.2 + seeds[i] * 2.4) + i * 0.55);
-        const v = Math.min(1, (0.14 + wave * 0.42 * seeds[i] + bass + energy * 0.5) * g);
+        let v: number;
+        if (live) {
+          v = Math.min(1, (0.06 + levels[i] * 1.05 + energy * 0.15) * g);
+        } else {
+          const x = i / bars;
+          const bass = (1 - x) * 0.55 * beat;
+          const wave = 0.5 + 0.5 * Math.sin(time * (2.2 + seeds[i] * 2.4) + i * 0.55);
+          v = Math.min(1, (0.14 + wave * 0.42 * seeds[i] + bass + energy * 0.5) * g);
+        }
         const bh = Math.max(1, v * h);
         ctx.fillRect(i * step, mirror ? (h - bh) / 2 : h - bh, barW, bh);
       }
@@ -146,14 +165,12 @@ export function Visualizer({
       if (running) return;
       running = true;
       lastY = window.scrollY;
-      window.addEventListener("scroll", onScroll, { passive: true });
       raf = requestAnimationFrame(draw);
     };
     const stop = () => {
       if (!running) return;
       running = false;
       cancelAnimationFrame(raf);
-      window.removeEventListener("scroll", onScroll);
     };
     const sync = () => (visible && !document.hidden ? start() : stop());
 
@@ -193,21 +210,7 @@ export function Visualizer({
               ))}
             </linearGradient>
           </defs>
-          <g fill={`url(#${gradientId})`} opacity={0.9}>
-            {Array.from({ length: bars }, (_, i) => {
-              // Arredondado: Math.sin difere nas últimas casas entre Node (SSR) e navegador → mismatch.
-              const bh = round2(restingLevel(i) * 100);
-              return (
-                <rect
-                  key={i}
-                  x={round2(i * unit)}
-                  y={round2(mirror ? (100 - bh) / 2 : 100 - bh)}
-                  width={1}
-                  height={bh}
-                />
-              );
-            })}
-          </g>
+          <path fill={`url(#${gradientId})`} opacity={0.9} d={staticBarsPath(bars, unit, mirror)} />
         </svg>
       )}
     </div>

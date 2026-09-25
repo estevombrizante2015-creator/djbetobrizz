@@ -7,10 +7,10 @@ import type { EventItem } from "./types";
  */
 export const events: EventItem[] = [
   {
-    type: "Ao vivo",
+    type: "Pista lotada",
     image: {
-      src: "/images/events/betobrizz-pista-magenta.webp",
-      alt: "DJ BetoBrizz de costas comandando a pista lotada sob luzes magenta e vermelhas",
+      src: "/images/events/betobrizz-pista-dourada.webp",
+      alt: "Pista lotada sob feixes de luz dourados vindos do palco do DJ BetoBrizz",
     },
     featured: true,
   },
@@ -22,10 +22,17 @@ export const events: EventItem[] = [
     },
   },
   {
-    type: "Pista cheia",
+    type: "Luz & som",
     image: {
-      src: "/images/events/betobrizz-pista-verde.webp",
-      alt: "Vista do palco do DJ BetoBrizz para o público dançando sob luzes verdes e moving heads",
+      src: "/images/events/betobrizz-moving-heads.webp",
+      alt: "Feixes brancos de moving heads cortando o salão sobre o público",
+    },
+  },
+  {
+    type: "Energia",
+    image: {
+      src: "/images/events/betobrizz-pista-lotada-feixes.webp",
+      alt: "Salão lotado com feixes amarelos e azuis de iluminação sobre a pista",
     },
   },
   {
@@ -37,17 +44,24 @@ export const events: EventItem[] = [
     featured: true,
   },
   {
+    type: "Pista cheia",
+    image: {
+      src: "/images/events/betobrizz-pista-danca.webp",
+      alt: "Público dançando na pista sob luzes rosa e roxas",
+    },
+  },
+  {
+    type: "Ao vivo",
+    image: {
+      src: "/images/events/betobrizz-pista-magenta.webp",
+      alt: "DJ BetoBrizz de costas comandando a pista lotada sob luzes magenta e vermelhas",
+    },
+  },
+  {
     type: "Mixagem ao vivo",
     image: {
       src: "/images/events/betobrizz-controladora.webp",
       alt: "DJ BetoBrizz mixando em uma controladora Pioneer com fones de ouvido sob luz verde",
-    },
-  },
-  {
-    type: "Set ao vivo",
-    image: {
-      src: "/images/events/betobrizz-set-pioneer.webp",
-      alt: "DJ BetoBrizz tocando com controladora Pioneer e notebook",
     },
   },
 ];
