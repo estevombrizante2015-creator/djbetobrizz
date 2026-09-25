@@ -64,6 +64,37 @@ Com a lista vazia, a seção incorpora o perfil completo do SoundCloud.
 Coloque os arquivos em `public/videos/` e preencha `heroVideo` em `site.ts`
 (1080p para desktop, 720p para mobile, com `poster`). Sem vídeo, o hero usa a foto + efeitos.
 
+## Música de fundo
+
+O site abre com o player **ligado** (canto inferior esquerdo) e tenta tocar sozinho. Como os
+navegadores bloqueiam som antes de um gesto do visitante, nesse caso a música começa no primeiro
+toque/clique em qualquer lugar da página (o player mostra "Toque para ouvir"). Se o visitante pausar,
+ela não volta sozinha naquela visita; com "economia de dados" ativada, não liga sozinha.
+Enquanto toca, os equalizadores do site reagem à música de verdade.
+
+Para trocar as faixas: coloque os arquivos (MP3) em `musicadefundo/` e rode
+
+```bash
+npx --yes ffmpeg-static          # mostra o caminho do ffmpeg baixado
+FFMPEG="<caminho>" npm run audio # converte para 128 kbps, extrai as capas e gera a lista
+```
+
+A ordem das faixas pode ser ajustada em [`src/data/music.ts`](src/data/music.ts).
+
+## Níveis de performance
+
+O site escolhe automaticamente o nível de efeitos (`<html data-perf>`), antes da primeira pintura:
+
+| Nível | Quem | O que muda |
+| --- | --- | --- |
+| `full` | Desktops com mouse, ≥4 núcleos e ≥4 GB | Tudo: partículas, lasers, parallax, efeitos ligados ao scroll, vidro com blur |
+| `balanced` | Celulares, tablets e PCs comuns | Animações leves (equalizadores, brilhos, entradas), sem efeitos caros |
+| `lite` | Aparelhos fracos, economia de dados, movimento reduzido | Visual estático |
+
+Em produção, se o FPS medido cair, o nível desce um degrau sozinho. Para testar: `?perf=lite`,
+`?perf=balanced` ou `?perf=full` na URL. Medição: `node scripts/perf-check.mjs` e
+`node scripts/perf-sections.mjs` contra o build de produção.
+
 ## Analytics
 
 Defina `NEXT_PUBLIC_GA_ID=G-XXXXXXX` (variável de ambiente) ou `gaId` em `site.ts`.
