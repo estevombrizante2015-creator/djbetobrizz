@@ -165,6 +165,8 @@ export function Header() {
           aria-hidden
           className={cn(
             "glass pointer-events-none absolute inset-0 border-b border-line transition-opacity duration-500",
+            // desfoque explícito no modo completo (utilitário do Tailwind: gera a propriedade padrão e a -webkit-)
+            "[html[data-perf=full]_&]:backdrop-blur-[14px] [html[data-perf=full]_&]:backdrop-saturate-[1.4]",
             scrolled && !open ? "opacity-100" : "opacity-0",
           )}
         />

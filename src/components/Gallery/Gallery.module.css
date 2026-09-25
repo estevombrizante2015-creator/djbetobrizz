@@ -200,8 +200,9 @@
 }
 :global(html[data-perf="full"]) .ctrl {
   background-color: rgb(5 5 5 / 0.6);
+  /* só a forma sem prefixo: com as duas, o compilador de CSS mantém apenas a -webkit-,
+     que o Chromium atual ignora (o .glass global sofre do mesmo problema) */
   backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
 }
 
 /* Lightbox: flash de "troca de canal" a cada foto (só no modo completo). */

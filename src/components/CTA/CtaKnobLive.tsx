@@ -21,6 +21,8 @@ import {
 /**
  * Knob que gira de MIN a MAX conforme o visitante rola até o contato — SÓ no modo completo.
  * Tudo por MotionValues (rotação, nível, brilho, GAIN) — o React só re-renderiza quando o PEAK muda.
+ * Sem filtros SVG: o brilho do trilho é um traço largo translúcido (repintar um blur a cada frame
+ * do spring custava caro); o halo fica numa camada própria (opacidade só no compositor).
  */
 export function CtaKnobLive({ className }: { className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -45,10 +47,10 @@ export function CtaKnobLive({ className }: { className?: string }) {
   return (
     <div ref={ref} aria-hidden className={cn("relative select-none", className)}>
       {/* halo que cresce com o volume */}
-      <m.div className={HALO_CLASS} style={{ opacity: glow }} />
+      <m.div className={`${HALO_CLASS} will-change-[opacity]`} style={{ opacity: glow }} />
 
       <svg viewBox="0 0 300 300" className="relative block h-auto w-full overflow-visible">
-        <KnobDefs uid={uid} soft />
+        <KnobDefs uid={uid} />
         <KnobBase uid={uid} />
 
         {/* escala de LEDs acesa até o valor atual */}
@@ -56,15 +58,24 @@ export function CtaKnobLive({ className }: { className?: string }) {
           <m.path d={TICK_ARC} fill="none" stroke={`url(#${uid}-lvl)`} strokeWidth={16} style={{ pathLength: value }} />
         </g>
 
-        {/* trilho interno com brilho */}
+        {/* trilho interno com brilho (traços largos translúcidos + núcleo) */}
+        <m.path
+          d={TRACK_ARC}
+          fill="none"
+          stroke={`url(#${uid}-lvl)`}
+          strokeWidth={12}
+          strokeOpacity={0.22}
+          strokeLinecap="round"
+          style={{ pathLength: value }}
+        />
         <m.path
           d={TRACK_ARC}
           fill="none"
           stroke={`url(#${uid}-lvl)`}
           strokeWidth={6}
+          strokeOpacity={0.45}
           strokeLinecap="round"
-          filter={`url(#${uid}-soft)`}
-          style={{ pathLength: value, opacity: 0.9 }}
+          style={{ pathLength: value }}
         />
         <m.path
           d={TRACK_ARC}
@@ -79,7 +90,7 @@ export function CtaKnobLive({ className }: { className?: string }) {
         <m.g style={{ rotate }}>
           <KnobCap
             uid={uid}
-            glow={<circle cx={C} cy={C - 82} r={9} fill="#ff2414" opacity={0.35} filter={`url(#${uid}-soft)`} />}
+            glow={<circle cx={C} cy={C - 82} r={9} fill="#ff2414" opacity={0.28} />}
           />
         </m.g>
       </svg>

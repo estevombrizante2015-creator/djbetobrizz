@@ -94,6 +94,9 @@ function EventTile({ tile, rowSum, total }: { tile: Tile; rowSum: number; total:
     "--m-ar": mobileRatio,
     "--tile-flex": `${weight} 1 0%`,
     "--acc": accent.rgb,
+    // Placeholder: a miniatura (12px) ampliada pelo navegador já fica desfocada — sem o SVG
+    // com feGaussianBlur do placeholder="blur", caro de pintar na rolagem em celular.
+    ...(meta.blurDataURL ? { backgroundImage: `url("${meta.blurDataURL}")` } : {}),
   } as CSSProperties;
 
   return (
@@ -101,7 +104,7 @@ function EventTile({ tile, rowSum, total }: { tile: Tile; rowSum: number; total:
       style={style}
       className={cn(
         styles.tile,
-        "relative isolate aspect-(--m-ar) min-w-0 overflow-hidden rounded-sm bg-ink ring-1 ring-line",
+        "relative isolate aspect-(--m-ar) min-w-0 overflow-hidden rounded-sm bg-ink bg-cover bg-center ring-1 ring-line",
         "hover:ring-magenta/60",
         "sm:flex-(--tile-flex) sm:aspect-auto",
       )}
@@ -112,7 +115,6 @@ function EventTile({ tile, rowSum, total }: { tile: Tile; rowSum: number; total:
         fill
         sizes={sizes}
         quality={60}
-        {...(meta.blurDataURL ? { placeholder: "blur" as const, blurDataURL: meta.blurDataURL } : {})}
         className={cn(styles.img, "object-cover")}
       />
 

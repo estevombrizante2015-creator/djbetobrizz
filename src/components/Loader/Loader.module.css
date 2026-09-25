@@ -349,19 +349,18 @@
   }
 }
 
-/* Um único "tranco" RGB no nome (glitch pontual, não constante) */
+/* Um único "tranco" RGB no nome (glitch pontual, não constante).
+   Só text-shadow: se animasse transform também, a entrada (brand-in) sairia do compositor. */
 @keyframes brand-glitch {
   0% {
     text-shadow:
       -3px 0 rgb(0 229 255 / 0.85),
       3px 0 rgb(255 20 147 / 0.85);
-    transform: skewX(-8deg) translateX(3px);
   }
   50% {
     text-shadow:
       2px 0 rgb(0 229 255 / 0.8),
       -2px 0 rgb(255 20 147 / 0.8);
-    transform: skewX(-8deg) translateX(-2px);
   }
 }
 

@@ -73,17 +73,25 @@
 }
 
 :global(html[data-perf="full"]) .wash {
-  display: block;
   position: absolute;
   inset: 0;
   pointer-events: none;
   background: linear-gradient(135deg, var(--color-magenta), var(--color-purple) 48%, var(--color-cyan));
   mix-blend-mode: color;
   opacity: 0;
-  transition: opacity 0.5s var(--ease-out-expo);
+  /* display entra na transição: em repouso o wash (e o blend) nem existe na árvore de pintura */
+  transition:
+    opacity 0.5s var(--ease-out-expo),
+    display 0.5s allow-discrete;
 }
 :global(html[data-perf="full"]) .tile:hover .wash {
+  display: block;
   opacity: 0.6;
+}
+@starting-style {
+  :global(html[data-perf="full"]) .tile:hover .wash {
+    opacity: 0;
+  }
 }
 
 /* Brilho neon da borda: sombra interna fixa, só a opacidade anima. */

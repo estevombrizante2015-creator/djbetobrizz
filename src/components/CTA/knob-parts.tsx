@@ -32,8 +32,8 @@ const [MAX_X, MAX_Y] = polar(R_TICKS + 4, START + SWEEP);
 export const HALO_CLASS =
   "pointer-events-none absolute inset-[4%] rounded-full bg-[radial-gradient(closest-side,rgb(255_36_20/0.4),rgb(255_20_147/0.22)_55%,transparent)]";
 
-/** Gradientes, máscara dos LEDs e (opcional) o filtro de brilho suave. */
-export function KnobDefs({ uid, soft = false }: { uid: string; soft?: boolean }) {
+/** Gradientes e máscara dos LEDs (sem filtros: o brilho é feito com traços translúcidos). */
+export function KnobDefs({ uid }: { uid: string }) {
   return (
     <defs>
       <linearGradient id={`${uid}-lvl`} x1="0" y1="0" x2="1" y2="0">
@@ -54,11 +54,6 @@ export function KnobDefs({ uid, soft = false }: { uid: string; soft?: boolean })
       <mask id={`${uid}-ticks`} maskUnits="userSpaceOnUse" x="0" y="0" width="300" height="300">
         <path d={TICK_ARC} fill="none" stroke="#fff" strokeWidth={16} strokeDasharray={`${TICK_W} ${TICK_GAP.toFixed(3)}`} />
       </mask>
-      {soft ? (
-        <filter id={`${uid}-soft`} x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur stdDeviation="3" />
-        </filter>
-      ) : null}
     </defs>
   );
 }
@@ -84,7 +79,7 @@ export function KnobBody({ uid }: { uid: string }) {
   return <circle cx={C} cy={C} r={96} fill={`url(#${uid}-body)`} stroke="#fff" strokeOpacity={0.1} />;
 }
 
-/** Tampa que gira: serrilhado + "O" do logo + ponteiro. `glow`: brilho do LED (filtro no modo completo). */
+/** Tampa que gira: serrilhado + "O" do logo + ponteiro. `glow`: halo do LED do ponteiro. */
 export function KnobCap({ uid, glow }: { uid: string; glow: ReactNode }) {
   return (
     <>

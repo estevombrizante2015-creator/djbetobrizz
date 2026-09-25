@@ -2,16 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState, type AnimationEvent, type RefObject } from "react";
-import {
-  m,
-  useInView,
-  useMotionValue,
-  useMotionValueEvent,
-  useScroll,
-  useTransform,
-  type MotionStyle,
-  type MotionValue,
-} from "motion/react";
+import { useInView, useMotionValueEvent, useScroll } from "motion/react";
 import { useExperience } from "@/components/Effects/ExperienceContext";
 import { cn, imageProps } from "@/lib/utils";
 import { signalAudioVertical, signalHorizontal, signalVideoVertical } from "./signal";
@@ -62,14 +53,8 @@ export function DjVjStage() {
   const { isDesktop, reducedMotion } = useExperience();
   const animated = isDesktop && !reducedMotion;
 
-  // Progresso da conexão (0 → 1). Fica em 1 (conectado) a menos que o <ScrollLink/> o mova.
-  const progress = useMotionValue(1);
-  const djX = useTransform(progress, [0, 0.75], [-120, 0]);
-  const vjX = useTransform(progress, [0, 0.75], [120, 0]);
-  const deckOpacity = useTransform(progress, [0, 0.55], [0.3, 1]);
-  const draw = useTransform(progress, [0.25, LINK_AT], [0, 1]);
-  const knob = useTransform(progress, [0, LINK_AT], [-135, 135]);
-
+  // O markup é sempre o estado final (conectado). No desktop completo o <ScrollLink/> move
+  // decks, traçado e knob direto no DOM (data-deck / data-draw / data-knob).
   const [linked, setLinked] = useState(true);
   const [inView, setInView] = useState(false);
   const [jolt, setJolt] = useState(false);
@@ -91,7 +76,7 @@ export function DjVjStage() {
       className="relative mt-10 grid sm:mt-14 lg:mt-16 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]"
     >
       {animated ? (
-        <ScrollLink target={stageRef} progress={progress} onLinkedChange={onLinkedChange} onInViewChange={setInView} />
+        <ScrollLink target={stageRef} onLinkedChange={onLinkedChange} onInViewChange={setInView} />
       ) : null}
 
       {/* Sinal horizontal DJ → = → VJ (lg+) */}
@@ -110,22 +95,27 @@ export function DjVjStage() {
             <stop offset="1" stopColor="#0066ff" />
           </linearGradient>
         </defs>
-        <m.path
+        {/* pathLength 1 + dasharray "1 1": desenhado por inteiro; o ScrollLink recua o dashoffset */}
+        <path
+          data-draw=""
           d={signalHorizontal}
+          pathLength={1}
+          strokeDasharray="1 1"
           fill="none"
           stroke="url(#djvj-signal)"
           strokeWidth={8}
           strokeOpacity={0.2}
           strokeLinejoin="round"
-          style={{ pathLength: draw }}
         />
-        <m.path
+        <path
+          data-draw=""
           d={signalHorizontal}
+          pathLength={1}
+          strokeDasharray="1 1"
           fill="none"
           stroke="url(#djvj-signal)"
           strokeWidth={2}
           strokeLinejoin="round"
-          style={{ pathLength: draw }}
         />
         {pulsing ? (
           <>
@@ -153,13 +143,12 @@ export function DjVjStage() {
         ) : null}
       </svg>
 
-      <Deck side="dj" style={{ x: djX, opacity: deckOpacity }} linked={linked} />
+      <Deck side="dj" linked={linked} />
 
-      <Equation linked={linked} pulsing={pulsing} knob={knob} />
+      <Equation linked={linked} pulsing={pulsing} />
 
       <Deck
         side="vj"
-        style={{ x: vjX, opacity: deckOpacity }}
         linked={linked}
         jolt={jolt && animated}
         onJoltEnd={() => setJolt(false)}
@@ -170,10 +159,48 @@ export function DjVjStage() {
 
 type ScrollLinkProps = {
   target: RefObject<HTMLDivElement | null>;
-  progress: MotionValue<number>;
   onLinkedChange: (linked: boolean, withJolt: boolean) => void;
   onInViewChange: (inView: boolean) => void;
 };
+
+/** Interpolação linear limitada (como o useTransform com clamp). */
+function mix(v: number, inMin: number, inMax: number, outMin: number, outMax: number) {
+  const t = Math.min(1, Math.max(0, (v - inMin) / (inMax - inMin)));
+  return outMin + (outMax - outMin) * t;
+}
+
+/**
+ * Pinta o palco para um progresso — só ESCRITAS de estilo (nenhuma leitura de layout), em
+ * transform/opacity/dashoffset. `reset` devolve o markup ao estado final estático.
+ */
+function stagePainter(stage: HTMLElement) {
+  const decks = Array.from(stage.querySelectorAll<HTMLElement>("[data-deck]"));
+  const draws = Array.from(stage.querySelectorAll<SVGPathElement>("[data-draw]"));
+  const knob = stage.querySelector<HTMLElement>("[data-knob]");
+  for (const el of decks) el.style.willChange = "transform, opacity";
+  return {
+    apply(v: number) {
+      const x = mix(v, 0, 0.75, 120, 0);
+      const opacity = String(mix(v, 0, 0.55, 0.3, 1));
+      for (const el of decks) {
+        el.style.transform = `translateX(${el.dataset.deck === "dj" ? -x : x}px)`;
+        el.style.opacity = opacity;
+      }
+      const offset = String(1 - mix(v, 0.25, LINK_AT, 0, 1));
+      for (const el of draws) el.style.strokeDashoffset = offset;
+      if (knob) knob.style.rotate = `${mix(v, 0, LINK_AT, -135, 135)}deg`;
+    },
+    reset() {
+      for (const el of decks) {
+        el.style.transform = "";
+        el.style.opacity = "";
+        el.style.willChange = "";
+      }
+      for (const el of draws) el.style.strokeDashoffset = "";
+      if (knob) knob.style.rotate = "";
+    },
+  };
+}
 
 /** Progresso inicial calculado da geometria (o useScroll só mede no frame seguinte). */
 function measureProgress(el: HTMLElement) {
@@ -185,31 +212,35 @@ function measureProgress(el: HTMLElement) {
 
 /**
  * Liga o palco ao scroll — montado SÓ no desktop no modo completo, então o modo leve não tem
- * nenhum listener de scroll aqui. Não renderiza nada: move o `progress` do pai e avisa só nas
- * mudanças discretas (conectou/desconectou, entrou/saiu da tela).
+ * nenhum listener de scroll aqui. Não renderiza nada: pinta o DOM a cada mudança do scroll
+ * (dentro do frame do motion) e só mexe no estado React nas mudanças discretas
+ * (conectou/desconectou, entrou/saiu da tela).
  */
-function ScrollLink({ target, progress, onLinkedChange, onInViewChange }: ScrollLinkProps) {
+function ScrollLink({ target, onLinkedChange, onInViewChange }: ScrollLinkProps) {
   const { scrollYProgress } = useScroll({ target, offset: [`start ${START}`, `center ${END}`] });
   const inView = useInView(target, { amount: 0.1 });
+  const paintRef = useRef<((v: number) => void) | null>(null);
 
   useMotionValueEvent(scrollYProgress, "change", (v) => {
-    progress.set(v);
+    paintRef.current?.(v);
     onLinkedChange(v >= LINK_AT, true);
   });
 
   useEffect(() => {
-    const el = target.current;
-    if (el) {
-      const v = measureProgress(el);
-      progress.set(v);
-      onLinkedChange(v >= LINK_AT, false);
-    }
+    const stage = target.current;
+    if (!stage) return;
+    const painter = stagePainter(stage);
+    paintRef.current = painter.apply;
+    const v = measureProgress(stage);
+    painter.apply(v);
+    onLinkedChange(v >= LINK_AT, false);
     // Se o nível cair para "lite", volta ao estado estático (conectado).
     return () => {
-      progress.set(1);
+      paintRef.current = null;
+      painter.reset();
       onLinkedChange(true, false);
     };
-  }, [target, progress, onLinkedChange]);
+  }, [target, onLinkedChange]);
 
   useEffect(() => {
     onInViewChange(inView);
@@ -220,14 +251,13 @@ function ScrollLink({ target, progress, onLinkedChange, onInViewChange }: Scroll
 
 type DeckProps = {
   side: Side;
-  style: MotionStyle;
   linked: boolean;
   jolt?: boolean;
   onJoltEnd?: () => void;
 };
 
 /** Uma metade do palco: foto tratada + letra gigante + lista de canais. */
-function Deck({ side, style, linked, jolt = false, onJoltEnd }: DeckProps) {
+function Deck({ side, linked, jolt = false, onJoltEnd }: DeckProps) {
   const d = decks[side];
   const isDj = side === "dj";
 
@@ -236,7 +266,7 @@ function Deck({ side, style, linked, jolt = false, onJoltEnd }: DeckProps) {
   };
 
   return (
-    <m.div style={style} className="group relative z-10">
+    <div data-deck={side} className="group relative z-10">
       {/* Moldura RGB do VJ (canais deslocados) */}
       {!isDj ? (
         <>
@@ -351,7 +381,7 @@ function Deck({ side, style, linked, jolt = false, onJoltEnd }: DeckProps) {
           ))}
         </ul>
       </div>
-    </m.div>
+    </div>
   );
 }
 
@@ -359,11 +389,10 @@ type EquationProps = {
   linked: boolean;
   /** Anel pulsante do nó (só no modo completo, com o palco na tela). */
   pulsing: boolean;
-  knob: MotionValue<number>;
 };
 
 /** Centro: SOM + IMAGEM = EXPERIÊNCIA, com o nó "=" em forma de knob. */
-function Equation({ linked, pulsing, knob }: EquationProps) {
+function Equation({ linked, pulsing }: EquationProps) {
   return (
     <div className="relative z-30 flex flex-col items-center py-1 lg:w-60 lg:py-0 xl:w-64">
       <p className="sr-only">Som + imagem = experiência</p>
@@ -389,7 +418,7 @@ function Equation({ linked, pulsing, knob }: EquationProps) {
         <span className="font-display text-2xl font-black text-cyan text-glow-cyan xl:text-3xl">IMAGEM</span>
       </div>
 
-      <Node linked={linked} pulsing={pulsing} knob={knob} />
+      <Node linked={linked} pulsing={pulsing} />
 
       <div aria-hidden className="flex flex-col items-center gap-2 pt-4 pb-2 lg:flex-1 lg:justify-start lg:gap-3 lg:pt-6 lg:pb-0">
         <span
@@ -432,8 +461,8 @@ const KNOB_TICKS = Array.from({ length: 11 }, (_, i) => {
   return `M${p(43)} L${p(37)}`;
 }).join(" ");
 
-/** Nó "=": um knob (símbolo da marca) cujo ponteiro gira com o scroll (desktop) ou já está no máximo. */
-function Node({ linked, pulsing, knob }: { linked: boolean; pulsing: boolean; knob: MotionValue<number> }) {
+/** Nó "=": um knob (símbolo da marca) já no máximo; no desktop completo o ponteiro gira com o scroll. */
+function Node({ linked, pulsing }: { linked: boolean; pulsing: boolean }) {
   return (
     <div className="relative grid size-20 shrink-0 place-items-center xl:size-24">
       {linked ? (
@@ -462,14 +491,14 @@ function Node({ linked, pulsing, knob }: { linked: boolean; pulsing: boolean; kn
             className={linked ? "text-white/60" : "text-white/20"}
           />
         </svg>
-        <m.span style={{ rotate: knob }} className="absolute inset-[18%] rounded-full">
+        <span data-knob="" className="absolute inset-[18%] rotate-[135deg] rounded-full">
           <span
             className={cn(
               "absolute top-0 left-1/2 h-2.5 w-[3px] -translate-x-1/2 rounded-full",
               linked ? "bg-white shadow-neon-magenta" : "bg-white/50",
             )}
           />
-        </m.span>
+        </span>
         <span className="font-display text-3xl leading-none font-black text-white xl:text-4xl">=</span>
       </div>
     </div>

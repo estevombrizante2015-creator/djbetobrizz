@@ -20,7 +20,9 @@
 }
 
 /* Fora da tela (modo completo): congela todas as animações CSS do palco */
-.stage[data-paused] * {
+.stage[data-paused] *,
+.stage[data-paused] *::before,
+.stage[data-paused] *::after {
   animation-play-state: paused !important;
 }
 

@@ -16,6 +16,12 @@
   view-timeline-name: --about-portrait;
 }
 
+/* Modo leve: o "● REC" do VhsOverlay fica aceso, sem piscar (nenhuma animação infinita no modo leve).
+   Redundante quando o globals.css incluir .animate-rec na lista de pausas do modo leve. */
+:global(html:not([data-perf="full"])) .portrait :global(.animate-rec) {
+  animation: none;
+}
+
 @supports (view-timeline-name: --a) {
   @media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) and (min-width: 64rem) {
     :global(html[data-perf="full"]) .drift {

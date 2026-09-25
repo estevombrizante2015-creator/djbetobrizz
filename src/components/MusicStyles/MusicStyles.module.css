@@ -129,9 +129,8 @@
     0 0 0 1px rgb(255 255 255 / 0.08),
     0 28px 50px -28px rgb(0 0 0 / 0.95);
 }
-/* Modo completo: capa levemente "apagada" que acende no hover (filtro só em desktop capaz) */
+/* Modo completo: a capa "acende" no hover (filtro só no card sob o mouse — nenhum em repouso) */
 :global(html[data-perf="full"]) .sleeve {
-  filter: saturate(0.82) contrast(0.97) brightness(0.96);
   transition:
     box-shadow 0.6s var(--expo),
     filter 0.6s var(--expo);

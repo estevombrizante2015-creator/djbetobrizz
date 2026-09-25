@@ -64,14 +64,17 @@ function Frame({ photo, index }: { photo: Photo; index: number }) {
           "group-hover:ring-cyan/80 group-focus-visible:shadow-neon-cyan group-focus-visible:ring-cyan/80",
         )}
       >
-        <span className={cn("absolute inset-0 block", styles.jolt)}>
+        {/* Placeholder: miniatura de 12px ampliada (já desfocada) — sem o SVG com blur do next/image */}
+        <span
+          className={cn("absolute inset-0 block bg-cover", portrait ? "bg-position-[50%_18%]" : "bg-center", styles.jolt)}
+          style={meta.blurDataURL ? { backgroundImage: `url("${meta.blurDataURL}")` } : undefined}
+        >
           <Image
             src={photo.src}
             alt={photo.alt}
             fill
             sizes={SIZES}
             quality={60}
-            {...(meta.blurDataURL ? { placeholder: "blur" as const, blurDataURL: meta.blurDataURL } : {})}
             className={cn(styles.img, "object-cover", portrait && "object-[50%_18%]")}
           />
         </span>
