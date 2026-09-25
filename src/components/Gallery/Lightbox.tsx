@@ -14,7 +14,7 @@ import Image from "next/image";
 import {
   AnimatePresence,
   animate,
-  motion,
+  m,
   useDragControls,
   useMotionValue,
   type DragControls,
@@ -27,6 +27,7 @@ import { cn, getImageMeta } from "@/lib/utils";
 import { ease } from "@/lib/animations";
 import { useExperience } from "@/components/Effects/ExperienceContext";
 import { ChevronLeftIcon, ChevronRightIcon, CloseIcon, ZoomInIcon, ZoomOutIcon } from "@/components/ui/Icons";
+import styles from "./Gallery.module.css";
 
 const ZOOM = 2;
 const DOUBLE_TAP_MS = 320;
@@ -65,6 +66,21 @@ type Props = {
   returnFocus?: RefObject<HTMLElement | null>;
 };
 
+type HostProps = Omit<Props, "startIndex"> & { openIndex: number | null };
+
+/**
+ * Hospedeiro carregado sob demanda (next/dynamic no ContactSheet): o AnimatePresence
+ * também fica neste chunk, fora do JS inicial. Fica montado depois da 1ª abertura
+ * para animar a saída.
+ */
+export function LightboxHost({ openIndex, ...props }: HostProps) {
+  return (
+    <AnimatePresence>
+      {openIndex !== null ? <Lightbox key="lightbox" startIndex={openIndex} {...props} /> : null}
+    </AnimatePresence>
+  );
+}
+
 /**
  * Lightbox da galeria: próxima/anterior, zoom ×2 com pan, teclado (← → Esc),
  * swipe no celular (e arrastar para baixo fecha), duplo toque para zoom,
@@ -75,7 +91,9 @@ export function Lightbox({ photos, startIndex, onClose, returnFocus }: Props) {
   const [[index, dir], setView] = useState<[number, number]>([clamp(startIndex, 0, count - 1), 0]);
   const [zoomed, setZoomed] = useState(false);
   const [box, setBox] = useState<Size>({ w: 0, h: 0 });
-  const { isDesktop } = useExperience();
+  const { isDesktop, lite } = useExperience();
+  // Modo leve: foto grande um pouco mais leve (mesma qualidade na vizinha pré-carregada → mesma URL).
+  const quality = lite ? 75 : 85;
 
   const dialogRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
@@ -250,7 +268,7 @@ export function Lightbox({ photos, startIndex, onClose, returnFocus }: Props) {
   const neighbors = count > 1 ? [...new Set([(index + 1) % count, (index - 1 + count) % count])].filter((i) => i !== index) : [];
 
   return createPortal(
-    <motion.div
+    <m.div
       ref={dialogRef}
       role="dialog"
       aria-modal="true"
@@ -295,7 +313,7 @@ export function Lightbox({ photos, startIndex, onClose, returnFocus }: Props) {
       </div>
 
       {/* ===== Palco ===== */}
-      <motion.div
+      <m.div
         initial={{ scaleY: 0.04, opacity: 0 }}
         animate={{ scaleY: 1, opacity: 1 }}
         exit={{ scaleY: 0.04, opacity: 0 }}
@@ -323,6 +341,7 @@ export function Lightbox({ photos, startIndex, onClose, returnFocus }: Props) {
             <Slide
               key={index}
               photo={photo}
+              quality={quality}
               box={box}
               dir={dir}
               zoomed={zoomed}
@@ -336,6 +355,9 @@ export function Lightbox({ photos, startIndex, onClose, returnFocus }: Props) {
             />
           </AnimatePresence>
         </div>
+
+        {/* Flash de "troca de canal" a cada foto (só modo completo; ver Gallery.module.css) */}
+        <span key={`flash-${index}`} aria-hidden className={styles.flash} />
 
         {/* Anterior / próxima nas laterais (tablet e desktop) */}
         {count > 1 ? (
@@ -356,7 +378,7 @@ export function Lightbox({ photos, startIndex, onClose, returnFocus }: Props) {
             </ControlButton>
           </>
         ) : null}
-      </motion.div>
+      </m.div>
 
       {/* ===== Barra inferior: legenda, contador, dicas ===== */}
       <div className="relative z-10 px-3 pt-2 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6 sm:pb-6">
@@ -417,17 +439,18 @@ export function Lightbox({ photos, startIndex, onClose, returnFocus }: Props) {
       <div aria-hidden className="pointer-events-none absolute size-px overflow-hidden opacity-0">
         {neighbors.map((i) => (
           <div key={photos[i].src} className="relative size-px">
-            <Image src={photos[i].src} alt="" fill sizes="100vw" quality={85} loading="eager" />
+            <Image src={photos[i].src} alt="" fill sizes="100vw" quality={quality} loading="eager" />
           </div>
         ))}
       </div>
-    </motion.div>,
+    </m.div>,
     document.body,
   );
 }
 
 type SlideProps = {
   photo: Photo;
+  quality: number;
   box: Size;
   dir: number;
   zoomed: boolean;
@@ -439,13 +462,13 @@ type SlideProps = {
 };
 
 /** Uma foto no palco: swipe (sem zoom) → pan (com zoom) → escala. */
-function Slide({ photo, box, dir, zoomed, panX, panY, panControls, onDragStart, onSwipeEnd }: SlideProps) {
+function Slide({ photo, quality, box, dir, zoomed, panX, panY, panControls, onDragStart, onSwipeEnd }: SlideProps) {
   const meta = getImageMeta(photo.src);
   const fit = fitSize(photo.src, box);
   const range = panRange(fit, box);
 
   return (
-    <motion.div
+    <m.div
       custom={dir}
       variants={slide}
       initial="enter"
@@ -460,7 +483,7 @@ function Slide({ photo, box, dir, zoomed, panX, panY, panControls, onDragStart, 
       onDragEnd={onSwipeEnd}
       className="absolute inset-0"
     >
-      <motion.div
+      <m.div
         style={{ x: panX, y: panY }}
         drag={zoomed}
         dragListener={false}
@@ -469,7 +492,7 @@ function Slide({ photo, box, dir, zoomed, panX, panY, panControls, onDragStart, 
         dragElastic={0.06}
         className="absolute inset-0"
       >
-        <motion.div
+        <m.div
           animate={{ scale: zoomed ? ZOOM : 1 }}
           transition={{ duration: 0.4, ease: ease.out }}
           className="absolute inset-0 grid place-items-center"
@@ -485,7 +508,7 @@ function Slide({ photo, box, dir, zoomed, panX, panY, panControls, onDragStart, 
                 alt={photo.alt}
                 fill
                 sizes="100vw"
-                quality={85}
+                quality={quality}
                 loading="eager"
                 draggable={false}
                 {...(meta.blurDataURL ? { placeholder: "blur" as const, blurDataURL: meta.blurDataURL } : {})}
@@ -496,9 +519,9 @@ function Slide({ photo, box, dir, zoomed, panX, panY, panControls, onDragStart, 
             {/* Moldura fina neon */}
             <span aria-hidden className="pointer-events-none absolute inset-0 ring-1 ring-white/15" />
           </div>
-        </motion.div>
-      </motion.div>
-    </motion.div>
+        </m.div>
+      </m.div>
+    </m.div>
   );
 }
 
@@ -520,7 +543,8 @@ function ControlButton({ label, onClick, children, className, pressed, tone = "c
       aria-pressed={pressed}
       onClick={onClick}
       className={cn(
-        "grid size-12 shrink-0 place-items-center rounded-full border border-white/25 bg-void/60 text-white backdrop-blur-md",
+        "grid size-12 shrink-0 place-items-center rounded-full border border-white/25 text-white",
+        styles.ctrl,
         "transition-[color,border-color,box-shadow,background-color] duration-300",
         tone === "cyan"
           ? "hover:border-cyan hover:text-cyan hover:shadow-neon-cyan focus-visible:border-cyan"

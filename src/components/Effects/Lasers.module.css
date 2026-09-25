@@ -1,4 +1,4 @@
-/* Feixes de laser — apenas transform/opacity animados (GPU). */
+/* Feixes de laser — só no modo completo; apenas transform/opacity animados (GPU), sem filter. */
 
 .root {
   --speed: 1;
@@ -6,6 +6,7 @@
   inset: 0;
   overflow: hidden;
   pointer-events: none;
+  /* luz somando sobre a cena: o único blend do hero */
   mix-blend-mode: screen;
   opacity: 0.62;
   transition: opacity 0.8s ease;
@@ -16,9 +17,10 @@
   opacity: 1;
 }
 
-/* fora do desktop: sem blend (composição cara em GPU de celular); linhas claras sobre fundo escuro ficam quase iguais */
-.root[data-fx="lo"] {
-  mix-blend-mode: normal;
+/* fora da tela / aba oculta: congela os loops (nenhum quadro gerado) */
+.root[data-paused] .beam,
+.root[data-paused] .pulse {
+  animation-play-state: paused;
 }
 
 .beam {
@@ -63,19 +65,16 @@
   );
 }
 
+/* halo do feixe: gradiente já "desfocado" (máscara em sino), sem filter: blur */
 .glow {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: -22px;
-  width: 44px;
-  opacity: 0.55;
+  left: -28px;
+  width: 56px;
+  opacity: 0.5;
   background: linear-gradient(var(--dir), color-mix(in srgb, var(--c) 70%, transparent), transparent 62%);
-  mask-image: linear-gradient(to right, transparent, #000 50%, transparent);
-}
-
-.root[data-fx="hi"] .glow {
-  filter: blur(4px);
+  mask-image: linear-gradient(to right, transparent, rgb(0 0 0 / 0.35) 30%, #000 50%, rgb(0 0 0 / 0.35) 70%, transparent);
 }
 
 .flare {

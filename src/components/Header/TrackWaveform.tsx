@@ -1,7 +1,5 @@
-"use client";
-
-import { motion, useScroll, useTransform } from "motion/react";
 import { cn } from "@/lib/utils";
+import styles from "./TrackWaveform.module.css";
 
 const W = 960;
 const H = 12;
@@ -38,14 +36,11 @@ function Wave({ className, stroke }: { className?: string; stroke: string }) {
 
 /**
  * Barra de progresso da página desenhada como a waveform da faixa num CDJ:
- * parte "tocada" em neon + playhead. Só usa transform (sem custo de layout).
+ * parte "tocada" em neon + playhead. 100% CSS (`animation-timeline: scroll()`), roda no
+ * compositor — nenhum JavaScript por rolagem. Só nos desktops capazes (o Header decide);
+ * sem suporte a scroll-driven animations mostra apenas a faixa apagada.
  */
 export function TrackWaveform({ visible }: { visible: boolean }) {
-  const { scrollYProgress } = useScroll();
-  const clipX = useTransform(scrollYProgress, (p) => `${(p - 1) * 100}%`);
-  const innerX = useTransform(scrollYProgress, (p) => `${(1 - p) * 100}%`);
-  const headX = useTransform(scrollYProgress, (p) => `${p * 100}%`);
-
   return (
     <div
       aria-hidden
@@ -55,8 +50,8 @@ export function TrackWaveform({ visible }: { visible: boolean }) {
       )}
     >
       <Wave stroke="rgb(255 255 255 / 0.13)" />
-      <motion.div className="absolute inset-0 overflow-hidden" style={{ x: clipX }}>
-        <motion.div className="absolute inset-0" style={{ x: innerX }}>
+      <div className={cn(styles.clip, "absolute inset-0 overflow-hidden")}>
+        <div className={cn(styles.inner, "absolute inset-0")}>
           <svg width="0" height="0" className="absolute">
             <defs>
               <linearGradient id="bb-track-grad" x1="0" x2="1" y1="0" y2="0">
@@ -68,11 +63,11 @@ export function TrackWaveform({ visible }: { visible: boolean }) {
             </defs>
           </svg>
           <Wave stroke="url(#bb-track-grad)" className="opacity-90" />
-        </motion.div>
-      </motion.div>
-      <motion.div className="absolute inset-0" style={{ x: headX }}>
+        </div>
+      </div>
+      <div className={cn(styles.head, "absolute inset-0")}>
         <span className="absolute top-[-3px] bottom-[-3px] left-0 w-px bg-white shadow-[0_0_6px_1px_rgb(255_255_255/0.7)]" />
-      </motion.div>
+      </div>
     </div>
   );
 }

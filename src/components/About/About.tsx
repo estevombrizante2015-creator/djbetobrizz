@@ -22,7 +22,8 @@ const signalChain = [
  */
 export function About() {
   return (
-    <section id="sobre" aria-labelledby="sobre-title" className="section-y relative isolate overflow-hidden">
+    // overflow-clip (e não hidden): hidden vira "scroll container" e congela as animações de scroll em CSS
+    <section id="sobre" aria-labelledby="sobre-title" className="section-y relative isolate overflow-clip">
       <AboutBackdrop word={siteConfig.shortName} />
 
       <div className="container-bb relative grid items-center gap-14 sm:gap-16 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-16 xl:gap-24">

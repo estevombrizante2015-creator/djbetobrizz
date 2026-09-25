@@ -1,16 +1,15 @@
 "use client";
 
-import type { Ref } from "react";
-import { motion, type Variants } from "motion/react";
+import type { CSSProperties, Ref } from "react";
 import { siteConfig } from "@/config/site";
 import { socialLinks } from "@/data/social";
 import { socialEvent, track } from "@/lib/analytics";
 import { cn, safeExternalUrl } from "@/lib/utils";
-import { ease } from "@/lib/animations";
 import { NeonButton } from "@/components/ui/NeonButton";
 import { WhatsAppIcon, socialIcons } from "@/components/ui/Icons";
 import { ExperienceToggle } from "@/components/Effects/ExperienceToggle";
 import type { NavEntry } from "./MixerNav";
+import styles from "./MobileMenu.module.css";
 
 type Props = {
   id: string;
@@ -22,21 +21,6 @@ type Props = {
   onNavigate: () => void;
 };
 
-const list: Variants = {
-  hidden: { transition: { staggerChildren: 0.03, staggerDirection: -1 } },
-  show: { transition: { staggerChildren: 0.055, delayChildren: 0.08 } },
-};
-
-const row: Variants = {
-  hidden: { opacity: 0, x: -18 },
-  show: { opacity: 1, x: 0, transition: { duration: 0.45, ease: ease.out } },
-};
-
-const footerIn: Variants = {
-  hidden: { opacity: 0, y: 16 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: ease.out, delay: 0.38 } },
-};
-
 const socials = socialLinks
   .filter((s) => s.key !== "whatsapp")
   .map((s) => ({ ...s, href: safeExternalUrl(s.href) }))
@@ -45,33 +29,36 @@ const socials = socialLinks
 /**
  * Menu mobile em tela cheia desenhado como um deck de DJ (§51):
  * ● LIVE ● DJ ● VISUAL ● EVENTS … — cada canal com LED, rótulo de deck e nome da seção.
- * Sempre montado (aria-controls válido); fechado fica invisível e `inert`.
+ * Sempre montado (aria-controls válido); fechado fica invisível e `inert`, sem nenhuma animação rodando.
+ * Entrada das linhas em cascata só com transições CSS (transform/opacity) — nada de JS por frame.
  */
 export function MobileMenu({ id, open, items, active, firstLinkRef, onNavigate }: Props) {
   return (
     <div
       id={id}
       inert={!open}
+      data-open={open ? "" : undefined}
       className={cn(
+        styles.menu,
         "fixed inset-0 z-10 overflow-y-auto overscroll-contain bg-void lg:hidden",
         "transition-[opacity,visibility] duration-300 ease-out",
         open ? "visible opacity-100" : "invisible opacity-0 delay-100",
       )}
     >
-      {/* atmosfera: brilho do palco + grid 80s + scanlines */}
+      {/* atmosfera: brilho do palco + grid 80s (só no modo completo) + scanlines */}
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-24 left-1/2 h-72 w-[140%] -translate-x-1/2 bg-[radial-gradient(closest-side,rgb(138_43_226/0.35),transparent)]" />
         <div className="absolute -right-24 bottom-24 size-72 bg-[radial-gradient(closest-side,rgb(255_20_147/0.16),transparent)]" />
-        <div className="absolute inset-x-0 bottom-0 h-56 overflow-hidden opacity-40">
+        {/* Modo completo: grid em perspectiva. Modo leve: horizonte neon estático (sem 3D/máscara). */}
+        <div className="fx-full-only absolute inset-x-0 bottom-0 h-56 overflow-hidden opacity-40">
           <div className="retro-grid absolute inset-x-[-50%] top-0 h-[200%]" />
         </div>
+        <div className="fx-lite-only absolute inset-x-0 bottom-0 h-40 bg-[linear-gradient(to_top,rgb(138_43_226/0.22),transparent_75%),repeating-linear-gradient(to_top,rgb(255_20_147/0.16)_0_1px,transparent_1px_24px)]" />
         <div className="scanlines absolute inset-0" />
       </div>
 
-      <motion.nav
+      <nav
         aria-label="Menu principal"
-        initial={false}
-        animate={open ? "show" : "hidden"}
         className="relative container-bb flex min-h-full flex-col pt-[5.25rem] pb-[max(1.5rem,env(safe-area-inset-bottom))]"
       >
         {/* Face do deck */}
@@ -79,16 +66,22 @@ export function MobileMenu({ id, open, items, active, firstLinkRef, onNavigate }
           <div aria-hidden className="hud flex items-center justify-between text-[0.6rem] text-mute">
             <span>Deck A · Navegação</span>
             <span className="flex items-center gap-1.5 text-red">
-              <span className="size-1.5 animate-rec rounded-full bg-red shadow-neon-red" />
+              {/* pisca só com o menu aberto e no modo completo */}
+              <span
+                className={cn(
+                  "size-1.5 rounded-full bg-red shadow-neon-red",
+                  open && "[html[data-perf=full]_&]:animate-rec",
+                )}
+              />
               On air
             </span>
           </div>
 
-          <motion.ul variants={list} className="mt-2 divide-y divide-line">
+          <ul className="mt-2 divide-y divide-line">
             {items.map((item, i) => {
               const isActive = item.id === active;
               return (
-                <motion.li key={item.id} variants={row}>
+                <li key={item.id} className={styles.row} style={{ "--i": i } as CSSProperties}>
                   <a
                     ref={i === 0 ? firstLinkRef : undefined}
                     href={`#${item.id}`}
@@ -125,16 +118,16 @@ export function MobileMenu({ id, open, items, active, firstLinkRef, onNavigate }
                       CH{String(i + 1).padStart(2, "0")}
                     </span>
                   </a>
-                </motion.li>
+                </li>
               );
             })}
-          </motion.ul>
+          </ul>
 
           <DeckControls />
         </div>
 
         {/* Redes + CTA */}
-        <motion.div variants={footerIn} className="mt-auto flex flex-col gap-4 pt-6">
+        <div className={cn(styles.footer, "mt-auto flex flex-col gap-4 pt-6")}>
           {socials.length ? (
             <ul className="flex items-center justify-center gap-3" aria-label="Redes sociais">
               {socials.map((s) => {
@@ -167,13 +160,13 @@ export function MobileMenu({ id, open, items, active, firstLinkRef, onNavigate }
             eventParams={{ source: "mobile_menu" }}
             aria-label="Falar com BetoBrizz no WhatsApp (abre em nova aba)"
           >
-            Falar com BetoBrizz
+            Falar no WhatsApp
           </NeonButton>
           <p className="hud text-center text-[0.65rem] text-mute">
             WhatsApp <span className="text-white tabular-nums">{siteConfig.whatsappDisplay}</span>
           </p>
-        </motion.div>
-      </motion.nav>
+        </div>
+      </nav>
     </div>
   );
 }

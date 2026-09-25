@@ -10,13 +10,19 @@ type Props = {
   /** Só fontes reproduzíveis na página (Instagram abre em nova aba). */
   source: Extract<VideoSource, { kind: "iframe" | "file" }>;
   className?: string;
+  /**
+   * Capa no próprio <video> enquanto o primeiro quadro chega. Desligue quando a capa otimizada
+   * já está por baixo (telão CRT) — evita baixar a imagem original de novo.
+   */
+  poster?: boolean;
 };
 
 /**
- * Player real — montado só depois do clique na capa (facade).
- * Recebe o foco ao aparecer, para quem navega por teclado continuar de onde parou.
+ * Player real — montado só depois do clique na capa (facade): antes do ▶ não existe <video>/<iframe>
+ * na página, então nenhum byte do vídeo é baixado. Recebe o foco ao aparecer, para quem navega
+ * por teclado continuar de onde parou.
  */
-export function VideoEmbed({ item, source, className }: Props) {
+export function VideoEmbed({ item, source, className, poster: withPoster = true }: Props) {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -38,17 +44,18 @@ export function VideoEmbed({ item, source, className }: Props) {
     );
   }
 
-  const poster = resolveVideoPoster(item);
+  const poster = withPoster ? resolveVideoPoster(item) : null;
   return (
     <video
       ref={videoRef}
       src={source.src}
-      poster={poster.kind === "none" ? undefined : poster.src}
+      poster={poster && poster.kind !== "none" ? poster.src : undefined}
       aria-label={item.title}
       controls
       autoPlay
       playsInline
-      className={cn("absolute inset-0 h-full w-full bg-black object-contain", className)}
+      preload="auto"
+      className={cn("absolute inset-0 h-full w-full object-contain", withPoster ? "bg-black" : "bg-transparent", className)}
     />
   );
 }

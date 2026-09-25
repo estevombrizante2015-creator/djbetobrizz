@@ -1,0 +1,58 @@
+/* Progresso da página ligado à rolagem do documento, sem JS (scroll-driven animation).
+   Só transform → roda no compositor. Sem suporte: só a faixa apagada aparece. */
+.clip,
+.head {
+  display: none;
+}
+
+@supports (animation-timeline: scroll()) {
+  .clip,
+  .inner,
+  .head {
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: scroll(root block);
+  }
+  .clip,
+  .head {
+    display: block;
+  }
+  /* A janela desliza da esquerda e o conteúdo desliza de volta: a waveform colorida fica parada
+     e só a parte "tocada" aparece. */
+  .clip {
+    animation-name: track-window;
+  }
+  .inner {
+    animation-name: track-counter;
+  }
+  .head {
+    animation-name: track-head;
+  }
+}
+
+@keyframes track-window {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes track-counter {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes track-head {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}

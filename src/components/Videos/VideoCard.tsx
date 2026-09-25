@@ -45,7 +45,7 @@ export function VideoCard({ item, source, index, featured = false }: Props) {
       <span
         aria-hidden
         className={cn(
-          "absolute top-1/2 left-1/2 grid -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 border-white/85 bg-void/40 text-white backdrop-blur-sm",
+          "absolute top-1/2 left-1/2 grid -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 border-white/85 bg-void/60 text-white [html[data-perf=full]_&]:bg-void/40 [html[data-perf=full]_&]:backdrop-blur-sm",
           "transition-[background-color,border-color,box-shadow,transform] duration-300 ease-out",
           "group-hover:scale-110 group-hover:border-magenta group-hover:bg-magenta group-hover:text-void group-hover:shadow-neon-magenta",
           "group-focus-visible:border-magenta group-focus-visible:bg-magenta group-focus-visible:text-void",

@@ -1,0 +1,84 @@
+/* ==========================================================================
+   SOBRE — parallax em CSS puro (scroll-driven animation: roda no compositor,
+   zero JavaScript por frame). Só no modo completo, em desktop com mouse e sem
+   movimento reduzido. Modo leve, sem suporte ou movimento reduzido: estático.
+
+   Atenção: nenhum ancestral entre a seção e a página pode ter overflow: hidden
+   (vira "scroll container" e congela a timeline) — por isso a seção usa overflow: clip.
+   ========================================================================== */
+
+/* Timelines nomeadas: a palavra de fundo acompanha a seção inteira; o retrato, o próprio monitor. */
+.backdrop {
+  view-timeline-name: --about-backdrop;
+}
+
+.portrait {
+  view-timeline-name: --about-portrait;
+}
+
+@supports (view-timeline-name: --a) {
+  @media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) and (min-width: 64rem) {
+    :global(html[data-perf="full"]) .drift {
+      animation: about-drift linear both;
+      animation-timeline: --about-backdrop;
+    }
+
+    :global(html[data-perf="full"]) .outlineA,
+    :global(html[data-perf="full"]) .outlineB,
+    :global(html[data-perf="full"]) .photo {
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: --about-portrait;
+    }
+
+    :global(html[data-perf="full"]) .outlineA {
+      animation-name: about-outline-a;
+    }
+
+    :global(html[data-perf="full"]) .outlineB {
+      animation-name: about-outline-b;
+    }
+
+    :global(html[data-perf="full"]) .photo {
+      animation-name: about-photo;
+    }
+  }
+}
+
+/* `transform` (e não `translate`): as classes translate-* do Tailwind continuam valendo
+   por cima (deslocamento dos contornos + hover). */
+@keyframes about-drift {
+  from {
+    transform: translateX(6%);
+  }
+  to {
+    transform: translateX(-14%);
+  }
+}
+
+@keyframes about-outline-a {
+  from {
+    transform: translateY(26px);
+  }
+  to {
+    transform: translateY(-26px);
+  }
+}
+
+@keyframes about-outline-b {
+  from {
+    transform: translateY(-16px);
+  }
+  to {
+    transform: translateY(16px);
+  }
+}
+
+@keyframes about-photo {
+  from {
+    transform: translateY(-6%);
+  }
+  to {
+    transform: translateY(6%);
+  }
+}

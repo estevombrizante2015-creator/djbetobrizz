@@ -1,14 +1,13 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 import { useExperience } from "./ExperienceContext";
-import { useHydrated } from "./useHydrated";
 import { cn } from "@/lib/utils";
 import styles from "./Lasers.module.css";
 
 export type LasersProps = {
   className?: string;
-  /** Número de feixes (reduzido automaticamente no mobile). */
+  /** Número de feixes. */
   count?: number;
 };
 
@@ -32,7 +31,7 @@ type Beam = {
   style: CSSProperties;
 };
 
-/** Configuração determinística (sem Math.random → sem divergência SSR/cliente). */
+/** Configuração determinística (sem Math.random). */
 function makeBeams(n: number): Beam[] {
   return Array.from({ length: n }, (_, i) => {
     const o = ORIGINS[i % ORIGINS.length];
@@ -54,24 +53,41 @@ function makeBeams(n: number): Beam[] {
 
 /**
  * Feixes de laser varrendo a partir do topo e da base (magenta, ciano, roxo, vermelho).
- * Blend "screen" + glow suave; só transform/opacity animados. Menos feixes fora do desktop,
- * nenhum com prefers-reduced-motion; mais fortes e rápidos no Experience Mode.
+ * Só no desktop capaz (modo completo): no modo leve, no SSR e com movimento reduzido não renderiza nada.
+ * Só transform/opacity animados, sem filter; congela fora da tela e com a aba oculta.
+ * Mais fortes e rápidos no Experience Mode.
  */
-export function Lasers({ className, count = 6 }: LasersProps) {
+export function Lasers({ className, count = 5 }: LasersProps) {
   const { reducedMotion, isDesktop, experienceMode } = useExperience();
-  // Feixes só depois da hidratação: o SSR não sabe se o usuário pediu menos movimento.
-  const hydrated = useHydrated();
-  if (hydrated && reducedMotion) return null;
+  const enabled = isDesktop && !reducedMotion;
+  const ref = useRef<HTMLDivElement>(null);
 
-  const n = isDesktop ? count : Math.min(3, Math.ceil(count / 2));
-  const beams = hydrated ? makeBeams(Math.max(0, n)) : [];
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !enabled) return;
+    let inView = false;
+    const sync = () => el.toggleAttribute("data-paused", !inView || document.hidden);
+    const io = new IntersectionObserver(([entry]) => {
+      inView = entry.isIntersecting;
+      sync();
+    });
+    io.observe(el);
+    document.addEventListener("visibilitychange", sync);
+    return () => {
+      io.disconnect();
+      document.removeEventListener("visibilitychange", sync);
+    };
+  }, [enabled]);
+
+  if (!enabled) return null;
+  const beams = makeBeams(Math.max(0, count));
 
   return (
     <div
+      ref={ref}
       aria-hidden
       className={cn(styles.root, className)}
       data-mode={experienceMode ? "on" : "off"}
-      data-fx={isDesktop ? "hi" : "lo"}
     >
       {beams.map((b) => (
         <div key={b.key} className={cn(styles.beam, b.edge === "top" ? styles.top : styles.bottom)} style={b.style}>

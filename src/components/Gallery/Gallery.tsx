@@ -2,11 +2,13 @@ import { gallery } from "@/data/gallery";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Reveal } from "@/components/ui/Reveal";
 import { ContactSheet } from "./ContactSheet";
+import { FrameGrid } from "./Frames";
 
 /**
  * GALERIA (§19) — "DIGITAL CONTACT SHEET".
  * Folha de contato de filme: tiras com perfurações, numeração de frame e uma
  * marcação de lápis dermatográfico. Cada frame abre o lightbox.
+ * Os frames são HTML do servidor; a única ilha cliente é o ContactSheet (clique → lightbox).
  */
 export function Gallery() {
   if (!gallery.length) return null;
@@ -29,9 +31,11 @@ export function Gallery() {
           </Reveal>
         </div>
 
-        <Reveal className="mt-12 sm:mt-16">
-          <ContactSheet photos={gallery} />
-        </Reveal>
+        <div className="mt-12 sm:mt-16">
+          <ContactSheet photos={gallery}>
+            <FrameGrid photos={gallery} />
+          </ContactSheet>
+        </div>
       </div>
     </section>
   );

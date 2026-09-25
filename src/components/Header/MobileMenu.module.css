@@ -1,0 +1,38 @@
+/* Entrada em cascata das linhas do deck — só transições CSS de transform/opacity (compositor).
+   Fechar é rápido e sem cascata; nada fica animando com o menu fechado. */
+.row,
+.footer {
+  opacity: 0;
+  translate: -18px 0;
+  transition:
+    opacity 180ms ease-in,
+    translate 180ms ease-in;
+}
+
+.footer {
+  translate: 0 16px;
+}
+
+.menu[data-open] .row,
+.menu[data-open] .footer {
+  opacity: 1;
+  translate: 0 0;
+  transition-duration: 450ms;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.menu[data-open] .row {
+  transition-delay: calc(80ms + var(--i, 0) * 55ms);
+}
+
+.menu[data-open] .footer {
+  transition-duration: 500ms;
+  transition-delay: 380ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row,
+  .footer {
+    translate: none;
+  }
+}

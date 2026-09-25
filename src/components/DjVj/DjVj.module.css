@@ -49,9 +49,15 @@
   }
 }
 
-/* Pulso do nó "=" quando conectado */
+/* Pulso do nó "=" quando conectado (modo completo, palco na tela) */
 .nodeRing {
   animation: node-ring 1.95s ease-out infinite;
+}
+
+/* Modo leve: o mesmo anel como um halo parado (sem animação) */
+.nodeRingStatic {
+  transform: scale(1.3);
+  opacity: 0.35;
 }
 
 @keyframes node-ring {

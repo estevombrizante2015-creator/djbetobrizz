@@ -1,10 +1,16 @@
 /* ==========================================================================
-   DIGITAL CONTACT SHEET — tiras de filme, perfurações, glitch de hover
-   e o flash de troca de foto do lightbox.
+   DIGITAL CONTACT SHEET — tiras de filme, perfurações, glitch de hover,
+   lápis dermatográfico e o flash de troca de foto do lightbox.
+   Modo leve: tudo estático (sem filtro, blend ou animação).
+   Modo completo (html[data-perf="full"]): zoom + glitch no hover, traço que se desenha.
    ========================================================================== */
 
-/* Base do filme (a tira): quase preta, com um leve brilho de acetato nas bordas. */
-.strip {
+/* Tira de filme (o botão do frame): acetato quase preto + perfurações superiores (::before).
+   As perfurações inferiores são o fundo da linha de borda impressa (.edge) — 0 spans extras. */
+.frame {
+  --perf-h: 0.8rem;
+  --perf-n: 6;
+  --perfs: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 14'%3E%3Crect x='6.5' y='3' width='11' height='8' rx='1.8' fill='%23050505' stroke='%23ffffff' stroke-opacity='.13' stroke-width='.8'/%3E%3C/svg%3E");
   background-color: #0e0c14;
   background-image: linear-gradient(
     180deg,
@@ -14,25 +20,75 @@
     rgb(255 255 255 / 0.03)
   );
 }
-
-/* Perfurações: 6 furos por frame (8 no desktop) — sempre alinhadas à largura do frame. */
-.perfs {
+.frame::before {
+  content: "";
   display: block;
-  height: 0.8rem;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 14'%3E%3Crect x='6.5' y='3' width='11' height='8' rx='1.8' fill='%23050505' stroke='%23ffffff' stroke-opacity='.13' stroke-width='.8'/%3E%3C/svg%3E");
-  background-repeat: repeat-x;
-  background-position: center;
-  background-size: calc(100% / 6) 100%;
+  height: var(--perf-h);
+  background: var(--perfs) center / calc(100% / var(--perf-n)) 100% repeat-x;
+}
+.edge {
+  padding-top: calc(var(--perf-h) + 0.125rem);
+  background: var(--perfs) center top / calc(100% / var(--perf-n)) var(--perf-h) repeat-x;
 }
 @media (width >= 64rem) {
-  .perfs {
-    height: 0.95rem;
-    background-size: calc(100% / 8) 100%;
+  .frame {
+    --perf-h: 0.95rem;
+    --perf-n: 8;
   }
 }
 
-/* Faixas RGB do glitch — invisíveis até o hover/foco (um disparo só). */
-.glitch {
+/* Leitura da foto: escurece levemente + vinheta de lente, num gradiente estático
+   (substitui filter: brightness/saturate na imagem e o box-shadow inset). */
+.jolt::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgb(0 0 0 / 0.14) 40%, rgb(0 0 0 / 0.62) 100%);
+}
+
+/* Borda impressa com glitch (classe global .glitch): as cópias RGB só existem no modo completo. */
+:global(html:not([data-perf="full"])) .edgeText::before,
+:global(html:not([data-perf="full"])) .edgeText::after {
+  display: none;
+}
+:global(html[data-perf="full"]) .edgeText::before,
+:global(html[data-perf="full"]) .edgeText::after {
+  mix-blend-mode: normal;
+}
+:global(html[data-perf="full"]) .frame:hover .edgeText::before,
+:global(html[data-perf="full"]) .frame:hover .edgeText::after {
+  mix-blend-mode: screen;
+}
+
+/* ===== Modo completo: hover/foco (transform/opacity; blend só durante o glitch) ===== */
+:global(html[data-perf="full"]) .img {
+  transition: scale 0.7s var(--ease-out-expo);
+}
+:global(html[data-perf="full"]) .frame:is(:hover, :focus-visible) .img {
+  scale: 1.1;
+}
+
+:global(html[data-perf="full"]) .jolt::after {
+  transition: opacity 0.5s var(--ease-out-expo);
+}
+:global(html[data-perf="full"]) .frame:is(:hover, :focus-visible) .jolt::after {
+  opacity: 0.45;
+}
+
+:global(html[data-perf="full"]) .photo {
+  transition: box-shadow 0.3s ease-out;
+}
+:global(html[data-perf="full"]) .frame:hover .photo {
+  box-shadow:
+    0 0 0 1px rgb(0 229 255 / 0.8),
+    0 0 12px rgb(0 229 255 / 0.55),
+    0 0 32px rgb(0 229 255 / 0.25);
+}
+
+/* Faixas RGB do glitch — pseudo-elemento da foto, sem DOM extra; um disparo por hover. */
+:global(html[data-perf="full"]) .photo::after {
+  content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -49,18 +105,18 @@
     rgb(138 43 226 / 0.55) 83% 86%,
     transparent 86%
   );
-  mix-blend-mode: screen;
 }
-
 @media (hover: hover) and (pointer: fine) {
-  .frame:hover .glitch {
+  :global(html[data-perf="full"]) .frame:hover .photo::after {
+    mix-blend-mode: screen;
     animation: sheet-glitch 0.5s steps(1, end) 1;
   }
-  .frame:hover .jolt {
+  :global(html[data-perf="full"]) .frame:hover .jolt {
     animation: sheet-jolt 0.45s steps(1, end) 1;
   }
 }
-.frame:focus-visible .glitch {
+:global(html[data-perf="full"]) .frame:focus-visible .photo::after {
+  mix-blend-mode: screen;
   animation: sheet-glitch 0.5s steps(1, end) 1;
 }
 
@@ -95,17 +151,16 @@
   }
 }
 
+/* Tranco do fotograma: só translate (sem filter). */
 @keyframes sheet-jolt {
   0% {
     translate: -3px 0;
-    filter: saturate(1.9) contrast(1.15) hue-rotate(-24deg);
   }
   25% {
     translate: 3px 1px;
   }
   50% {
     translate: -1px 0;
-    filter: none;
   }
   75% {
     translate: 2px 0;
@@ -115,8 +170,46 @@
   }
 }
 
-/* Lightbox: flash de "troca de canal" a cada foto. */
+/* Lápis dermatográfico: estático (já desenhado) no modo leve; no completo o traço
+   "se desenha" com a rolagem (scroll-driven, sem JS). */
+.pencil {
+  view-timeline-name: --bb-pencil;
+}
+@keyframes pencil-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    :global(html[data-perf="full"]) .pencilStroke {
+      stroke-dasharray: 1 1;
+      animation: pencil-draw linear both;
+      animation-timeline: --bb-pencil;
+      animation-range: entry 70% cover 55%;
+    }
+  }
+}
+
+/* Botões do lightbox: sólidos no modo leve; vidro fosco só no completo. */
+.ctrl {
+  background-color: rgb(5 5 5 / 0.82);
+}
+:global(html[data-perf="full"]) .ctrl {
+  background-color: rgb(5 5 5 / 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Lightbox: flash de "troca de canal" a cada foto (só no modo completo). */
 .flash {
+  display: none;
+}
+:global(html[data-perf="full"]) .flash {
+  display: block;
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -136,8 +229,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .glitch,
+  .photo::after,
   .flash {
-    display: none;
+    display: none !important;
+  }
+  .jolt {
+    animation: none !important;
   }
 }

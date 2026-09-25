@@ -25,7 +25,10 @@ const accents: Record<
     bar: string;
     /** Filete de cor no topo do canal (código de cor da mesa). */
     edge: string;
-    hover: string;
+    /** Borda no hover. */
+    hoverBorder: string;
+    /** Brilho do hover: sombra FIXA numa camada que só muda de opacidade (sem animar box-shadow). */
+    glow: string;
     stroke: string;
     palette: "neon" | "red" | "cyan";
   }
@@ -35,7 +38,8 @@ const accents: Record<
     led: "bg-magenta shadow-neon-magenta",
     bar: "bg-magenta shadow-neon-magenta",
     edge: "via-magenta",
-    hover: "hover:border-magenta/55 hover:shadow-[0_24px_70px_-28px_rgb(255_20_147/0.75)]",
+    hoverBorder: "group-hover:border-magenta/55",
+    glow: "shadow-[0_24px_70px_-28px_rgb(255_20_147/0.75)]",
     stroke: "group-hover:[-webkit-text-stroke-color:var(--color-magenta)]",
     palette: "red",
   },
@@ -44,7 +48,8 @@ const accents: Record<
     led: "bg-cyan shadow-neon-cyan",
     bar: "bg-cyan shadow-neon-cyan",
     edge: "via-cyan",
-    hover: "hover:border-cyan/55 hover:shadow-[0_24px_70px_-28px_rgb(0_229_255/0.7)]",
+    hoverBorder: "group-hover:border-cyan/55",
+    glow: "shadow-[0_24px_70px_-28px_rgb(0_229_255/0.7)]",
     stroke: "group-hover:[-webkit-text-stroke-color:var(--color-cyan)]",
     palette: "cyan",
   },
@@ -53,7 +58,8 @@ const accents: Record<
     led: "bg-purple shadow-neon-purple",
     bar: "bg-purple shadow-neon-purple",
     edge: "via-purple",
-    hover: "hover:border-purple/60 hover:shadow-[0_24px_70px_-28px_rgb(138_43_226/0.8)]",
+    hoverBorder: "group-hover:border-purple/60",
+    glow: "shadow-[0_24px_70px_-28px_rgb(138_43_226/0.8)]",
     stroke: "group-hover:[-webkit-text-stroke-color:var(--color-purple)]",
     palette: "neon",
   },
@@ -62,7 +68,8 @@ const accents: Record<
     led: "bg-blue shadow-neon-cyan",
     bar: "bg-blue shadow-neon-cyan",
     edge: "via-blue",
-    hover: "hover:border-blue/60 hover:shadow-[0_24px_70px_-28px_rgb(0_102_255/0.8)]",
+    hoverBorder: "group-hover:border-blue/60",
+    glow: "shadow-[0_24px_70px_-28px_rgb(0_102_255/0.8)]",
     stroke: "group-hover:[-webkit-text-stroke-color:var(--color-blue)]",
     palette: "cyan",
   },
@@ -71,7 +78,8 @@ const accents: Record<
     led: "bg-red shadow-neon-red",
     bar: "bg-red shadow-neon-red",
     edge: "via-red",
-    hover: "hover:border-red/55 hover:shadow-[0_24px_70px_-28px_rgb(255_36_20/0.75)]",
+    hoverBorder: "group-hover:border-red/55",
+    glow: "shadow-[0_24px_70px_-28px_rgb(255_36_20/0.75)]",
     stroke: "group-hover:[-webkit-text-stroke-color:var(--color-red)]",
     palette: "red",
   },

@@ -86,7 +86,7 @@ export function CTA() {
               {/* halo: brilho estático (box-shadow) no modo leve; blur pulsando só no modo completo */}
               <span
                 aria-hidden
-                className="pointer-events-none absolute -inset-3 rounded-full shadow-[0_0_34px_6px_rgb(255_20_147/0.28)] [html[data-perf=full]_&]:bg-magenta/25 [html[data-perf=full]_&]:shadow-none [html[data-perf=full]_&]:blur-xl [html[data-perf=full]_&]:motion-safe:animate-pulse-glow"
+                className="pointer-events-none absolute inset-0 rounded-full bg-magenta/12 shadow-[0_0_30px_6px_rgb(255_20_147/0.34)] [html[data-perf=full]_&]:-inset-3 [html[data-perf=full]_&]:bg-magenta/25 [html[data-perf=full]_&]:shadow-none [html[data-perf=full]_&]:blur-xl [html[data-perf=full]_&]:motion-safe:animate-pulse-glow"
               />
               <span aria-hidden className="pointer-events-none absolute inset-0 rounded-full bg-magenta/15" />
               <NeonButton

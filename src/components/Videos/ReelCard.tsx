@@ -34,10 +34,10 @@ export function ReelCard({ poster = DEFAULT_POSTER, className }: Props) {
         aria-label={`Assistir aos vídeos do ${siteConfig.name} no Instagram (abre em nova aba)`}
         className="group relative block rotate-[3deg] rounded-[2.4rem] outline-offset-4 lg:rotate-[2deg]"
       >
-        {/* Halo neon atrás do aparelho */}
+        {/* Halo neon atrás do aparelho — só gradientes (sem blur: o closest-side já esfuma a borda) */}
         <span
           aria-hidden
-          className="absolute -inset-8 -z-10 rounded-[3rem] opacity-70 blur-2xl transition-opacity duration-500 group-hover:opacity-100"
+          className="absolute -inset-10 -z-10 rounded-[3rem] opacity-70 transition-opacity duration-500 group-hover:opacity-100"
           style={{
             background:
               "radial-gradient(closest-side at 40% 35%, rgb(255 20 147 / 0.45), transparent), radial-gradient(closest-side at 65% 75%, rgb(0 102 255 / 0.35), transparent)",
@@ -74,7 +74,7 @@ export function ReelCard({ poster = DEFAULT_POSTER, className }: Props) {
 
             {/* Play */}
             <span aria-hidden className="absolute inset-x-0 top-[74%] z-20 flex -translate-y-1/2 flex-col items-center gap-3">
-              <span className="relative grid size-16 place-items-center rounded-full border-2 border-white/90 bg-void/45 text-white backdrop-blur-sm transition-[background-color,border-color,box-shadow,transform] duration-300 ease-out group-hover:scale-110 group-hover:border-magenta group-hover:bg-magenta group-hover:text-void group-hover:shadow-neon-magenta group-focus-visible:border-magenta group-focus-visible:bg-magenta group-focus-visible:text-void sm:size-[4.5rem]">
+              <span className="relative grid size-16 place-items-center rounded-full border-2 border-white/90 bg-void/65 text-white transition-[background-color,border-color,box-shadow,transform] [html[data-perf=full]_&]:bg-void/45 [html[data-perf=full]_&]:backdrop-blur-sm duration-300 ease-out group-hover:scale-110 group-hover:border-magenta group-hover:bg-magenta group-hover:text-void group-hover:shadow-neon-magenta group-focus-visible:border-magenta group-focus-visible:bg-magenta group-focus-visible:text-void sm:size-[4.5rem]">
                 <span className="absolute -inset-2 animate-pulse-glow rounded-full border border-magenta/60" />
                 <PlayIcon size={28} className="translate-x-[2px]" />
               </span>

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { cn } from "@/lib/utils";
 
 export type NavEntry = { id: string; label: string; deck: string };
@@ -54,14 +54,14 @@ export function MixerNav({ items, active }: Props) {
                     {item.label}
                   </span>
                   {isActive ? (
-                    <motion.span
+                    <m.span
                       layoutId="mixer-fader"
                       aria-hidden
                       className="absolute inset-x-0 bottom-[2px] mx-auto h-[7px] w-5 rounded-[2px] border border-white/70 bg-gradient-to-b from-white to-mute shadow-[0_0_10px_rgb(0_229_255/0.6)]"
                       transition={{ type: "spring", stiffness: 420, damping: 34 }}
                     >
                       <span className="absolute inset-x-0 top-1/2 mx-auto h-px w-3 -translate-y-1/2 bg-void/70" />
-                    </motion.span>
+                    </m.span>
                   ) : null}
                 </a>
               </li>

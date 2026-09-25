@@ -7,14 +7,15 @@ import { DjVjStage } from "./DjVjStage";
 const taglineColors = ["text-red", "text-cyan", "text-white"];
 
 /**
- * 02 — DJ + VJ: palco dividido em duas metades que se conectam no scroll.
- * Âncora "experiencia" do menu.
+ * 02 — DJ + VJ: palco dividido em duas metades que se conectam no scroll (desktop, modo completo)
+ * ou já conectadas (modo leve). Âncora "experiencia" do menu.
  */
 export function DjVj() {
   const tagline = siteConfig.tagline.split("•").map((part) => part.trim()).filter(Boolean);
 
   return (
-    <section id="experiencia" aria-labelledby="djvj-title" className="section-y relative isolate overflow-hidden">
+    // overflow-clip (e não hidden): hidden vira "scroll container" e congela as entradas <Reveal> em CSS
+    <section id="experiencia" aria-labelledby="djvj-title" className="section-y relative isolate overflow-clip">
       {/* Luz ambiente: magenta do lado DJ, ciano do lado VJ */}
       <div
         aria-hidden

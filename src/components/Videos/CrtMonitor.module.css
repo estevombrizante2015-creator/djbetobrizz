@@ -1,0 +1,92 @@
+/* Telão CRT — "ligar" ao entrar na tela e ruído na troca de canal.
+   Só transform/opacity (compositor) e só no modo completo. No modo leve, no SSR e com movimento
+   reduzido a tela já nasce ligada: nada começa invisível no HTML do servidor. */
+
+.screen {
+  position: absolute;
+  inset: 0;
+}
+
+/* data-power: "idle" (padrão, tela ligada) · "off" (fora da tela, aguardando) · "on" (liga uma vez) */
+:global(html[data-perf="full"]) .screen[data-power="off"] {
+  transform: scale(0.35, 0.012);
+}
+:global(html[data-perf="full"]) .screen[data-power="on"] {
+  animation: crt-on 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Clarão branco da ligação */
+.flash {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: none;
+  pointer-events: none;
+  background: #fff;
+}
+:global(html[data-perf="full"]) .screen[data-power="off"] .flash {
+  display: block;
+}
+:global(html[data-perf="full"]) .screen[data-power="on"] .flash {
+  display: block;
+  animation: crt-flash 0.7s ease-out 0.3s both;
+}
+
+/* Ruído na troca de canal (só no modo completo) */
+.noise {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  display: none;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    repeating-linear-gradient(to bottom, rgb(255 255 255 / 0.14) 0 2px, transparent 2px 5px);
+}
+:global(html[data-perf="full"]) .noise {
+  display: block;
+  animation: crt-noise 0.38s ease-out both;
+}
+
+@keyframes crt-on {
+  0% {
+    transform: scale(0.35, 0.012);
+  }
+  35% {
+    transform: scale(1, 0.012);
+  }
+  100% {
+    transform: scale(1, 1);
+  }
+}
+
+@keyframes crt-flash {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes crt-noise {
+  from {
+    opacity: 0.9;
+    transform: translateX(-2%);
+  }
+  to {
+    opacity: 0;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screen {
+    animation: none !important;
+    transform: none !important;
+  }
+  .flash,
+  .noise {
+    display: none !important;
+  }
+}

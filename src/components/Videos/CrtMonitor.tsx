@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "motion/react";
 import type { VideoItem } from "@/data/types";
 import { gallery } from "@/data/gallery";
 import { useExperience } from "@/components/Effects/ExperienceContext";
@@ -10,6 +9,7 @@ import { InstagramIcon, KnobIcon, PlayIcon } from "@/components/ui/Icons";
 import { track } from "@/lib/analytics";
 import { cn, getImageMeta } from "@/lib/utils";
 import { PosterImage } from "./PosterImage";
+import styles from "./CrtMonitor.module.css";
 import { VideoEmbed } from "./VideoEmbed";
 import { platformLabel, resolveVideoPoster, type VideoSource } from "./video-source";
 
@@ -25,7 +25,7 @@ const PHOTOS: PhotoChannel[] = [
   { src: "/images/events/betobrizz-telao-vermelho.webp", label: "DJ + VJ" },
   { src: "/images/events/betobrizz-palco-telas-retro.webp", label: "Telões" },
   { src: "/images/events/betobrizz-mixagem-close.webp", label: "Mixagem" },
-  { src: "/images/events/betobrizz-set-pioneer.webp", label: "Cabine" },
+  { src: "/images/events/betobrizz-set-pioneer.webp", label: "Ao vivo" },
   { src: "/images/art/betobrizz-arena.webp", label: "Sound & Visual" },
 ].map((c) => ({
   kind: "photo",
@@ -58,9 +58,9 @@ function blur(src: string) {
 const pad = (n: number) => String(n + 1).padStart(2, "0");
 const channelTitle = (c: Channel) => (c.kind === "video" ? c.video.item.title : c.label);
 
-/** Ruído de "troca de canal" (SVG inline, sem requisição). */
-const NOISE =
-  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
+/** Filtro de cor das fotos: só no modo completo (no leve a foto vai direto, sem filtro). */
+const PHOTO_TONE =
+  "object-cover [html[data-perf=full]_&]:brightness-90 [html[data-perf=full]_&]:contrast-110 [html[data-perf=full]_&]:saturate-[1.15]";
 
 type Props = {
   /** Vídeos de `data/videos` que tocam no próprio telão (canais 01, 02…). */
@@ -69,20 +69,26 @@ type Props = {
 };
 
 /**
- * Telão/TV CRT com seletor de canais (referência a mesa de VJ). Liga como um CRT ao entrar na tela.
+ * Telão/TV CRT com seletor de canais (referência a mesa de VJ).
  * Com vídeos: os primeiros canais são os vídeos (capa + ▶; o player só carrega no clique) e o telão
- * fica parado neles. Sem vídeos: fotos reais trocando sozinhas enquanto visível (pausa sob o mouse;
- * para ao interagir/focar, fora da tela, em aba oculta ou com movimento reduzido).
+ * fica parado neles. Sem vídeos: fotos reais trocando sozinhas enquanto visível — só no modo completo
+ * (pausa sob o mouse; para ao interagir/focar, fora da tela, em aba oculta ou com movimento reduzido).
+ * Modo completo: liga como um CRT ao entrar na tela e faz ruído na troca de canal (CSS, compositor).
+ * Modo leve: tela já ligada, sem filtros nem blur; só a foto/capa do canal atual é baixada.
  */
 const NO_VIDEOS: CrtVideo[] = [];
 
 export function CrtMonitor({ videos = NO_VIDEOS, className }: Props) {
-  const { reducedMotion } = useExperience();
+  const { reducedMotion, isDesktop } = useExperience();
+  const fx = isDesktop && !reducedMotion;
   const channels = useMemo(() => buildChannels(videos), [videos]);
   const hasVideo = channels.some((c) => c.kind === "video");
   const rootRef = useRef<HTMLElement>(null);
+  const screenRef = useRef<HTMLDivElement>(null);
   const [channel, setChannel] = useState(0);
-  const [loaded, setLoaded] = useState<number[]>([0, 1]);
+  /** Canais cujas imagens já podem baixar: o atual e (depois de chegar perto dos controles) o próximo. */
+  const [loaded, setLoaded] = useState<number[]>([0]);
+  const [power, setPower] = useState<"idle" | "off" | "on">("idle");
   const [switchKey, setSwitchKey] = useState(0);
   const [manual, setManual] = useState(false);
   const [hold, setHold] = useState(false);
@@ -101,7 +107,38 @@ export function CrtMonitor({ videos = NO_VIDEOS, className }: Props) {
     [count],
   );
 
-  // Troca automática enquanto o telão está visível (só no modo fotos).
+  /** Pré-carrega o próximo canal quando o visitante chega perto dos controles (mouse/toque/foco). */
+  const warm = useCallback(() => {
+    const next = 1 % count;
+    setLoaded((prev) => (prev.includes(next) ? prev : [...prev, next]));
+  }, [count]);
+
+  // "Ligar" o CRT (modo completo): se o telão ainda não está visível, espera apagado e liga uma vez.
+  useEffect(() => {
+    const el = screenRef.current;
+    if (!el || !fx) return;
+    let first = true;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        const visible = entry.intersectionRatio >= 0.45;
+        if (first) {
+          first = false;
+          if (visible) io.disconnect();
+          else setPower("off");
+          return;
+        }
+        if (visible) {
+          setPower("on");
+          io.disconnect();
+        }
+      },
+      { threshold: [0, 0.45] },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [fx]);
+
+  // Troca automática enquanto o telão está visível (só no modo fotos e no modo completo).
   const channelRef = useRef(0);
   useEffect(() => {
     channelRef.current = channel;
@@ -109,12 +146,13 @@ export function CrtMonitor({ videos = NO_VIDEOS, className }: Props) {
 
   useEffect(() => {
     const el = rootRef.current;
-    if (!el || hasVideo || manual || hold || reducedMotion) return;
+    if (!el || !fx || hasVideo || manual || hold) return;
     let timer = 0;
     const io = new IntersectionObserver(
       ([entry]) => {
         window.clearInterval(timer);
         if (entry.isIntersecting) {
+          warm();
           timer = window.setInterval(() => {
             if (!document.hidden) tune(channelRef.current + 1, false);
           }, AUTO_MS);
@@ -127,7 +165,7 @@ export function CrtMonitor({ videos = NO_VIDEOS, className }: Props) {
       io.disconnect();
       window.clearInterval(timer);
     };
-  }, [hasVideo, manual, hold, reducedMotion, tune]);
+  }, [fx, hasVideo, manual, hold, tune, warm]);
 
   const current = channels[channel] ?? channels[0];
   const liveVideo = current.kind === "video" && playing ? current.video : null;
@@ -147,9 +185,16 @@ export function CrtMonitor({ videos = NO_VIDEOS, className }: Props) {
       ref={rootRef}
       className={cn("relative", className)}
       // Pausa a troca automática sob o mouse; ao receber foco (teclado), para de vez.
-      onMouseEnter={() => setHold(true)}
+      onMouseEnter={() => {
+        setHold(true);
+        warm();
+      }}
       onMouseLeave={() => setHold(false)}
-      onFocus={() => setManual(true)}
+      onTouchStart={warm}
+      onFocus={() => {
+        setManual(true);
+        warm();
+      }}
     >
       {/* Carcaça da TV */}
       <div
@@ -162,12 +207,14 @@ export function CrtMonitor({ videos = NO_VIDEOS, className }: Props) {
       >
         {/* Tela */}
         <div className="relative aspect-video overflow-hidden rounded-[1rem] bg-black sm:rounded-[1.5rem] lg:rounded-[1.75rem]">
-          <motion.div
-            className="absolute inset-0"
-            initial={{ scaleX: 0.35, scaleY: 0.012 }}
-            whileInView={{ scaleX: [0.35, 1, 1], scaleY: [0.012, 0.012, 1] }}
-            viewport={{ once: true, amount: 0.45 }}
-            transition={{ duration: 0.85, times: [0, 0.35, 1], ease: [0.16, 1, 0.3, 1] }}
+          <div
+            ref={screenRef}
+            className={styles.screen}
+            data-power={power}
+            // Terminado o clarão, volta ao estado neutro (sem animação/transform residual na tela).
+            onAnimationEnd={(e) => {
+              if (e.animationName.includes("crt-flash")) setPower("idle");
+            }}
           >
             {channels.map((c, i) => {
               if (!loaded.includes(i)) return null;
@@ -183,11 +230,15 @@ export function CrtMonitor({ videos = NO_VIDEOS, className }: Props) {
                   sizes={SCREEN_SIZES}
                   quality={75}
                   {...blur(c.src)}
-                  className={cn("object-cover brightness-90 contrast-110 saturate-[1.15]", fade)}
+                  className={cn(PHOTO_TONE, fade)}
                 />
               ) : (
                 <span key={c.key} aria-hidden className={cn("absolute inset-0", fade)}>
-                  <PosterImage poster={resolveVideoPoster(c.video.item)} sizes={SCREEN_SIZES} className="saturate-[1.1]" />
+                  <PosterImage
+                    poster={resolveVideoPoster(c.video.item)}
+                    sizes={SCREEN_SIZES}
+                    className="[html[data-perf=full]_&]:saturate-[1.1]"
+                  />
                 </span>
               );
             })}
@@ -195,35 +246,18 @@ export function CrtMonitor({ videos = NO_VIDEOS, className }: Props) {
             {/* Vídeo: capa com ▶ (facade) ou o player real depois do clique */}
             {current.kind === "video" ? (
               liveVideo && liveVideo.source.kind !== "link" ? (
-                <VideoEmbed key={current.key} item={liveVideo.item} source={liveVideo.source} className="z-30" />
+                <VideoEmbed key={current.key} item={liveVideo.item} source={liveVideo.source} poster={false} className="z-30" />
               ) : (
                 <VideoFacade key={current.key} video={current.video} onPlay={() => onPlay(current.video)} />
               )
             ) : null}
 
-            {/* Brilho de "ligar" o CRT */}
-            <motion.span
-              aria-hidden
-              className="pointer-events-none absolute inset-0 z-40 bg-white motion-reduce:hidden"
-              initial={{ opacity: 1 }}
-              whileInView={{ opacity: 0 }}
-              viewport={{ once: true, amount: 0.45 }}
-              transition={{ duration: 0.7, delay: 0.3 }}
-            />
-          </motion.div>
+            {/* Clarão de "ligar" o CRT (só aparece no modo completo, via CSS) */}
+            <span aria-hidden className={styles.flash} />
+          </div>
 
-          {/* Ruído na troca de canal */}
-          {switchKey > 0 ? (
-            <motion.span
-              key={switchKey}
-              aria-hidden
-              className="pointer-events-none absolute inset-0 z-10 motion-reduce:hidden"
-              style={{ backgroundImage: `${NOISE}, repeating-linear-gradient(to bottom, rgb(255 255 255 / 0.14) 0 2px, transparent 2px 5px)` }}
-              initial={{ opacity: 0.9, x: "-2%" }}
-              animate={{ opacity: 0, x: "0%" }}
-              transition={{ duration: 0.38, ease: "easeOut" }}
-            />
-          ) : null}
+          {/* Ruído na troca de canal (remonta a cada troca → a animação CSS roda de novo) */}
+          {switchKey > 0 && fx ? <span key={switchKey} aria-hidden className={styles.noise} /> : null}
 
           {/* Curvatura, vinheta, reflexo, scanlines e OSD — saem da frente enquanto o vídeo toca */}
           {liveVideo ? null : (
@@ -331,7 +365,8 @@ function VideoFacade({ video, onPlay }: { video: CrtVideo; onPlay: () => void })
     <span
       aria-hidden
       className={cn(
-        "relative grid size-16 place-items-center rounded-full border-2 border-white/90 bg-void/45 text-white backdrop-blur-sm sm:size-20 lg:size-24",
+        "relative grid size-16 place-items-center rounded-full border-2 border-white/90 bg-void/65 text-white sm:size-20 lg:size-24",
+        "[html[data-perf=full]_&]:bg-void/45 [html[data-perf=full]_&]:backdrop-blur-sm",
         "transition-[background-color,border-color,box-shadow,transform] duration-300 ease-out",
         "group-hover:scale-110 group-hover:border-magenta group-hover:bg-magenta group-hover:text-void group-hover:shadow-neon-magenta",
         "group-focus-visible:border-magenta group-focus-visible:bg-magenta group-focus-visible:text-void",
