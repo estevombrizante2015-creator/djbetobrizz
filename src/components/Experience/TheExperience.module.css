@@ -7,11 +7,21 @@
    Com prefers-reduced-motion o globals.css encerra as animações (volta ao frame base).
    ========================================================================== */
 
-/* Pausa todas as animações CSS quando a área está fora da tela (PauseOffscreen). */
-.pausable[data-paused="true"] *,
+/* Pausa as animações CSS decorativas quando a área está fora da tela (PauseOffscreen).
+   NUNCA as entradas .reveal: são ligadas ao scroll (custo zero fora da tela) e, pausadas,
+   ficariam presas em opacity 0 — o HTML nasce com data-paused="true", então antes da
+   hidratação (ou se o JS falhar) a seção inteira ficaria em branco. */
+.pausable[data-paused="true"] :not(:global(.reveal)),
 .pausable[data-paused="true"] *::before,
 .pausable[data-paused="true"] *::after {
   animation-play-state: paused !important;
+}
+
+/* Cópias do glitch (mix-blend-mode: screen) só existem no modo completo:
+   no celular um toque no tile dispararia o glitch com blend. */
+:global(html:not([data-perf="full"])) .glitchFull::before,
+:global(html:not([data-perf="full"])) .glitchFull::after {
+  display: none;
 }
 
 /* ---------- Piso retrô (grid em perspectiva) ---------- */

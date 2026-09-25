@@ -269,7 +269,7 @@ function PillarTile({ index, title, text, accent, kind }: PillarProps) {
         <div className="relative mt-7 flex flex-1 flex-col">
           <h3 className="relative font-display text-[clamp(1.85rem,3.1vw,2.75rem)] leading-none font-black tracking-tight uppercase">
             <span className="sr-only">{title}</span>
-            <span aria-hidden className="glitch" data-text={title}>
+            <span aria-hidden className={cn("glitch", styles.glitchFull)} data-text={title}>
               {title}
             </span>
           </h3>

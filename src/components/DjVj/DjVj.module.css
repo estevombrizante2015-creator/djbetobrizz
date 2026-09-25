@@ -49,6 +49,13 @@
   }
 }
 
+/* Cópias do glitch (mix-blend-mode: screen) só no modo completo: no celular um toque no deck
+   (hover "grudado") dispararia o glitch com blend na letra gigante. */
+:global(html:not([data-perf="full"])) .glitchFull::before,
+:global(html:not([data-perf="full"])) .glitchFull::after {
+  display: none;
+}
+
 /* Pulso do nó "=" quando conectado (modo completo, palco na tela) */
 .nodeRing {
   animation: node-ring 1.95s ease-out infinite;

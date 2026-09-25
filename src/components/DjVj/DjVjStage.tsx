@@ -350,7 +350,7 @@ function Deck({ side, linked, jolt = false, onJoltEnd }: DeckProps) {
           >
             {/* O texto do glitch (data-text) duplicaria o nome do título: o leitor de tela lê só o sr-only. */}
             <span className="sr-only">{d.title}</span>
-            <span aria-hidden className={cn("glitch", !isDj && jolt && "is-glitching")} data-text={d.title}>
+            <span aria-hidden className={cn("glitch", styles.glitchFull, !isDj && jolt && "is-glitching")} data-text={d.title}>
               {d.title}
             </span>
           </h3>
