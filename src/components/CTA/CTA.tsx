@@ -40,12 +40,13 @@ export function CTA() {
     <section id="contato" aria-labelledby="contato-title" className="relative isolate overflow-hidden bg-void">
       {/* ---------- Palco: arte da arena desfocada, só luz e cor ---------- */}
       <div aria-hidden className="absolute inset-0 -z-10">
-        {/* Arte só como luz e cor: imagem pequena ampliada (já fica suave); o blur real só no modo completo */}
+        {/* Arte só como luz e cor: imagem pequena ampliada (já fica suave, a 25–40% de opacidade);
+            o blur real só no modo completo. Meia resolução no desktop: menos bytes em PCs simples. */}
         <Image
           src={BG}
           alt=""
           fill
-          sizes="(min-width: 1024px) 75vw, 60vw"
+          sizes="(min-width: 1024px) 50vw, 60vw"
           quality={60}
           className="object-cover object-[62%_50%] opacity-25 lg:object-[40%_50%] [html[data-perf=full]_&]:scale-110 [html[data-perf=full]_&]:opacity-40 [html[data-perf=full]_&]:[filter:saturate(1.15)_brightness(0.75)_blur(4px)]"
         />

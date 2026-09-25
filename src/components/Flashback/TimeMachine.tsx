@@ -34,17 +34,20 @@ const hasTilde = (s: string) => /[ãõñÃÕÑ]/.test(s);
  * - Modo completo + desktop (sem reduced motion): trilho alto com palco "sticky";
  *   o progresso do scroll escolhe a década (hooks de scroll isolados em <ScrollDriver>,
  *   setState só quando a década muda). Troca com glitch, chuvisco e cross-fade.
- * - Modo leve (celular, tablet, PC simples) / reduced motion: palco compacto com abas
- *   (tablist) trocadas só pelo usuário — sem loops, sem scroll JS, cenários estáticos
- *   e troca por um simples fade de opacidade.
+ * - Níveis "balanced" (celulares, tablets, PCs comuns) e "lite" / reduced motion: palco compacto
+ *   com abas (tablist) trocadas só pelo usuário — sem loops, sem scroll JS, sem timers,
+ *   cenários estáticos. Troca: "balanced" ganha um glitch único só em CSS (transform/opacidade);
+ *   "lite" e reduced motion, um simples fade de opacidade.
  * O layout de cada modo é decidido no CSS por html[data-perf] + media query (sem salto na hidratação).
  */
 export function TimeMachine({ decades }: { decades: Decade[] }) {
   const n = decades.length;
-  const { lite, isDesktop, reducedMotion } = useExperience();
+  const { tier, isDesktop, reducedMotion } = useExperience();
   const scrollMode = isDesktop && !reducedMotion;
-  /** Efeitos de troca ricos (glitch, chuvisco, cross-fade, timecode vivo). */
-  const fx = !lite && !reducedMotion;
+  /** Só no nível "full": cross-fades (motion), chuvisco, timecode vivo, REC piscando, cenários animados. */
+  const fx = tier === "full" && !reducedMotion;
+  /** Glitch de troca de uma vez só (CSS, sem trabalho contínuo) — níveis "full" e "balanced". */
+  const glitch = tier !== "lite" && !reducedMotion;
 
   const trackRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -120,7 +123,7 @@ export function TimeMachine({ decades }: { decades: Decade[] }) {
             </div>
           )}
           <div className={styles.stageShade} />
-          {fx && swapped ? <span key={`burst-${active}`} className={styles.burst} /> : null}
+          {glitch && swapped ? <span key={`burst-${active}`} className={styles.burst} /> : null}
         </div>
 
         <div className={cn("container-bb", styles.stageGrid)}>
@@ -149,17 +152,17 @@ export function TimeMachine({ decades }: { decades: Decade[] }) {
                 <span
                   key={`glow-${active}`}
                   aria-hidden
-                  className={cn(styles.year, styles.yearGlow, styles[`glow_${scene}`], yearFont, fx && swapped && styles.yearEnter)}
+                  className={cn(styles.year, styles.yearGlow, styles[`glow_${scene}`], yearFont, glitch && swapped && styles.yearEnter)}
                 >
                   {decade.year}
                 </span>
                 <h3
                   key={`year-${active}`}
-                  className={cn(styles.year, styles[`year_${scene}`], yearFont, fx && swapped && styles.yearEnter)}
+                  className={cn(styles.year, styles[`year_${scene}`], yearFont, glitch && swapped && styles.yearEnter)}
                 >
                   {decade.year}
                 </h3>
-                {fx && swapped ? (
+                {glitch && swapped ? (
                   <>
                     <span key={`ga-${active}`} aria-hidden className={cn(styles.year, styles.ghost, styles.ghostA, yearFont)}>
                       {decade.year}
@@ -251,7 +254,7 @@ export function TimeMachine({ decades }: { decades: Decade[] }) {
 
           {/* TV + mídia da década */}
           <div className={styles.tvCol}>
-            <CrtTv scene={scene} index={active} total={n} fx={fx} animateSwap={animateSwap}>
+            <CrtTv scene={scene} index={active} total={n} fx={fx} glitch={glitch} animateSwap={animateSwap}>
               {fx ? (
                 <AnimatePresence initial={false}>
                   <m.div
@@ -269,7 +272,11 @@ export function TimeMachine({ decades }: { decades: Decade[] }) {
                   </m.div>
                 </AnimatePresence>
               ) : (
-                <div key={scene} data-prop={scene} className={cn(styles.prop, animateSwap && styles.fadeIn)}>
+                <div
+                  key={scene}
+                  data-prop={scene}
+                  className={cn(styles.prop, animateSwap && (glitch ? styles.propIn : styles.fadeIn))}
+                >
                   <div className={styles.propTilt}>
                     <SceneProp scene={scene} year={decade.year} />
                   </div>

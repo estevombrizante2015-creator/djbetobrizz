@@ -244,13 +244,25 @@
   transform: scaleX(1);
 }
 
-/* Troca simples (modo leve): só opacidade, uma vez */
+/* Troca simples (nível lite / movimento reduzido): só opacidade, uma vez */
 .fadeIn {
   animation: fade-in 0.35s ease-out both;
 }
 @keyframes fade-in {
   from {
     opacity: 0;
+  }
+}
+
+/* Mídia entrando na troca (nível balanced): uma vez, só transform/opacidade (compositor) */
+.propIn {
+  animation: prop-in 0.6s var(--expo) both;
+}
+@keyframes prop-in {
+  from {
+    opacity: 0;
+    translate: 0 40px;
+    rotate: -11deg;
   }
 }
 

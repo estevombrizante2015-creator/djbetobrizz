@@ -190,7 +190,6 @@ export function CrtMonitor({ videos = NO_VIDEOS, className }: Props) {
         warm();
       }}
       onMouseLeave={() => setHold(false)}
-      onTouchStart={warm}
       onFocus={() => {
         setManual(true);
         warm();
@@ -293,8 +292,10 @@ export function CrtMonitor({ videos = NO_VIDEOS, className }: Props) {
           )}
         </div>
 
-        {/* Painel frontal: marca + canais + knob */}
-        <div className="mt-2.5 flex items-center justify-between gap-3 px-1 sm:mt-4 sm:px-2">
+        {/* Painel frontal: marca + canais + knob.
+            No toque, só pré-carrega o próximo canal quando o dedo chega aos controles — não a cada
+            rolagem que começa sobre o telão (economiza dados em celulares simples). */}
+        <div className="mt-2.5 flex items-center justify-between gap-3 px-1 sm:mt-4 sm:px-2" onTouchStart={warm}>
           <div className="flex min-w-0 items-center gap-2.5" aria-hidden>
             <span className="size-2 shrink-0 rounded-full bg-red shadow-neon-red" />
             <span className="hidden truncate font-display text-[0.65rem] font-bold tracking-[0.32em] text-mute sm:block">

@@ -121,7 +121,7 @@ export function ExperienceOverlay() {
         <m.div
           key="experience-overlay"
           aria-hidden
-          className={cn(styles.overlay, isDesktop ? styles.full : styles.lite)}
+          className={styles.overlay}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}

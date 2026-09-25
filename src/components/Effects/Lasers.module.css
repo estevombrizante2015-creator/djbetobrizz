@@ -23,10 +23,14 @@
   animation-play-state: paused;
 }
 
+/* O feixe tem largura real (a do clarão) centrada em --x: com largura 0 o Chrome considera a animação
+   "sem mudança visível" e a roda na thread principal (restyle + layerize a cada quadro). Com área,
+   sweep/flash rodam no compositor. */
 .beam {
   position: absolute;
   left: var(--x);
-  width: 0;
+  width: 140px;
+  margin-left: -70px;
   height: 165%;
   will-change: transform;
   animation: sweep calc(var(--dur) * var(--speed)) cubic-bezier(0.45, 0, 0.55, 1) var(--delay) infinite alternate;
@@ -54,7 +58,7 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  left: -1px;
+  left: calc(50% - 1px);
   width: 2px;
   background: linear-gradient(
     var(--dir),
@@ -70,7 +74,7 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  left: -28px;
+  left: calc(50% - 28px);
   width: 56px;
   opacity: 0.5;
   background: linear-gradient(var(--dir), color-mix(in srgb, var(--c) 70%, transparent), transparent 62%);
@@ -79,7 +83,7 @@
 
 .flare {
   position: absolute;
-  left: -70px;
+  left: 0;
   width: 140px;
   height: 140px;
   border-radius: 9999px;

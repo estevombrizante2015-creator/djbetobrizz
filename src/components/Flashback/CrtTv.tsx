@@ -10,8 +10,10 @@ type Props = {
   scene: SceneKey;
   index: number;
   total: number;
-  /** Modo completo: chuvisco, rolagem da imagem, "liga o canal" e timecode vivo. */
+  /** Nível "full": cross-fade, chuvisco, rolagem da imagem e timecode vivo. */
   fx: boolean;
+  /** Níveis "full" e "balanced": "liga o canal" na troca (uma vez, só transform/opacidade). */
+  glitch: boolean;
   /** Anima a troca de canal (só depois da primeira troca feita pelo usuário/scroll). */
   animateSwap: boolean;
   /** Mídia física da década (fita, CD…) — posicionada em relação à TV, sem cobrir o OSD. */
@@ -24,9 +26,10 @@ const pad = (n: number) => String(n).padStart(2, "0");
  * Televisão CRT desenhada em CSS: tela curva com scanlines, OSD de canal e overlay VHS.
  * O knob da marca (o "O" de BETO) é o seletor de canal — gira a cada década.
  * Puramente decorativa: o conteúdo acessível fica no painel de texto ao lado.
- * Modo leve: tudo estático (OSD VHS sem timer, sem chuvisco/rolagem) e troca por fade simples.
+ * Fora do nível "full": tudo estático (OSD VHS sem timer, sem chuvisco/rolagem); a troca é
+ * o "liga o canal" em CSS ("balanced") ou um fade simples ("lite" / movimento reduzido).
  */
-export function CrtTv({ scene, index, total, fx, animateSwap, children }: Props) {
+export function CrtTv({ scene, index, total, fx, glitch, animateSwap, children }: Props) {
   const knobAngle = total > 1 ? -135 + (270 * index) / (total - 1) : 0;
   const track = `TRACK ${pad(index + 1)}`;
   const start = 92 + index * 47;
@@ -53,7 +56,10 @@ export function CrtTv({ scene, index, total, fx, animateSwap, children }: Props)
                   </m.div>
                 </AnimatePresence>
               ) : (
-                <div key={`${scene}-${index}`} className={cn("absolute inset-0", animateSwap && styles.fadeIn)}>
+                <div
+                  key={`${scene}-${index}`}
+                  className={cn("absolute inset-0", animateSwap && (glitch ? styles.channelOn : styles.fadeIn))}
+                >
                   <SceneScreen scene={scene} />
                 </div>
               )}

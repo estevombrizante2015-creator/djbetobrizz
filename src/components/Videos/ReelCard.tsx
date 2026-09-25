@@ -1,11 +1,9 @@
-"use client";
-
 import Image from "next/image";
 import { siteConfig } from "@/config/site";
 import { VhsOverlay } from "@/components/Effects/VhsOverlay";
 import { InstagramIcon, PlayIcon } from "@/components/ui/Icons";
-import { track } from "@/lib/analytics";
 import { cn, imageProps } from "@/lib/utils";
+import { TrackedLink } from "@/components/CTA/TrackedLink";
 
 /** Capa padrão: arte vertical oficial (9:16). */
 const DEFAULT_POSTER = {
@@ -22,15 +20,16 @@ type Props = {
 /**
  * "Reel" em moldura de celular (9:16) — leva para o Instagram oficial.
  * Não finge ser um vídeo específico: é a porta de entrada para os vídeos no perfil.
+ * Componente de servidor: só o link rastreado (TrackedLink) e o overlay VHS hidratam no cliente.
  */
 export function ReelCard({ poster = DEFAULT_POSTER, className }: Props) {
   return (
     <div className={cn("relative", className)}>
-      <a
+      <TrackedLink
         href={siteConfig.instagram}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={() => track("instagram_click", { source: "videos" })}
+        external
+        event="instagram_click"
+        eventParams={{ source: "videos" }}
         aria-label={`Assistir aos vídeos do ${siteConfig.name} no Instagram (abre em nova aba)`}
         className="group relative block rotate-[3deg] rounded-[2.4rem] outline-offset-4 lg:rotate-[2deg]"
       >
@@ -81,7 +80,7 @@ export function ReelCard({ poster = DEFAULT_POSTER, className }: Props) {
             </span>
           </div>
         </div>
-      </a>
+      </TrackedLink>
 
       <p className="mt-5 flex items-center justify-center gap-2 font-hud text-sm font-semibold tracking-[0.2em] text-mute uppercase lg:justify-start">
         <InstagramIcon size={16} className="text-magenta" />

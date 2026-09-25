@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useExperience } from "@/components/Effects/ExperienceContext";
 import { Visualizer } from "@/components/Visualizer/Visualizer";
 import { PlayIcon, SoundCloudIcon } from "@/components/ui/Icons";
 import { track } from "@/lib/analytics";
@@ -55,7 +54,6 @@ function widgetSrc(url: string, autoPlay: boolean) {
  * Eventos play/pause do widget (postMessage) controlam o giro do disco e o visualizer.
  */
 export function SetsDeck({ tracks, className }: { tracks: DeckTrack[]; className?: string }) {
-  const { isDesktop } = useExperience();
   const [index, setIndex] = useState(0);
   const [status, setStatus] = useState<Status>("idle");
   const [autoPlay, setAutoPlay] = useState(true);
@@ -194,7 +192,8 @@ export function SetsDeck({ tracks, className }: { tracks: DeckTrack[]; className
           </div>
         </div>
 
-        {/* Spectrum — mais intenso quando o set está tocando (boost no próprio canvas; brilho = gradiente estático) */}
+        {/* Spectrum — mais intenso quando o set está tocando (boost no próprio canvas; brilho = gradiente estático).
+            Quantidade de barras pela largura (CSS), não pelo nível de efeitos: PCs simples também têm tela larga. */}
         <div className="mt-8 flex items-center gap-3 lg:mt-10">
           <span aria-hidden className="hud hidden text-[0.6rem] text-dim sm:block">
             L
@@ -207,13 +206,12 @@ export function SetsDeck({ tracks, className }: { tracks: DeckTrack[]; className
                 playing ? "opacity-100" : "opacity-0",
               )}
             />
-            <Visualizer
-              bars={isDesktop ? 72 : 32}
-              height="4.5rem"
-              palette={playing ? "neon" : "red"}
-              mirror
-              boost={playing ? 1.4 : 0.85}
-            />
+            <div className="relative sm:hidden">
+              <Visualizer bars={32} height="4.5rem" palette={playing ? "neon" : "red"} mirror boost={playing ? 1.4 : 0.85} />
+            </div>
+            <div className="relative hidden sm:block">
+              <Visualizer bars={72} height="4.5rem" palette={playing ? "neon" : "red"} mirror boost={playing ? 1.4 : 0.85} />
+            </div>
           </div>
           <span aria-hidden className="hud hidden text-[0.6rem] text-dim sm:block">
             R

@@ -52,12 +52,13 @@ export function Sets() {
 
   return (
     <section id="sets" aria-labelledby="sets-title" className="section-y relative overflow-hidden">
-      {/* Fundo: mãos nos faders, bem apagado (só a partir do tablet — economiza dados no celular) */}
+      {/* Fundo: mãos nos faders, bem apagado (só a partir do tablet — economiza dados no celular).
+          A 12% de opacidade, meia resolução não faz diferença visível e custa bem menos para baixar. */}
       <div aria-hidden className="pointer-events-none absolute inset-0 hidden md:block">
         <Image
           {...imageProps("/images/events/betobrizz-mixagem-close-azul.webp")}
           alt=""
-          sizes="(min-width: 768px) 100vw, 1px"
+          sizes="(min-width: 768px) 50vw, 1px"
           quality={60}
           className="absolute inset-0 h-full w-full object-cover opacity-[0.12] [html[data-perf=full]_&]:opacity-[0.13] [html[data-perf=full]_&]:grayscale-[35%]"
           style={{

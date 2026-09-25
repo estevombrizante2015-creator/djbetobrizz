@@ -16,8 +16,10 @@ const LABEL_TEXT = "SOUND & VISUAL EXPERIENCE • MUSIC VIDEO ENTERTAINMENT • 
 const RING_LENGTH = (2 * Math.PI * 40 - 1.5).toFixed(1);
 
 /**
- * Prato/vinil com o logo como selo. Gira só quando o set está tocando, só no modo completo
- * e nunca com prefers-reduced-motion. No modo leve o disco fica parado (braço e brilho ainda indicam o play).
+ * Prato/vinil com o logo como selo. Gira só quando o set está tocando (rotação pura = compositor, barata),
+ * nos níveis "full" e "balanced", nunca com prefers-reduced-motion. No nível "lite" o disco fica parado
+ * (braço e brilho ainda indicam o play). Variante explícita porque a regra global do lite só
+ * pausa a classe exata `.animate-spin-slow`, não as prefixadas.
  */
 export function Platter({ spinning, armDown, className }: Props) {
   const logo = getImageMeta(siteConfig.logo.srcSmall);
@@ -46,7 +48,7 @@ export function Platter({ spinning, armDown, className }: Props) {
 
       {/* Disco */}
       <div
-        className="absolute inset-[5.5%] rounded-full [html[data-perf=full]_&]:motion-safe:animate-spin-slow"
+        className="absolute inset-[5.5%] rounded-full [html:not([data-perf=lite])_&]:motion-safe:animate-spin-slow"
         style={{
           animationDuration: "3.2s",
           animationPlayState: spinning ? "running" : "paused",

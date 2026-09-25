@@ -53,7 +53,7 @@ export function Videos() {
   );
 }
 
-/** Placa "ON AIR" de estúdio — decorativa. A luz só pisca no modo completo. */
+/** Placa "ON AIR" de estúdio — decorativa. A luz pisca (só opacidade, compositor) fora do nível "lite". */
 function OnAirSign() {
   return (
     <div
@@ -61,7 +61,7 @@ function OnAirSign() {
       className="mb-2 hidden shrink-0 items-center gap-3 rounded-lg border border-red/70 px-4 py-2.5 shadow-neon-red md:flex"
       style={{ background: "linear-gradient(180deg, rgb(255 36 20 / 0.16), rgb(255 36 20 / 0.04))" }}
     >
-      <span className="size-2.5 rounded-full bg-red [html[data-perf=full]_&]:animate-rec" />
+      <span className="size-2.5 rounded-full bg-red [html:not([data-perf=lite])_&]:motion-safe:animate-rec" />
       <span className="font-display text-sm font-black tracking-[0.3em] text-red text-glow-red">ON AIR</span>
     </div>
   );
