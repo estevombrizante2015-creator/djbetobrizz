@@ -16,11 +16,11 @@ const LABEL_TEXT = "SOUND & VISUAL EXPERIENCE • MUSIC VIDEO ENTERTAINMENT • 
 const RING_LENGTH = (2 * Math.PI * 40 - 1.5).toFixed(1);
 
 /**
- * Prato/vinil com o logo como selo. Gira só quando o set está tocando
- * e nunca com prefers-reduced-motion (classe motion-safe).
+ * Prato/vinil com o logo como selo. Gira só quando o set está tocando, só no modo completo
+ * e nunca com prefers-reduced-motion. No modo leve o disco fica parado (braço e brilho ainda indicam o play).
  */
 export function Platter({ spinning, armDown, className }: Props) {
-  const logo = getImageMeta(siteConfig.logo.src);
+  const logo = getImageMeta(siteConfig.logo.srcSmall);
 
   return (
     <div aria-hidden className={cn("relative aspect-square select-none", className)}>
@@ -46,7 +46,7 @@ export function Platter({ spinning, armDown, className }: Props) {
 
       {/* Disco */}
       <div
-        className={cn("absolute inset-[5.5%] rounded-full", "motion-safe:animate-spin-slow")}
+        className="absolute inset-[5.5%] rounded-full [html[data-perf=full]_&]:motion-safe:animate-spin-slow"
         style={{
           animationDuration: "3.2s",
           animationPlayState: spinning ? "running" : "paused",
@@ -74,7 +74,7 @@ export function Platter({ spinning, armDown, className }: Props) {
             </text>
           </svg>
           <Image
-            src={siteConfig.logo.src}
+            src={siteConfig.logo.srcSmall}
             width={logo.width}
             height={logo.height}
             alt=""

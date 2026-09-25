@@ -1,0 +1,38 @@
+/* Chão do palco: grid anos 80 em perspectiva.
+   O movimento é um translate (compositor) numa camada interna — nada de animar background-position,
+   que repinta a cada frame. Só anda no modo completo; no leve e com movimento reduzido fica parado. */
+
+.floor {
+  position: absolute;
+  inset-inline: -50%;
+  top: 0;
+  height: 200%;
+  overflow: hidden;
+  transform: perspective(420px) rotateX(62deg);
+  transform-origin: center top;
+  mask-image: linear-gradient(to bottom, black 10%, transparent 85%);
+}
+
+.grid {
+  position: absolute;
+  inset: -48px 0 0;
+  background-image:
+    linear-gradient(to right, rgb(255 20 147 / 0.35) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(138 43 226 / 0.35) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+@media (prefers-reduced-motion: no-preference) and (min-width: 64rem) {
+  :global(html[data-perf="full"]) .grid {
+    animation: floor-move 1.6s linear infinite;
+  }
+}
+
+@keyframes floor-move {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(48px);
+  }
+}

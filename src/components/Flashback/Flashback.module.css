@@ -1,6 +1,8 @@
 /* ==========================================================================
    VOLTE NO TEMPO — máquina do tempo 1980 → 1990 → 2000 → TODAY
    --acc (cor da década) é definido no .stage via style.
+   Modo leve (html:not([data-perf="full"])): palco compacto com abas, cenários estáticos,
+   sem blend nem filtros (ver bloco no fim do arquivo). Modo completo: trilho sticky + efeitos.
    ========================================================================== */
 
 .track {
@@ -17,7 +19,7 @@
   padding-block: 2.5rem 4.5rem;
 }
 
-/* Fora da tela: congela todas as animações CSS do palco */
+/* Fora da tela (modo completo): congela todas as animações CSS do palco */
 .stage[data-paused] * {
   animation-play-state: paused !important;
 }
@@ -40,7 +42,6 @@
   position: relative;
   order: 1;
   min-width: 0;
-  padding-bottom: 12%;
 }
 
 @media (min-width: 768px) {
@@ -84,7 +85,6 @@
   position: absolute;
   inset: 0;
   opacity: 0;
-  mix-blend-mode: screen;
   background:
     repeating-linear-gradient(to bottom, rgb(255 255 255 / 0.07) 0 1px, transparent 1px 3px),
     linear-gradient(
@@ -132,12 +132,10 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  filter: drop-shadow(0 0 22px rgb(255 20 147 / 0.45));
 }
 .year_rave {
   color: rgb(138 43 226 / 0.22);
   -webkit-text-stroke: 2px var(--color-cyan, #00e5ff);
-  filter: drop-shadow(0 0 10px rgb(0 229 255 / 0.55)) drop-shadow(0 0 26px rgb(138 43 226 / 0.55));
 }
 .year_y2k {
   background: linear-gradient(
@@ -153,13 +151,38 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  filter: drop-shadow(0 0 18px rgb(0 102 255 / 0.65));
 }
 .year_now {
   color: var(--color-red, #ff2414);
+}
+
+/* Brilho neon do ano: cópia com texto transparente + text-shadow, ATRÁS do ano.
+   Substitui filter: drop-shadow (caro em texto gigante) — pintado uma vez, estático. */
+.yearGlow {
+  pointer-events: none;
+  color: transparent;
+}
+.glow_synth {
+  text-shadow: 0 0 22px rgb(255 20 147 / 0.5);
+}
+.glow_rave {
+  text-shadow:
+    0 0 10px rgb(0 229 255 / 0.55),
+    0 0 26px rgb(138 43 226 / 0.55);
+}
+.glow_y2k {
+  text-shadow: 0 0 18px rgb(0 102 255 / 0.7);
+}
+.glow_now {
   text-shadow:
     0 0 20px rgb(255 36 20 / 0.6),
     0 0 60px rgb(255 36 20 / 0.3);
+}
+
+/* Anos com til: a Orbitron desenha o til como crase — usa a fonte HUD */
+.yearHud {
+  font-family: var(--font-hud);
+  letter-spacing: 0.02em;
 }
 
 /* Entrada com glitch (uma vez por troca) */
@@ -179,7 +202,6 @@
 .ghost {
   pointer-events: none;
   opacity: 0;
-  mix-blend-mode: screen;
 }
 .ghostA {
   color: var(--color-cyan, #00e5ff);
@@ -214,50 +236,72 @@
   transform: scaleX(0);
   background: var(--acc);
   box-shadow: 0 0 10px var(--acc);
+  transition: transform 0.5s var(--expo);
 }
 .fillFull {
   transform: scaleX(1);
 }
-.fillRun {
-  animation-name: fill-run;
-  animation-timing-function: linear;
-  animation-fill-mode: both;
+
+/* Troca simples (modo leve): só opacidade, uma vez */
+.fadeIn {
+  animation: fade-in 0.35s ease-out both;
 }
-@keyframes fill-run {
-  from { transform: scaleX(0); }
-  to { transform: scaleX(1); }
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
 }
 
-/* ---------- Mídia física (fita, CD, MP3, jog) ---------- */
+/* ---------- Mídia física (fita, CD, MP3, jog) ----------
+   Fica dentro da .tv (container): as medidas são relativas à largura da TV.
+   Regra: a mídia "apoia" na frente do gabinete sem cobrir a tela (OSD TRACK/timecode)
+   nem o LED/knob do canal.
+   - TV estreita (painel embaixo): canto inferior direito, sobre a grade do alto-falante.
+   - TV larga (painel lateral): canto inferior esquerdo, pendurada abaixo da tela. */
 
+.propSpace {
+  height: 9cqi;
+}
 .propSlot {
   position: absolute;
   inset: 0;
   z-index: 3;
   pointer-events: none;
 }
+/* Sem `filter` aqui: o conteúdo gira sem parar (rolos, CD, jog) e um drop-shadow no
+   ancestral seria re-rasterizado a cada frame. A sombra fica em box-shadow de cada objeto. */
 .prop {
+  --prop-shadow: 0 22px 30px -8px rgb(0 0 0 / 0.8);
   position: absolute;
-  left: 3%;
+  right: -1%;
   bottom: 0;
   container-type: inline-size;
-  filter: drop-shadow(0 22px 26px rgb(0 0 0 / 0.75));
 }
-@media (min-width: 1024px) {
-  .prop {
-    left: -3%;
-  }
+.propTilt {
+  rotate: 6deg;
+}
+.prop[data-prop="synth"] {
+  width: 38%;
+}
+.prop[data-prop="rave"],
+.prop[data-prop="now"] {
+  width: 29%;
+}
+.prop[data-prop="y2k"] {
+  width: 17%;
 }
 
 /* ==========================================================================
-   Modo scroll (desktop): trilho alto + palco sticky de 100vh
+   Modo scroll (só modo completo em desktop): trilho alto + palco sticky de 100vh.
+   html[data-perf] é gravado antes da pintura → sem salto de layout na hidratação.
+   No modo leve (inclusive PC simples) o palco é compacto, sem trilho.
    ========================================================================== */
 
 @media (hover: hover) and (pointer: fine) and (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
-  .track {
+  :global(html[data-perf="full"]) .track {
     height: calc(var(--n, 4) * 75vh + 100vh);
   }
-  .stage {
+  :global(html[data-perf="full"]) .stage {
     position: sticky;
     top: 0;
     display: flex;
@@ -266,11 +310,12 @@
     min-height: 38rem;
     padding-block: 5.25rem 1.75rem;
   }
-  .year {
+  :global(html[data-perf="full"]) .year {
     font-size: min(9.5rem, 18vh, calc(100cqi / (var(--chars, 5) * 0.84)));
   }
-  .tv {
-    width: min(100%, calc((100vh - 12.5rem) * 1.38));
+  /* TV (≈0,70 da largura) + espaço da mídia (0,14) cabem no palco de 100vh */
+  :global(html[data-perf="full"]) .tv {
+    width: min(100%, calc((100vh - 8rem) * 1.16));
   }
 }
 
@@ -297,7 +342,6 @@
     0 0 0 1px rgb(255 255 255 / 0.06),
     0 60px 100px -50px #000,
     0 0 120px -40px var(--acc-mid);
-  transition: box-shadow 0.8s var(--expo);
 }
 .cabinet::before {
   content: "";
@@ -340,10 +384,11 @@
 .channelOn {
   animation: channel-on 0.55s var(--expo) both;
 }
+/* Só transform/opacidade (compositor) — o clarão fica por conta do chuvisco (.static) */
 @keyframes channel-on {
-  0% { transform: scale(0.7, 0.02); filter: brightness(4) saturate(0); }
-  40% { transform: scale(1, 1.04); filter: brightness(1.7) saturate(0.6); }
-  100% { transform: none; filter: none; }
+  0% { transform: scale(0.7, 0.02); opacity: 0.4; }
+  40% { transform: scale(1, 1.04); opacity: 1; }
+  100% { transform: none; }
 }
 
 /* Chuvisco curto na troca */
@@ -513,8 +558,44 @@
     0 0 14px rgb(255 36 20 / 0.6);
 }
 
+/* Plaqueta da marca (base: alinhada à esquerda, sob o LED do canal) */
+.plate {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-left: 2cqi;
+  gap: 0.6em;
+  margin-top: 2cqi;
+  font-family: var(--font-hud);
+  font-weight: 700;
+  font-size: max(0.6rem, 1.8cqi);
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.62);
+}
+
 /* TV larga: painel vira coluna lateral */
 @container (min-width: 30rem) {
+  .propSpace {
+    height: 14cqi;
+  }
+  .prop {
+    left: -6%;
+    right: auto;
+  }
+  .propTilt {
+    rotate: -7deg;
+  }
+  .prop[data-prop="synth"] {
+    width: 36%;
+  }
+  .prop[data-prop="rave"],
+  .prop[data-prop="now"] {
+    width: 26%;
+  }
+  .prop[data-prop="y2k"] {
+    width: 15%;
+  }
   .tvBody {
     flex-direction: row;
   }
@@ -534,22 +615,9 @@
   }
   .plate {
     justify-content: flex-end;
+    padding-left: 0;
     padding-right: 19%;
   }
-}
-
-.plate {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6em;
-  margin-top: 2cqi;
-  font-family: var(--font-hud);
-  font-weight: 700;
-  font-size: max(0.6rem, 1.8cqi);
-  letter-spacing: 0.35em;
-  text-transform: uppercase;
-  color: rgb(255 255 255 / 0.62);
 }
 
 .feet {
@@ -692,8 +760,10 @@
 .tri {
   position: absolute;
   aspect-ratio: 1;
-  filter: drop-shadow(0 0 5px rgb(255 255 255 / 0.55));
   animation: spin 9s linear infinite;
+}
+:global(html[data-perf="full"]) .tri {
+  filter: drop-shadow(0 0 5px rgb(255 255 255 / 0.55));
 }
 .triAlt {
   animation-duration: 12s;
@@ -853,16 +923,6 @@
   to { rotate: 360deg; }
 }
 
-/* Animações de repintura (background-position) só em desktop */
-@media (hover: hover) and (min-width: 1024px) {
-  .scrRave {
-    animation: holo 10s ease-in-out infinite alternate;
-  }
-}
-@keyframes holo {
-  from { background-position: 0% 40%; }
-  to { background-position: 100% 60%; }
-}
 
 /* ==========================================================================
    Fundo de tela cheia (por década)
@@ -989,6 +1049,7 @@
 }
 .bdBeams {
   opacity: 0.5;
+  mix-blend-mode: normal;
 }
 .bdBeams .beam {
   width: 2px;
@@ -999,9 +1060,9 @@
   background-size: 6px 6px;
 }
 
-/* Grid do fundo andando — só desktop */
+/* Grid do fundo andando — só modo completo em desktop */
 @media (hover: hover) and (min-width: 1024px) {
-  .bdGrid::before {
+  :global(html[data-perf="full"]) .bdGrid::before {
     animation: bd-grid 1.4s linear infinite;
   }
 }
@@ -1017,7 +1078,11 @@
   display: block;
   width: 100%;
   height: auto;
-  filter: drop-shadow(0 0 18px rgb(255 20 147 / 0.35));
+  /* raio igual ao do corpo da fita (rx 12 em 240×152) */
+  border-radius: 5% / 7.9%;
+  box-shadow:
+    var(--prop-shadow),
+    0 0 18px rgb(255 20 147 / 0.35);
 }
 .reel {
   transform-box: fill-box;
@@ -1059,6 +1124,7 @@
       #c9f6ff
     );
   box-shadow:
+    var(--prop-shadow),
     0 0 0 1px rgb(255 255 255 / 0.35),
     0 0 30px rgb(0 229 255 / 0.35),
     0 0 60px rgb(138 43 226 / 0.3);
@@ -1114,6 +1180,7 @@
   box-shadow:
     inset 0 1px 0 #fff,
     inset 0 -2px 4px rgb(0 0 0 / 0.35),
+    var(--prop-shadow),
     0 0 0 1px rgb(0 0 0 / 0.4),
     0 0 40px rgb(0 102 255 / 0.4);
 }
@@ -1153,6 +1220,7 @@
   flex: 1;
   height: 100%;
   transform-origin: bottom;
+  transform: scaleY(var(--h, 0.6));
   background: linear-gradient(to top, #00e5ff, #fff);
   animation: mp3-eq 0.9s ease-in-out infinite alternate;
 }
@@ -1207,6 +1275,7 @@
   border-radius: 50%;
   background: radial-gradient(circle, #16141b 0 60%, #0b0a0e 61% 100%);
   box-shadow:
+    var(--prop-shadow),
     0 0 0 1px rgb(255 255 255 / 0.12),
     0 0 26px rgb(255 36 20 / 0.45),
     0 0 60px rgb(255 20 147 / 0.2);
@@ -1250,4 +1319,29 @@
   box-shadow:
     0 0 0 1px rgb(255 36 20 / 0.45),
     0 0 14px rgb(255 36 20 / 0.45);
+}
+
+/* ==========================================================================
+   Modo leve (html:not([data-perf="full"])) — celulares e PCs simples.
+   Cenários estáticos: o quadro parado de cada animação já é a arte final.
+   Sem loops infinitos, sem mix-blend-mode, sem filtros.
+   ========================================================================== */
+
+:global(html:not([data-perf="full"])) :is(.floor, .bdGrid)::before,
+:global(html:not([data-perf="full"]))
+  :is(.rollbar, .tri, .bubble, .ringSpin, .spark, .beam, .reel, .cdPrint, .mp3Eq span, .jogRing, .jogPlatter, .bdSheen) {
+  animation: none;
+}
+
+/* Faixas de "tracking" VHS só fazem sentido em movimento */
+:global(html:not([data-perf="full"])) :is(.tracking, .bdTracking) {
+  display: none;
+}
+
+:global(html:not([data-perf="full"])) .lasers {
+  mix-blend-mode: normal;
+}
+:global(html:not([data-perf="full"])) .cd::after {
+  mix-blend-mode: normal;
+  opacity: 0.45;
 }

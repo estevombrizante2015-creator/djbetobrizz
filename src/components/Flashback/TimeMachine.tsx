@@ -1,18 +1,9 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type CSSProperties,
-  type KeyboardEvent,
-} from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type RefObject } from "react";
 import {
   AnimatePresence,
-  motion,
-  useInView,
+  m,
   useMotionValueEvent,
   useScroll,
   useTransform,
@@ -24,85 +15,62 @@ import { ArrowDownIcon } from "@/components/ui/Icons";
 import { ease } from "@/lib/animations";
 import { cn } from "@/lib/utils";
 import { CrtTv } from "./CrtTv";
-import { SceneBackdrop, SceneProp, propWidth, sceneFor, sceneTheme } from "./scenes";
+import { SceneBackdrop, SceneProp, sceneFor, sceneTheme } from "./scenes";
 import styles from "./Flashback.module.css";
 
 type Decade = (typeof decadesData)[number];
 
-/** Tempo de cada década no modo automático (mobile/tablet). */
-const AUTO_MS = 5200;
 const pad = (n: number) => String(n).padStart(2, "0");
 
-const noopSubscribe = () => () => {};
-/** true só depois da hidratação — evita divergência SSR × cliente em valores lidos de media queries. */
-function useHydrated() {
-  return useSyncExternalStore(
-    noopSubscribe,
-    () => true,
-    () => false,
-  );
-}
+/** Botões de "videocassete" do modo abas (voltar/avançar década). */
+const deckBtn =
+  "vhs inline-flex min-h-11 items-center gap-2 rounded-full border border-line-strong bg-void/40 px-5 text-xl text-white transition-colors hover:border-white/50";
+
+/** O til da Orbitron parece crase (Ã → À): textos com til usam a fonte HUD. */
+const hasTilde = (s: string) => /[ãõñÃÕÑ]/.test(s);
 
 /**
  * Máquina do tempo 1980 → 1990 → 2000 → TODAY.
- * - Desktop (mouse + ≥1024px, sem reduced motion): trilho alto com palco "sticky";
- *   o progresso do scroll escolhe a década.
- * - Mobile/tablet/reduced motion: palco compacto com abas (tablist) e avanço
- *   automático opcional (pausável; parado com reduced motion, fora da tela ou aba oculta).
- * O layout de cada modo é decidido por media query no CSS (sem salto na hidratação).
+ * - Modo completo + desktop (sem reduced motion): trilho alto com palco "sticky";
+ *   o progresso do scroll escolhe a década (hooks de scroll isolados em <ScrollDriver>,
+ *   setState só quando a década muda). Troca com glitch, chuvisco e cross-fade.
+ * - Modo leve (celular, tablet, PC simples) / reduced motion: palco compacto com abas
+ *   (tablist) trocadas só pelo usuário — sem loops, sem scroll JS, cenários estáticos
+ *   e troca por um simples fade de opacidade.
+ * O layout de cada modo é decidido no CSS por html[data-perf] + media query (sem salto na hidratação).
  */
 export function TimeMachine({ decades }: { decades: Decade[] }) {
   const n = decades.length;
-  const experience = useExperience();
-  const hydrated = useHydrated();
-  // prefers-reduced-motion já vem "true" no 1º render do cliente; só aplicamos após hidratar.
-  const reducedMotion = hydrated && experience.reducedMotion;
-  const scrollMode = experience.isDesktop && !reducedMotion;
+  const { lite, isDesktop, reducedMotion } = useExperience();
+  const scrollMode = isDesktop && !reducedMotion;
+  /** Efeitos de troca ricos (glitch, chuvisco, cross-fade, timecode vivo). */
+  const fx = !lite && !reducedMotion;
 
   const trackRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
-  const [scrollIndex, setScrollIndex] = useState(0);
-  const [autoIndex, setAutoIndex] = useState(0);
-  const [userPaused, setUserPaused] = useState(false);
-  const [pageHidden, setPageHidden] = useState(false);
-  const inView = useInView(stageRef, { amount: 0.3 });
+  const [index, setIndex] = useState(0);
+  /** Já houve troca de década? (as animações de troca não rodam na montagem) */
+  const [swapped, setSwapped] = useState(false);
+  const [progress, setProgress] = useState<MotionValue<number> | null>(null);
 
-  const { scrollYProgress } = useScroll({ target: trackRef, offset: ["start start", "end end"] });
-  const toIndex = useCallback((p: number) => Math.min(n - 1, Math.max(0, Math.floor(p * n))), [n]);
-
-  useMotionValueEvent(scrollYProgress, "change", (p) => {
-    const i = toIndex(p);
-    setScrollIndex((prev) => (prev === i ? prev : i));
-  });
-
-  // Ao entrar no modo scroll (após hidratação), sincroniza com a posição atual.
-  useEffect(() => {
-    if (!scrollMode) return;
-    const id = requestAnimationFrame(() => setScrollIndex(toIndex(scrollYProgress.get())));
-    return () => cancelAnimationFrame(id);
-  }, [scrollMode, scrollYProgress, toIndex]);
-
-  useEffect(() => {
-    const onVisibility = () => setPageHidden(document.hidden);
-    document.addEventListener("visibilitychange", onVisibility);
-    return () => document.removeEventListener("visibilitychange", onVisibility);
+  const select = useCallback((i: number) => {
+    setIndex(i);
+    setSwapped(true);
   }, []);
 
-  const active = Math.min(scrollMode ? scrollIndex : autoIndex, n - 1);
+  const active = Math.min(index, n - 1);
   const decade = decades[active];
   const scene = sceneFor(decade.year, active);
   const theme = sceneTheme[scene];
   const maxChars = Math.max(4, ...decades.map((d) => d.year.length));
-
-  const autoplay = !scrollMode && !reducedMotion && !userPaused;
-  const running = autoplay && inView && !pageHidden;
+  const animateSwap = swapped && !reducedMotion;
+  const yearFont = hasTilde(decade.year) ? styles.yearHud : null;
 
   const goTo = (i: number) => {
     if (!scrollMode) {
-      setAutoIndex(i);
-      setUserPaused(true);
+      select(i);
       return;
     }
     const track = trackRef.current;
@@ -111,6 +79,8 @@ export function TimeMachine({ decades }: { decades: Decade[] }) {
     const dist = track.offsetHeight - window.innerHeight;
     window.scrollTo({ top: top + (dist * (i + 0.5)) / n, behavior: "smooth" });
   };
+
+  const step = (delta: number) => goTo((active + delta + n) % n);
 
   const onTabKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     const keys: Record<string, number> = { ArrowRight: active + 1, ArrowLeft: active - 1, Home: 0, End: n - 1 };
@@ -123,36 +93,41 @@ export function TimeMachine({ decades }: { decades: Decade[] }) {
 
   return (
     <div ref={trackRef} className={styles.track} style={{ "--n": n } as CSSProperties}>
-      <div
-        ref={stageRef}
-        className={styles.stage}
-        data-scene={scene}
-        data-paused={inView ? undefined : ""}
-        style={{ "--acc": theme.acc } as CSSProperties}
-      >
+      {scrollMode ? (
+        <ScrollDriver trackRef={trackRef} total={n} current={active} onIndex={select} onProgress={setProgress} />
+      ) : null}
+      {fx ? <PauseOffscreen target={stageRef} /> : null}
+
+      <div ref={stageRef} className={styles.stage} data-scene={scene} style={{ "--acc": theme.acc } as CSSProperties}>
         {/* Fundo de tela cheia — muda a cada década */}
         <div aria-hidden className="pointer-events-none absolute inset-0">
-          <AnimatePresence initial={false}>
-            <motion.div
-              key={`${scene}-${active}`}
-              className="absolute inset-0"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.8, ease: ease.inOut }}
-            >
+          {fx ? (
+            <AnimatePresence initial={false}>
+              <m.div
+                key={`${scene}-${active}`}
+                className="absolute inset-0"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.8, ease: ease.inOut }}
+              >
+                <SceneBackdrop scene={scene} />
+              </m.div>
+            </AnimatePresence>
+          ) : (
+            <div key={`${scene}-${active}`} className={cn("absolute inset-0", animateSwap && styles.fadeIn)}>
               <SceneBackdrop scene={scene} />
-            </motion.div>
-          </AnimatePresence>
+            </div>
+          )}
           <div className={styles.stageShade} />
-          {!reducedMotion ? <span key={`burst-${active}`} className={styles.burst} /> : null}
+          {fx && swapped ? <span key={`burst-${active}`} className={styles.burst} /> : null}
         </div>
 
         <div className={cn("container-bb", styles.stageGrid)}>
           {/* Texto + seletor de década */}
           <div className={styles.info}>
             <p className="hud flex items-center gap-3 text-white/85">
-              <span aria-hidden className="size-2 animate-rec rounded-full bg-red shadow-neon-red" />
+              <span aria-hidden className={cn("size-2 rounded-full bg-red shadow-neon-red", fx && "animate-rec")} />
               Time machine
               <span aria-hidden className="text-white/30">
                 {"//"}
@@ -170,15 +145,26 @@ export function TimeMachine({ decades }: { decades: Decade[] }) {
               className="mt-3 rounded-sm sm:mt-4"
             >
               <div className={styles.yearWrap} style={{ "--chars": maxChars } as CSSProperties}>
-                <h3 key={active} className={cn(styles.year, styles[`year_${scene}`], !reducedMotion && styles.yearEnter)}>
+                {/* Brilho neon estático (text-shadow) atrás do ano em gradiente — sem filter: drop-shadow */}
+                <span
+                  key={`glow-${active}`}
+                  aria-hidden
+                  className={cn(styles.year, styles.yearGlow, styles[`glow_${scene}`], yearFont, fx && swapped && styles.yearEnter)}
+                >
+                  {decade.year}
+                </span>
+                <h3
+                  key={`year-${active}`}
+                  className={cn(styles.year, styles[`year_${scene}`], yearFont, fx && swapped && styles.yearEnter)}
+                >
                   {decade.year}
                 </h3>
-                {!reducedMotion ? (
+                {fx && swapped ? (
                   <>
-                    <span key={`ga-${active}`} aria-hidden className={cn(styles.year, styles.ghost, styles.ghostA)}>
+                    <span key={`ga-${active}`} aria-hidden className={cn(styles.year, styles.ghost, styles.ghostA, yearFont)}>
                       {decade.year}
                     </span>
-                    <span key={`gb-${active}`} aria-hidden className={cn(styles.year, styles.ghost, styles.ghostB)}>
+                    <span key={`gb-${active}`} aria-hidden className={cn(styles.year, styles.ghost, styles.ghostB, yearFont)}>
                       {decade.year}
                     </span>
                   </>
@@ -216,30 +202,16 @@ export function TimeMachine({ decades }: { decades: Decade[] }) {
                     className="group/tab flex min-h-11 flex-col items-start gap-2.5 rounded-sm pt-1 pb-1.5 text-left"
                   >
                     <span className="relative block h-[3px] w-full overflow-hidden rounded-full bg-white/12">
-                      {scrollMode ? (
-                        <ScrollFill progress={scrollYProgress} index={i} total={n} />
+                      {progress ? (
+                        <ScrollFill progress={progress} index={i} total={n} />
                       ) : (
-                        <span
-                          key={`${i}-${active}-${autoplay}`}
-                          className={cn(
-                            styles.fill,
-                            i < active || (selected && !autoplay) ? styles.fillFull : null,
-                            selected && autoplay ? styles.fillRun : null,
-                          )}
-                          style={
-                            selected && autoplay
-                              ? { animationDuration: `${AUTO_MS}ms`, animationPlayState: running ? "running" : "paused" }
-                              : undefined
-                          }
-                          onAnimationEnd={(e) => {
-                            if (e.target === e.currentTarget && selected && autoplay) setAutoIndex((active + 1) % n);
-                          }}
-                        />
+                        <span className={cn(styles.fill, i <= active && styles.fillFull)} />
                       )}
                     </span>
                     <span
                       className={cn(
-                        "font-display text-sm font-bold tracking-wider transition-colors sm:text-base",
+                        "text-sm font-bold tracking-wider transition-colors sm:text-base",
+                        hasTilde(d.year) ? "font-hud" : "font-display",
                         selected ? "text-white" : "text-mute group-hover/tab:text-white",
                       )}
                     >
@@ -250,43 +222,60 @@ export function TimeMachine({ decades }: { decades: Decade[] }) {
               })}
             </div>
 
-            <div className="mt-6 flex min-h-11 items-center gap-4">
+            <div className="mt-6 flex min-h-11 items-center gap-3">
               {scrollMode ? (
                 <p className="hud flex items-center gap-3 text-mute">
                   <ArrowDownIcon size={16} className="animate-scroll-cue text-(--acc)" />
                   {active < n - 1 ? "Role para viajar no tempo" : "Role para continuar"}
                 </p>
-              ) : !reducedMotion ? (
-                <button
-                  type="button"
-                  onClick={() => setUserPaused((v) => !v)}
-                  className="vhs inline-flex min-h-11 items-center gap-2 rounded-full border border-line-strong bg-void/40 px-5 text-xl text-white transition-colors hover:border-white/50"
-                >
-                  <span aria-hidden>{userPaused ? "▶" : "❚❚"}</span>
-                  {userPaused ? "PLAY" : "PAUSE"}
-                  <span className="sr-only">— troca automática das décadas</span>
-                </button>
-              ) : null}
+              ) : (
+                <>
+                  <button type="button" onClick={() => step(-1)} className={deckBtn}>
+                    <span aria-hidden className="text-(--acc)">
+                      ◀◀
+                    </span>
+                    REW
+                    <span className="sr-only"> (década anterior)</span>
+                  </button>
+                  <button type="button" onClick={() => step(1)} className={deckBtn}>
+                    FF
+                    <span className="sr-only"> (próxima década)</span>
+                    <span aria-hidden className="text-(--acc)">
+                      ▶▶
+                    </span>
+                  </button>
+                </>
+              )}
             </div>
           </div>
 
           {/* TV + mídia da década */}
           <div className={styles.tvCol}>
-            <CrtTv scene={scene} index={active} total={n} mode={autoplay || scrollMode ? "PLAY" : "PAUSE"} reducedMotion={reducedMotion} />
-            <div aria-hidden className={styles.propSlot}>
-              <AnimatePresence initial={false}>
-                <motion.div
-                  key={scene}
-                  className={cn(styles.prop, propWidth[scene])}
-                  initial={{ opacity: 0, y: 40, rotate: -18 }}
-                  animate={{ opacity: 1, y: 0, rotate: -7 }}
-                  exit={{ opacity: 0, y: 24, rotate: 4 }}
-                  transition={{ duration: 0.7, ease: ease.out }}
-                >
-                  <SceneProp scene={scene} year={decade.year} />
-                </motion.div>
-              </AnimatePresence>
-            </div>
+            <CrtTv scene={scene} index={active} total={n} fx={fx} animateSwap={animateSwap}>
+              {fx ? (
+                <AnimatePresence initial={false}>
+                  <m.div
+                    key={scene}
+                    data-prop={scene}
+                    className={styles.prop}
+                    initial={{ opacity: 0, y: 40, rotate: -11 }}
+                    animate={{ opacity: 1, y: 0, rotate: 0 }}
+                    exit={{ opacity: 0, y: 24, rotate: 11 }}
+                    transition={{ duration: 0.7, ease: ease.out }}
+                  >
+                    <div className={styles.propTilt}>
+                      <SceneProp scene={scene} year={decade.year} />
+                    </div>
+                  </m.div>
+                </AnimatePresence>
+              ) : (
+                <div key={scene} data-prop={scene} className={cn(styles.prop, animateSwap && styles.fadeIn)}>
+                  <div className={styles.propTilt}>
+                    <SceneProp scene={scene} year={decade.year} />
+                  </div>
+                </div>
+              )}
+            </CrtTv>
           </div>
         </div>
       </div>
@@ -294,8 +283,68 @@ export function TimeMachine({ decades }: { decades: Decade[] }) {
   );
 }
 
-/** Preenchimento contínuo da aba conforme o scroll avança dentro da década. */
+/**
+ * Só no modo scroll (desktop capaz): liga o progresso do trilho à década.
+ * Chama onIndex apenas quando a década muda (nunca por evento de scroll).
+ */
+function ScrollDriver({
+  trackRef,
+  total,
+  current,
+  onIndex,
+  onProgress,
+}: {
+  trackRef: RefObject<HTMLDivElement | null>;
+  total: number;
+  current: number;
+  onIndex: (i: number) => void;
+  onProgress: (p: MotionValue<number> | null) => void;
+}) {
+  const { scrollYProgress } = useScroll({ target: trackRef, offset: ["start start", "end end"] });
+  const last = useRef(current);
+
+  const report = useCallback(
+    (p: number) => {
+      const i = Math.min(total - 1, Math.max(0, Math.floor(p * total)));
+      if (i === last.current) return;
+      last.current = i;
+      onIndex(i);
+    },
+    [total, onIndex],
+  );
+
+  useMotionValueEvent(scrollYProgress, "change", report);
+
+  // Ao entrar no modo scroll (após hidratação), expõe o progresso e sincroniza com a posição atual.
+  useEffect(() => {
+    onProgress(scrollYProgress);
+    const id = requestAnimationFrame(() => report(scrollYProgress.get()));
+    return () => {
+      cancelAnimationFrame(id);
+      onProgress(null);
+    };
+  }, [scrollYProgress, onProgress, report]);
+
+  return null;
+}
+
+/** Fora da tela (modo completo): congela as animações CSS do palco — sem re-render (atributo direto no DOM). */
+function PauseOffscreen({ target }: { target: RefObject<HTMLElement | null> }) {
+  useEffect(() => {
+    const el = target.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([entry]) => el.toggleAttribute("data-paused", !entry.isIntersecting));
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      el.removeAttribute("data-paused");
+    };
+  }, [target]);
+  return null;
+}
+
+/** Preenchimento contínuo da aba conforme o scroll avança dentro da década (motion value, sem re-render). */
 function ScrollFill({ progress, index, total }: { progress: MotionValue<number>; index: number; total: number }) {
   const scaleX = useTransform(progress, [index / total, (index + 1) / total], [0, 1], { clamp: true });
-  return <motion.span className={cn(styles.fill, "origin-left")} style={{ scaleX }} />;
+  return <m.span className={cn(styles.fill, "origin-left")} style={{ scaleX }} />;
 }

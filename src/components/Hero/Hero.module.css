@@ -1,9 +1,21 @@
 /* ==========================================================================
-   Hero — coreografia de entrada (glitch do logo), Ken Burns e fade dos efeitos.
-   Só transform/opacity/clip-path/filter por poucos ms; nada roda em loop pesado.
+   Hero — performance em dois níveis (html[data-perf]):
+   - leve (celulares, PCs simples, SSR): tudo estático e visível desde a 1ª pintura;
+     sem blend, sem filter em elementos grandes, sem animação infinita, sem JS por frame.
+   - completo (desktop capaz): Ken Burns + parallax (CSS ligado ao scroll, no compositor),
+     glitch decorativo do logo, cursor, "luzes acendendo" — disparados por [data-intro="play"].
+   Só transform/opacity animados; fora da tela [data-paused] congela os loops.
    ========================================================================== */
 
-/* ---------- Logo: estados pre → intro → idle ⇄ glitch ---------- */
+/* Fora da tela / aba oculta (modo completo): congela os loops CSS do hero.
+   As animações ligadas ao scroll ficam de fora (acompanham a rolagem, não o relógio). */
+.hero[data-paused] *:not(.bgParallax, .contentParallax),
+.hero[data-paused] *::before,
+.hero[data-paused] *::after {
+  animation-play-state: paused !important;
+}
+
+/* ---------- Logo: sempre visível; glitch decorativo por cima (idle → intro/glitch → idle) ---------- */
 
 .logo {
   position: relative;
@@ -14,9 +26,14 @@
 .base {
   position: relative;
   display: block;
+}
+
+/* brilho vermelho suave do logo: drop-shadow só no modo completo (no leve, filter em imagem grande custa caro) */
+:global(html[data-perf="full"]) .base {
   filter: drop-shadow(0 0 22px rgb(255 36 20 / 0.18)) drop-shadow(0 0 1px rgb(0 0 0 / 0.9));
 }
 
+/* cópias RGB (só montadas no modo completo) */
 .slice {
   position: absolute;
   inset: 0;
@@ -33,7 +50,7 @@
   filter: drop-shadow(5px 0 0 rgb(255 20 147 / 0.95));
 }
 
-/* barra de varredura CRT que atravessa o logo durante a entrada */
+/* barra de varredura CRT que atravessa o logo na entrada */
 .scan {
   position: absolute;
   inset: -6% -4%;
@@ -50,12 +67,8 @@
   box-shadow: 0 0 18px 4px rgb(0 229 255 / 0.45);
 }
 
-.logo[data-state="pre"] .base {
-  opacity: 0;
-}
-
 .logo[data-state="intro"] .base {
-  animation: logo-in 0.56s linear both;
+  animation: logo-jolt 0.56s linear both;
 }
 .logo[data-state="intro"] .sliceA {
   animation: slice-a 0.5s steps(1, end) both;
@@ -77,59 +90,46 @@
   animation: slice-b 0.34s steps(1, end) both;
 }
 
-@keyframes logo-in {
+/* tranco do "sinal entrando": só transform/opacity, e o logo nunca some (já está pintado) */
+@keyframes logo-jolt {
   0% {
-    opacity: 0;
-    transform: translate3d(0, 0, 0) scale(1.05);
-    filter: drop-shadow(-16px 0 0 rgb(0 229 255 / 0.9)) drop-shadow(16px 0 0 rgb(255 20 147 / 0.9));
-  }
-  8% {
-    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1.03);
   }
   16% {
-    opacity: 0.25;
-    transform: translate3d(-8px, 0, 0) skewX(-10deg) scale(1.03);
+    opacity: 0.55;
+    transform: translate3d(-8px, 0, 0) skewX(-10deg) scale(1.02);
   }
   24% {
     opacity: 1;
-    transform: translate3d(6px, 0, 0) skewX(5deg) scale(1.02);
-    filter: drop-shadow(-10px 0 0 rgb(0 229 255 / 0.85)) drop-shadow(10px 0 0 rgb(255 20 147 / 0.85));
+    transform: translate3d(6px, 0, 0) skewX(5deg) scale(1.01);
   }
   34% {
-    opacity: 0.55;
+    opacity: 0.75;
     transform: translate3d(-3px, 0, 0) skewX(-3deg);
   }
   44% {
     opacity: 1;
     transform: translate3d(2px, 0, 0);
-    filter: drop-shadow(-5px 0 0 rgb(0 229 255 / 0.7)) drop-shadow(5px 0 0 rgb(255 20 147 / 0.7));
   }
-  60% {
-    transform: translate3d(0, 0, 0);
-    filter: drop-shadow(-2px 0 0 rgb(0 229 255 / 0.5)) drop-shadow(2px 0 0 rgb(255 20 147 / 0.5));
-  }
+  60%,
   100% {
     opacity: 1;
     transform: none;
-    filter: drop-shadow(0 0 22px rgb(255 36 20 / 0.18)) drop-shadow(0 0 1px rgb(0 0 0 / 0.9));
   }
 }
 
 @keyframes logo-rgb {
   0% {
     transform: translate3d(0, 0, 0);
-    filter: drop-shadow(-7px 0 0 rgb(0 229 255 / 0.85)) drop-shadow(7px 0 0 rgb(255 20 147 / 0.85));
   }
   30% {
     transform: translate3d(-4px, 0, 0) skewX(-6deg);
   }
   55% {
     transform: translate3d(3px, 0, 0);
-    filter: drop-shadow(-3px 0 0 rgb(0 229 255 / 0.6)) drop-shadow(3px 0 0 rgb(255 20 147 / 0.6));
   }
   100% {
     transform: none;
-    filter: drop-shadow(0 0 22px rgb(255 36 20 / 0.18)) drop-shadow(0 0 1px rgb(0 0 0 / 0.9));
   }
 }
 
@@ -215,16 +215,14 @@
   }
 }
 
-/* ---------- Fundo: Ken Burns lento (inicia após a intro) ---------- */
+/* ---------- Fundo (modo completo): Ken Burns lento + parallax ligado ao scroll ---------- */
 
-.kenburns {
-  transform: scale(1.06);
-  transform-origin: 42% 38%;
-}
-
-.kenburnsOn {
-  animation: ken-burns 28s ease-in-out infinite alternate;
-  will-change: transform;
+@media (prefers-reduced-motion: no-preference) {
+  :global(html[data-perf="full"]) .kenburns {
+    transform: scale(1.06);
+    transform-origin: 42% 38%;
+    animation: ken-burns 28s ease-in-out infinite alternate;
+  }
 }
 
 @keyframes ken-burns {
@@ -234,6 +232,77 @@
   to {
     /* zoom contido: as fotos de evento têm resolução limitada, ampliar demais amolece o DJ */
     transform: scale(1.12) translate3d(-1.2%, -1%, 0);
+  }
+}
+
+/* Parallax sem JavaScript: scroll-driven animation (roda no compositor). Sem suporte → estático. */
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) and (min-width: 64rem) {
+    :global(html[data-perf="full"]) .bgParallax {
+      animation-name: hero-bg-drift;
+      animation-duration: auto;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: scroll(root);
+      animation-range: 0px 1000px;
+    }
+
+    :global(html[data-perf="full"]) .contentParallax {
+      animation-name: hero-content-fade, hero-content-lift;
+      animation-duration: auto, auto;
+      animation-timing-function: linear, linear;
+      animation-fill-mode: both, both;
+      animation-timeline: scroll(root), scroll(root);
+      animation-range:
+        0px 560px,
+        0px 700px;
+    }
+  }
+}
+
+@keyframes hero-bg-drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 260px, 0);
+  }
+}
+
+@keyframes hero-content-fade {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes hero-content-lift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(0, -120px, 0);
+  }
+}
+
+/* "luzes acendendo": o fundo começa escuro e clareia quando o show abre (modo completo) */
+.lightsOn {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hero[data-intro="play"] .lightsOn {
+  animation: lights-on 1.4s ease-out both;
+}
+
+@keyframes lights-on {
+  from {
+    opacity: 0.6;
+  }
+  to {
+    opacity: 0;
   }
 }
 
@@ -252,7 +321,32 @@
   }
 }
 
-/* ---------- Caret do "DJ & VJ" digitado ---------- */
+/* ---------- "DJ & VJ": linhas que se estendem + cursor que digita por cima (modo completo) ---------- */
+
+.hero[data-intro="play"] .lineIn {
+  animation: line-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both;
+}
+
+@keyframes line-in {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.caretTrack {
+  position: absolute;
+  inset: 0;
+  display: none;
+  pointer-events: none;
+}
+
+.hero[data-intro="play"] .caretTrack {
+  display: block;
+  animation: caret-sweep 0.35s steps(7, end) 0.34s both;
+}
 
 .caret {
   position: absolute;
@@ -263,24 +357,30 @@
   translate: 0 -50%;
   background: var(--color-cyan);
   box-shadow: 0 0 12px rgb(0 229 255 / 0.7);
-  animation: caret 0.9s steps(1, end) 3 both;
+  animation: caret-blink 0.9s steps(1, end) 0.7s 3 both;
 }
 
-@keyframes caret {
+@keyframes caret-sweep {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(100%, 0, 0);
+  }
+}
+
+@keyframes caret-blink {
   0%,
   49% {
     opacity: 1;
   }
   50%,
-  99% {
-    opacity: 0;
-  }
   100% {
     opacity: 0;
   }
 }
 
-/* ---------- Camadas de luz e sombra sobre a foto ---------- */
+/* ---------- Camadas de luz e sombra sobre a foto (estáticas, sem blend) ---------- */
 
 /* retrato/mobile: texto embaixo → escurece de baixo para cima */
 .shadeBottom {
@@ -302,7 +402,7 @@
     linear-gradient(to bottom, rgb(5 5 5 / 0.75) 0%, transparent 22%);
 }
 
-/* lavagem de cor: magenta, roxo e o vermelho do logo */
+/* lavagem de cor: magenta, roxo e o vermelho do logo (blend normal — sem recomposição por frame) */
 .wash {
   opacity: 0.75;
   transition: opacity 0.8s ease;
@@ -322,7 +422,7 @@
   background: radial-gradient(ellipse 85% 75% at 50% 45%, transparent 55%, rgb(0 0 0 / 0.7) 100%);
 }
 
-/* scanlines sem mix-blend (barato para touch/mobile) */
+/* scanlines sem mix-blend (modo leve) */
 .scanlinesLite {
   background: repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.22) 0 1px, transparent 1px 3px);
 }

@@ -169,6 +169,16 @@ export function SparkIcon(props: IconProps) {
   );
 }
 
+export function CalendarIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <rect x="3.5" y="5" width="17" height="15.5" rx="2.5" {...stroke} />
+      <path d="M3.5 10h17M8 3v4M16 3v4" {...stroke} />
+      <path d="M8 14h2M12 14h2M16 14h.01M8 17h2M12 17h2" {...stroke} />
+    </svg>
+  );
+}
+
 /** Knob do logo (o "O" de BETO) — símbolo da marca. */
 export function KnobIcon(props: IconProps) {
   return (

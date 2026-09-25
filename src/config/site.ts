@@ -6,6 +6,7 @@
 const whatsappNumber = "5519996441824";
 const whatsappMessage =
   "Olá Beto! Vi seu site e gostaria de saber mais sobre seu trabalho para um evento.";
+const availabilityMessage = "Olá Beto! Vi seu site e gostaria de verificar sua disponibilidade para uma data.";
 
 export const siteConfig = {
   name: "DJ BetoBrizz",
@@ -29,6 +30,9 @@ export const siteConfig = {
   whatsappDisplay: "+55 19 99644-1824",
   whatsappMessage,
   whatsappUrl: `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`,
+  /** CTA principal ("VERIFICAR DISPONIBILIDADE") — WhatsApp com mensagem sobre data. */
+  availabilityMessage,
+  availabilityUrl: `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(availabilityMessage)}`,
 
   instagram: "https://www.instagram.com/djbetobrizzoficial/",
   instagramHandle: "@djbetobrizzoficial",
@@ -38,7 +42,10 @@ export const siteConfig = {
   soundcloudName: "Beto Brizz DJ",
 
   logo: {
+    /** Alta resolução — usada só no hero (imagem LCP). */
     src: "/images/logo/betobrizz-logo.webp",
+    /** Versão leve para cabeçalho, rodapé e selos. */
+    srcSmall: "/images/logo/betobrizz-logo-sm.webp",
     /** PNG para JSON-LD / compartilhamento. */
     png: "/images/logo/betobrizz-logo.png",
     alt: "DJ BetoBrizz",

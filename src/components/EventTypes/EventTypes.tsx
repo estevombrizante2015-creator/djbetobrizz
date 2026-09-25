@@ -4,30 +4,15 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Reveal } from "@/components/ui/Reveal";
 import { NeonButton } from "@/components/ui/NeonButton";
 import { MapPinIcon, WhatsAppIcon } from "@/components/ui/Icons";
-import { cn } from "@/lib/utils";
 import { PadGrid } from "./PadGrid";
+import styles from "./EventTypes.module.css";
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
-
-/** Parafuso do chassi (decorativo). */
-function Screw({ className }: { className: string }) {
-  return (
-    <span
-      aria-hidden
-      className={cn(
-        "absolute grid size-2.5 place-items-center rounded-full bg-gradient-to-br from-white/25 to-white/5 ring-1 ring-black/60",
-        className,
-      )}
-    >
-      <span className="h-px w-1.5 rotate-45 bg-black/70" />
-    </span>
-  );
-}
 
 /**
  * TIPOS DE EVENTO (§55) + ATENDIMENTO REGIONAL (§54).
  * Os tipos viram pads iluminados de uma controladora; ao lado, um "radar" com as
- * cidades atendidas e o CTA "VER DISPONIBILIDADE".
+ * cidades atendidas e o CTA "VERIFICAR DISPONIBILIDADE".
  */
 export function EventTypes() {
   const cities = siteConfig.cities;
@@ -63,10 +48,7 @@ export function EventTypes() {
           {/* ===== Chassi da controladora ===== */}
           <Reveal className="lg:col-span-8">
             <div className="relative flex h-full flex-col rounded-2xl border border-line-strong/60 bg-gradient-to-b from-panel-2 to-ink p-3 shadow-[inset_0_1px_0_rgb(255_255_255/0.06),0_30px_60px_-30px_rgb(0_0_0/0.9)] sm:p-6">
-              <Screw className="top-2 left-2 sm:top-3 sm:left-3" />
-              <Screw className="top-2 right-2 sm:top-3 sm:right-3" />
-              <Screw className="bottom-2 left-2 sm:bottom-3 sm:left-3" />
-              <Screw className="right-2 bottom-2 sm:right-3 sm:bottom-3" />
+              <span aria-hidden className={styles.screws} />
 
               {/* Barra de modos (decorativa) */}
               <div aria-hidden className="mb-3 flex items-center justify-between gap-3 px-3 sm:mb-5 sm:px-2">
@@ -96,7 +78,7 @@ export function EventTypes() {
           </Reveal>
 
           {/* ===== Área de atendimento (radar) ===== */}
-          <Reveal className="lg:col-span-4" delay={0.1}>
+          <Reveal className="lg:col-span-4" step={2}>
             <div className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-ink/80 p-5 sm:p-6">
               <p className="hud flex items-center gap-2 text-[0.7rem] text-red">
                 <MapPinIcon size={16} />
@@ -138,11 +120,7 @@ export function EventTypes() {
                         {city}
                       </span>
                       {/* "sinal" decorativo */}
-                      <span aria-hidden className="ml-auto flex items-end gap-0.5">
-                        <span className="h-1.5 w-0.5 bg-red/70" />
-                        <span className="h-2.5 w-0.5 bg-red/70" />
-                        <span className="h-3.5 w-0.5 bg-red/70" />
-                      </span>
+                      <span aria-hidden className={styles.signal} />
                     </li>
                   ))}
                 </ul>
@@ -152,7 +130,7 @@ export function EventTypes() {
 
               <div className="mt-6 lg:mt-auto lg:pt-6">
                 <NeonButton
-                  href={siteConfig.whatsappUrl}
+                  href={siteConfig.availabilityUrl}
                   external
                   variant="red"
                   icon={<WhatsAppIcon size={18} />}
@@ -160,7 +138,7 @@ export function EventTypes() {
                   eventParams={{ cta: "ver_disponibilidade" }}
                   className="w-full"
                 >
-                  Ver disponibilidade
+                  Verificar disponibilidade
                 </NeonButton>
               </div>
             </div>

@@ -276,7 +276,9 @@ function Deck({ side, style, linked, jolt = false, onJoltEnd }: DeckProps) {
               isDj ? "text-red text-glow-red" : "text-transparent [-webkit-text-stroke:2px_var(--color-cyan)]",
             )}
           >
-            <span className={cn("glitch", !isDj && jolt && "is-glitching")} data-text={d.title}>
+            {/* O texto do glitch (data-text) duplicaria o nome do título: o leitor de tela lê só o sr-only. */}
+            <span className="sr-only">{d.title}</span>
+            <span aria-hidden className={cn("glitch", !isDj && jolt && "is-glitching")} data-text={d.title}>
               {d.title}
             </span>
           </h3>

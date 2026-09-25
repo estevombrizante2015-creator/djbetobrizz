@@ -2,12 +2,11 @@
 
 import { useEffect, useRef } from "react";
 import { useExperience } from "./ExperienceContext";
-import { useHydrated } from "./useHydrated";
 import { cn } from "@/lib/utils";
 
 export type ParticlesProps = {
   className?: string;
-  /** Multiplicador de densidade (1 = padrão). Reduzido automaticamente no mobile. */
+  /** Multiplicador de densidade (1 = padrão). */
   density?: number;
   /** Cores das partículas (CSS). */
   colors?: string[];
@@ -15,10 +14,14 @@ export type ParticlesProps = {
 
 const DEFAULT_COLORS = ["#ff1493", "#00e5ff", "#8a2be2", "#ff2414", "#ffffff"];
 
-/** Área (px²) por partícula na densidade 1. */
-const AREA_PER_PARTICLE = 11000;
-const MAX_PARTICLES = 240;
+/** Área (px²) por partícula na densidade 1 (~65 partículas num notebook 1366×768). */
+const AREA_PER_PARTICLE = 16000;
+const MAX_PARTICLES = 120;
 const SPRITE = 64;
+/** Teto de resolução do canvas (monitores retina/4K não precisam de 2×+ para poeira desfocada). */
+const MAX_DPR = 1.5;
+/** Intervalo mínimo entre quadros: ~60 fps mesmo em monitores de 120/144 Hz. */
+const MIN_FRAME_MS = 15;
 
 type Particle = {
   x: number;
@@ -82,28 +85,28 @@ function spawn(w: number, h: number, colors: number, anywhere: boolean): Particl
 
 /**
  * Poeira neon / bokeh subindo lentamente em <canvas>.
- * - DPR-aware, redimensiona com ResizeObserver;
- * - pausa fora da tela (IntersectionObserver) e com a aba oculta;
- * - quantidade = área × densidade (≈40% fora do desktop, ×1,8 no Experience Mode);
- * - não renderiza nada com prefers-reduced-motion.
+ * - Só no desktop capaz (modo completo): no modo leve, no SSR e com movimento reduzido não renderiza nada;
+ * - DPR ≤ 1,5, ~60 fps no máximo, redimensiona com ResizeObserver;
+ * - pausa fora da tela (IntersectionObserver) e com a aba oculta (e só escuta o scroll enquanto roda);
+ * - quantidade = área × densidade (×1,5 no Experience Mode).
  */
 export function Particles({ className, density = 1, colors = DEFAULT_COLORS }: ParticlesProps) {
   const ref = useRef<HTMLCanvasElement>(null);
-  const { reducedMotion: prefersReduced, isDesktop, experienceMode } = useExperience();
-  const reducedMotion = useHydrated() && prefersReduced;
+  const { reducedMotion, isDesktop, experienceMode } = useExperience();
+  const enabled = isDesktop && !reducedMotion;
   const colorKey = colors.join("|");
 
   useEffect(() => {
     const canvas = ref.current;
-    if (!canvas || reducedMotion) return;
+    if (!canvas || !enabled) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     const palette = colorKey.split("|").filter(Boolean);
     const sprites = (palette.length ? palette : DEFAULT_COLORS).map(makeSprite);
-    const factor = density * (isDesktop ? 1 : 0.4) * (experienceMode ? 1.8 : 1);
+    const factor = density * (experienceMode ? 1.5 : 1);
     const speed = experienceMode ? 1.6 : 1;
-    const dpr = Math.min(window.devicePixelRatio || 1, isDesktop ? 2 : 1.5);
+    const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
 
     let w = 0;
     let h = 0;
@@ -130,6 +133,8 @@ export function Particles({ className, density = 1, colors = DEFAULT_COLORS }: P
     };
 
     const draw = (time: number) => {
+      raf = requestAnimationFrame(draw);
+      if (last && time - last < MIN_FRAME_MS) return;
       const dt = Math.min(0.05, last ? (time - last) / 1000 : 0.016);
       last = time;
       energy *= 0.93;
@@ -150,23 +155,26 @@ export function Particles({ className, density = 1, colors = DEFAULT_COLORS }: P
         ctx.drawImage(sprites[p.color], x - p.size / 2, p.y - p.size / 2, p.size, p.size);
       }
       ctx.globalAlpha = 1;
-      raf = requestAnimationFrame(draw);
-    };
-
-    const start = () => {
-      if (raf || !inView || document.hidden) return;
-      last = 0;
-      raf = requestAnimationFrame(draw);
-    };
-    const stop = () => {
-      cancelAnimationFrame(raf);
-      raf = 0;
     };
 
     const onScroll = () => {
       const y = window.scrollY;
       energy = Math.min(1, energy + Math.abs(y - lastScroll) / 600);
       lastScroll = y;
+    };
+
+    const start = () => {
+      if (raf || !inView || document.hidden) return;
+      last = 0;
+      lastScroll = window.scrollY;
+      window.addEventListener("scroll", onScroll, { passive: true });
+      raf = requestAnimationFrame(draw);
+    };
+    const stop = () => {
+      if (!raf) return;
+      cancelAnimationFrame(raf);
+      raf = 0;
+      window.removeEventListener("scroll", onScroll);
     };
     const onVisibility = () => (document.hidden ? stop() : start());
 
@@ -180,18 +188,16 @@ export function Particles({ className, density = 1, colors = DEFAULT_COLORS }: P
     });
     io.observe(canvas);
     document.addEventListener("visibilitychange", onVisibility);
-    window.addEventListener("scroll", onScroll, { passive: true });
 
     return () => {
       stop();
       ro.disconnect();
       io.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
-      window.removeEventListener("scroll", onScroll);
     };
-  }, [reducedMotion, isDesktop, experienceMode, density, colorKey]);
+  }, [enabled, experienceMode, density, colorKey]);
 
-  if (reducedMotion) return null;
+  if (!enabled) return null;
 
   return (
     <canvas

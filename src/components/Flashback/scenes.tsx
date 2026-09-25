@@ -4,7 +4,10 @@ import { KnobIcon } from "@/components/ui/Icons";
 import { cn, getImageMeta } from "@/lib/utils";
 import styles from "./Flashback.module.css";
 
-/** Cenários visuais da máquina do tempo. */
+/**
+ * Cenários visuais da máquina do tempo. As animações infinitas destes cenários são só CSS
+ * (Flashback.module.css) e ficam paradas no modo leve — o quadro estático já é a arte final.
+ */
 export type SceneKey = "synth" | "rave" | "y2k" | "now";
 
 const ORDER: SceneKey[] = ["synth", "rave", "y2k", "now"];
@@ -235,14 +238,6 @@ export function SceneProp({ scene, year }: { scene: SceneKey; year: string }) {
   }
 }
 
-/** Largura relativa de cada objeto (em % da coluna da TV). */
-export const propWidth: Record<SceneKey, string> = {
-  synth: "w-[34%]",
-  rave: "w-[30%]",
-  y2k: "w-[19%]",
-  now: "w-[30%]",
-};
-
 function Cassette({ year }: { year: string }) {
   return (
     <svg viewBox="0 0 240 152" className={styles.cassette}>
@@ -267,8 +262,18 @@ function Cassette({ year }: { year: string }) {
       <text x="212" y="33" textAnchor="end" fill="rgb(255 255 255 / 0.6)" style={{ fontFamily: "var(--font-rajdhani), sans-serif" }} fontWeight="700" fontSize="10" letterSpacing="2">
         SIDE A
       </text>
-      <text x="28" y="72" style={{ fill: "var(--color-magenta)", fontFamily: "var(--font-vt323), monospace" }} fontSize="15" letterSpacing="1">
-        MIX {year}
+      {/* "MIX" + ano em 2 linhas, à esquerda da janela (x < 62) — o ano cabe mesmo com 5+ caracteres */}
+      <text x="24" y="60" fill="rgb(255 255 255 / 0.5)" style={{ fontFamily: "var(--font-vt323), monospace" }} fontSize="11" letterSpacing="1">
+        MIX
+      </text>
+      <text
+        x="24"
+        y="74"
+        style={{ fill: "var(--color-magenta)", fontFamily: "var(--font-vt323), monospace" }}
+        fontSize="15"
+        {...(year.length > 4 ? { textLength: 34, lengthAdjust: "spacingAndGlyphs" as const } : {})}
+      >
+        {year}
       </text>
       <text x="212" y="72" textAnchor="end" fill="rgb(255 255 255 / 0.45)" style={{ fontFamily: "var(--font-vt323), monospace" }} fontSize="13">
         C-90
@@ -327,6 +332,9 @@ function HoloCd({ year }: { year: string }) {
   );
 }
 
+/** Alturas estáticas do EQ do MP3 (modo leve / movimento reduzido). */
+const EQ_LEVELS = [0.45, 0.8, 0.6, 1, 0.7, 0.4, 0.62];
+
 function Mp3Player({ year }: { year: string }) {
   return (
     <div className={styles.mp3}>
@@ -334,8 +342,8 @@ function Mp3Player({ year }: { year: string }) {
         <span className={styles.mp3Line}>▶ NOW PLAYING</span>
         <span className={styles.mp3Title}>{year} HITS</span>
         <span className={styles.mp3Eq}>
-          {Array.from({ length: 7 }, (_, i) => (
-            <span key={i} style={{ animationDelay: `${-i * 0.17}s` }} />
+          {EQ_LEVELS.map((h, i) => (
+            <span key={i} style={{ animationDelay: `${-i * 0.17}s`, "--h": h } as React.CSSProperties} />
           ))}
         </span>
         <span className={styles.mp3Bar} />

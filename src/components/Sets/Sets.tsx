@@ -59,7 +59,7 @@ export function Sets() {
           alt=""
           sizes="(min-width: 768px) 100vw, 1px"
           quality={60}
-          className="absolute inset-0 h-full w-full object-cover opacity-[0.13] grayscale-[35%]"
+          className="absolute inset-0 h-full w-full object-cover opacity-[0.12] [html[data-perf=full]_&]:opacity-[0.13] [html[data-perf=full]_&]:grayscale-[35%]"
           style={{
             maskImage: "linear-gradient(to bottom, transparent 0%, #000 25%, #000 55%, transparent 95%)",
             WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, #000 25%, #000 55%, transparent 95%)",

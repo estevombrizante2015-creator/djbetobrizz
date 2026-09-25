@@ -160,6 +160,7 @@ export function Header() {
         >
           <Logo
             eager
+            hd={false}
             alt=""
             sizes="(min-width: 1280px) 136px, (min-width: 1024px) 124px, 108px"
             className="transition-[filter] duration-300 group-hover/logo:drop-shadow-[0_0_12px_rgb(255_36_20/0.5)]"

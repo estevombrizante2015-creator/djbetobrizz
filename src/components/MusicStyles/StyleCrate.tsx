@@ -1,11 +1,8 @@
-"use client";
-
-import { useEffect, useId, useRef, type CSSProperties } from "react";
-import { motion, type Variants } from "motion/react";
+import type { CSSProperties } from "react";
 import type { Accent, musicStyles } from "@/data/content";
 import { KnobIcon } from "@/components/ui/Icons";
-import { ease, stagger } from "@/lib/animations";
 import { cn } from "@/lib/utils";
+import { CrateCarousel } from "./CrateCarousel";
 import styles from "./MusicStyles.module.css";
 
 type StyleItem = (typeof musicStyles)[number];
@@ -18,89 +15,34 @@ const accentVar: Record<Accent, string> = {
   red: "var(--color-red)",
 };
 
-const cardIn: Variants = {
-  hidden: { opacity: 0, y: 36 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.75, ease: ease.out } },
-};
-
-/** O vinil "sai" da capa logo depois que o card entra. */
-const recordOut: Variants = {
-  hidden: { x: "-24%" },
-  show: { x: "0%", transition: { duration: 1.1, ease: ease.out, delay: 0.3 } },
-};
+/** Entrada escalonada por coluna (CSS scroll-driven, só no modo completo). */
+const revealStep = ["reveal", "reveal reveal-2", "reveal reveal-3"] as const;
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
+/** O til da Orbitron parece crase (Ã → À): títulos com til usam a fonte HUD. */
+const hasTilde = (s: string) => /[ãõñÃÕÑ]/.test(s);
+
 /**
  * Caixa de discos: cada estilo musical é uma capa de vinil. Desktop: grade 3 colunas
- * (2 no tablet) com o disco deslizando e girando no hover. Mobile: carrossel com snap.
+ * (2 no tablet) com o disco deslizando (e girando, no modo completo) no hover. Mobile: carrossel com snap.
+ * Renderizado no servidor — só o carrossel (CrateCarousel) é cliente.
+ * Modo leve: capas estáticas, disco já parcialmente fora, sem filtros nem blend.
  */
 export function StyleCrate({ items }: { items: StyleItem[] }) {
-  const listRef = useRef<HTMLUListElement>(null);
-  const barRef = useRef<HTMLSpanElement>(null);
-
-  // Indicador de progresso do carrossel (mobile) — atualiza via CSS var, sem re-render.
-  useEffect(() => {
-    const list = listRef.current;
-    const bar = barRef.current;
-    if (!list || !bar) return;
-    let raf = 0;
-    const update = () => {
-      raf = 0;
-      const max = list.scrollWidth - list.clientWidth;
-      bar.style.setProperty("--p", String(max > 0 ? list.scrollLeft / max : 0));
-    };
-    const onScroll = () => {
-      if (!raf) raf = requestAnimationFrame(update);
-    };
-    update();
-    list.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      cancelAnimationFrame(raf);
-      list.removeEventListener("scroll", onScroll);
-    };
-  }, []);
-
   const half = Math.ceil(items.length / 2);
 
   return (
-    <>
-      <motion.ul
-        ref={listRef}
-        variants={stagger(0.09)}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.15 }}
-        className={cn(
-          "-mx-4 mt-12 flex snap-x snap-mandatory scroll-px-4 gap-5 overflow-x-auto px-4 pt-2 pb-8",
-          "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
-          "sm:mx-0 sm:mt-16 sm:grid sm:grid-cols-2 sm:gap-x-8 sm:gap-y-14 sm:overflow-visible sm:px-0 sm:pb-0",
-          "lg:grid-cols-3 lg:gap-x-10 lg:gap-y-16",
-        )}
-      >
-        {items.map((item, i) => (
-          <RecordSleeve
-            key={`${item.title}-${i}`}
-            item={item}
-            index={i}
-            track={i < half ? `A${i + 1}` : `B${i - half + 1}`}
-          />
-        ))}
-      </motion.ul>
-
-      {/* Progresso do carrossel — só no mobile */}
-      <div aria-hidden className="mt-1 flex items-center gap-4 sm:hidden">
-        <span className="hud text-[0.65rem] text-mute">Arraste</span>
-        <span className="relative h-px flex-1 overflow-hidden bg-line-strong">
-          <span
-            ref={barRef}
-            className="absolute inset-y-0 left-0 w-1/4 bg-cyan shadow-neon-cyan"
-            style={{ transform: "translateX(calc(var(--p, 0) * 300%))" }}
-          />
-        </span>
-        <span className="hud text-[0.65rem] text-mute">{pad(items.length)} discos</span>
-      </div>
-    </>
+    <CrateCarousel count={items.length}>
+      {items.map((item, i) => (
+        <RecordSleeve
+          key={`${item.title}-${i}`}
+          item={item}
+          index={i}
+          track={i < half ? `A${i + 1}` : `B${i - half + 1}`}
+        />
+      ))}
+    </CrateCarousel>
   );
 }
 
@@ -113,24 +55,27 @@ function RecordSleeve({ item, index, track }: { item: StyleItem; index: number; 
   const variant = index % 6;
 
   return (
-    <motion.li
-      variants={cardIn}
-      className={cn("group w-[80%] max-w-[21rem] shrink-0 snap-start sm:w-auto sm:max-w-none", styles.card)}
+    <li
+      className={cn(
+        "group w-[80%] max-w-[21rem] shrink-0 snap-start sm:w-auto sm:max-w-none",
+        revealStep[index % 3],
+        styles.card,
+      )}
       style={{ "--acc": accentVar[item.accent] } as CSSProperties}
     >
       <div className={styles.lift}>
         <div className="relative aspect-[1.32/1]">
           {/* Vinil */}
           <div aria-hidden className={styles.recordTrack}>
-            <motion.div variants={recordOut} className="relative size-full">
+            <div className={styles.recordOut}>
               <div className={styles.recordSpin} />
               <span className={styles.recordSheen} />
-            </motion.div>
+            </div>
           </div>
 
           {/* Capa */}
           <div className={styles.sleeve}>
-            <SleeveArt variant={variant} />
+            <SleeveArt variant={variant} index={index} />
             <div className={styles.scrim} />
 
             <div className="absolute inset-x-[7%] top-[6.5%] flex items-start justify-between" aria-hidden>
@@ -142,10 +87,16 @@ function RecordSleeve({ item, index, track }: { item: StyleItem; index: number; 
             </div>
 
             <h3
-              className={cn("absolute inset-x-[7%] bottom-[7%] font-display font-black text-white uppercase", styles.title)}
+              className={cn(
+                "absolute inset-x-[7%] bottom-[7%] font-black text-white uppercase",
+                hasTilde(item.title) ? "font-hud" : "font-display",
+                styles.title,
+              )}
               style={{ fontSize: titleSize }}
             >
-              <span className="glitch" data-text={stacked}>
+              {/* O conteúdo gerado do .glitch (data-text) entra no nome acessível — leitor de tela lê só o texto limpo. */}
+              <span className="sr-only">{item.title}</span>
+              <span aria-hidden className="glitch" data-text={stacked}>
                 {stacked}
               </span>
             </h3>
@@ -154,22 +105,21 @@ function RecordSleeve({ item, index, track }: { item: StyleItem; index: number; 
 
         {/* Encarte */}
         <div className="mt-5 flex items-baseline gap-4 pr-[12%]">
-          <span className="hud shrink-0 text-white">
-            <span aria-hidden className="mr-2 inline-block size-1.5 -translate-y-px rounded-full bg-(--acc) shadow-[0_0_10px_var(--acc)]" />
+          <span aria-hidden className="hud shrink-0 text-white">
+            <span className="mr-2 inline-block size-1.5 -translate-y-px rounded-full bg-(--acc) shadow-[0_0_10px_var(--acc)]" />
             {track}
           </span>
           <p className="text-[0.95rem] leading-relaxed text-mute">{item.text}</p>
         </div>
       </div>
-    </motion.li>
+    </li>
   );
 }
 
 /** Estampa da capa — seis variações em ciclo, todas na cor de destaque do estilo. */
-function SleeveArt({ variant }: { variant: number }) {
-  const gradientId = `bb-flame-${useId().replace(/:/g, "")}`;
+function SleeveArt({ variant, index }: { variant: number; index: number }) {
   if (variant === 4) {
-    // Forma de onda (estilo player)
+    // Forma de onda (estilo player) — um único <path>
     const bars = Array.from({ length: 44 }, (_, i) => {
       const x = 7 + i * 2;
       const a = 3 + 17 * Math.abs(Math.sin(i * 0.37) * Math.cos(i * 0.11 + 0.6)) + (i % 3) * 1.2;
@@ -185,10 +135,11 @@ function SleeveArt({ variant }: { variant: number }) {
     );
   }
   if (variant === 5) {
-    // Espectro em "chamas"
+    // Espectro em "chamas" (valores arredondados: idênticos no servidor e no navegador)
+    const gradientId = `bb-flame-${index}`;
     const bars = Array.from({ length: 15 }, (_, i) => {
       const h = 10 + 34 * Math.abs(Math.sin(i * 0.9 + 0.4)) * (0.55 + 0.45 * Math.cos(i * 0.33));
-      return { x: 8 + i * 5.8, h };
+      return { x: Number((8 + i * 5.8).toFixed(1)), h: Number(h.toFixed(2)) };
     });
     return (
       <div aria-hidden className={styles.art}>
@@ -200,7 +151,15 @@ function SleeveArt({ variant }: { variant: number }) {
             </linearGradient>
           </defs>
           {bars.map((b) => (
-            <rect key={b.x} x={b.x} y={62 - b.h} width="3.6" height={b.h} rx="0.6" fill={`url(#${gradientId})`} />
+            <rect
+              key={b.x}
+              x={b.x}
+              y={Number((62 - b.h).toFixed(2))}
+              width="3.6"
+              height={b.h}
+              rx="0.6"
+              fill={`url(#${gradientId})`}
+            />
           ))}
         </svg>
       </div>

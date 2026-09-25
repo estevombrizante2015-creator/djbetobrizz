@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useInView } from "motion/react";
-import { fadeUp, stagger } from "@/lib/animations";
 import { cn } from "@/lib/utils";
 
 type Accent = "magenta" | "cyan" | "purple" | "red";
@@ -38,6 +36,7 @@ type Props = {
 
 /**
  * Cabeçalho padrão das seções: kicker HUD + título display gigante + subtítulo.
+ * Entrada em CSS puro (.reveal, só no modo completo) — o texto nasce visível no HTML.
  */
 export function SectionHeading({
   kicker,
@@ -50,56 +49,57 @@ export function SectionHeading({
   id,
   children,
 }: Props) {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, amount: 0.6 });
+  const titleRef = useRef<HTMLSpanElement>(null);
   const [glitching, setGlitching] = useState(false);
 
+  // Um único glitch quando o título aparece (IntersectionObserver, sem custo por frame).
   useEffect(() => {
-    if (!inView || !glitch) return;
-    const start = window.setTimeout(() => setGlitching(true), 250);
-    const stop = window.setTimeout(() => setGlitching(false), 750);
+    const el = titleRef.current;
+    if (!glitch || !el) return;
+    let stop = 0;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        io.disconnect();
+        setGlitching(true);
+        stop = window.setTimeout(() => setGlitching(false), 600);
+      },
+      { threshold: 0.6 },
+    );
+    io.observe(el);
     return () => {
-      window.clearTimeout(start);
+      io.disconnect();
       window.clearTimeout(stop);
     };
-  }, [inView, glitch]);
+  }, [glitch]);
 
   return (
-    <motion.div
-      ref={ref}
-      variants={stagger(0.1)}
-      initial="hidden"
-      whileInView="show"
-      viewport={{ once: true, amount: 0.4 }}
-      className={cn("flex flex-col gap-4", align === "center" && "items-center text-center", className)}
-    >
+    <div className={cn("flex flex-col gap-4", align === "center" && "items-center text-center", className)}>
       {kicker ? (
-        <motion.p variants={fadeUp} className={cn("hud flex items-center gap-3", accentText[accent])}>
+        <p className={cn("reveal hud flex items-center gap-3", accentText[accent])}>
           <span aria-hidden className={cn("h-px w-8", accentBar[accent])} />
           {kicker}
-        </motion.p>
+        </p>
       ) : null}
-      <motion.h2
+      <h2
         id={id}
-        variants={fadeUp}
-        className="font-display text-[clamp(2.1rem,6.5vw,5.25rem)] leading-[0.95] font-black tracking-tight text-balance uppercase"
+        className="reveal font-display text-[clamp(2.1rem,6.5vw,5.25rem)] leading-[1.05] font-black tracking-tight text-balance uppercase"
       >
-        <span className={cn("glitch", glitching && "is-glitching")} data-text={title}>
+        <span ref={titleRef} className={cn("glitch", glitching && "is-glitching")} data-text={title}>
           {title}
         </span>
-      </motion.h2>
+      </h2>
       {subtitle ? (
-        <motion.p
-          variants={fadeUp}
+        <p
           className={cn(
-            "font-hud text-lg font-semibold tracking-[0.18em] uppercase sm:text-xl",
+            "reveal reveal-2 font-hud text-lg font-semibold tracking-[0.18em] uppercase sm:text-xl",
             accentText[accent],
           )}
         >
           {subtitle}
-        </motion.p>
+        </p>
       ) : null}
       {children}
-    </motion.div>
+    </div>
   );
 }

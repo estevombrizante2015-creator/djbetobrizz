@@ -1,7 +1,6 @@
 import { siteConfig } from "@/config/site";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Reveal } from "@/components/ui/Reveal";
-import { cn } from "@/lib/utils";
 import { DjVjStage } from "./DjVjStage";
 
 /** Cores do slogan: som (lado DJ) · vídeo (lado VJ) · entretenimento (o resultado). */
@@ -28,14 +27,14 @@ export function DjVj() {
           {tagline.length ? (
             <Reveal
               as="p"
-              delay={0.2}
+              step={3}
               className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 font-hud text-base font-semibold tracking-[0.14em] uppercase min-[400px]:text-lg sm:gap-x-4 sm:text-xl sm:tracking-[0.18em]"
             >
               <span className="sr-only">{siteConfig.tagline}</span>
               {tagline.map((part, i) => (
                 <span key={part} aria-hidden className="inline-flex items-center gap-2.5 sm:gap-4">
                   {i > 0 ? <span className="text-dim">•</span> : null}
-                  <span className={cn(taglineColors[i % taglineColors.length])}>{part}</span>
+                  <span className={taglineColors[i % taglineColors.length]}>{part}</span>
                 </span>
               ))}
             </Reveal>

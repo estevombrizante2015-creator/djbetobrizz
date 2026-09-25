@@ -58,9 +58,19 @@ type Props = {
   className?: string;
 };
 
+/** Barras como UM caminho SVG (em vez de centenas de <rect>): menos DOM, mesma forma. */
+function barsPath(peaks: number[], from: number, to: number, step: number) {
+  let d = "";
+  for (let i = from; i < to; i++) {
+    const h = peaks[i] * 94;
+    d += `M${i * step} ${(50 - h / 2).toFixed(2)}h${step - 1}v${h.toFixed(2)}h-${step - 1}z`;
+  }
+  return d;
+}
+
 /**
  * Forma de onda estática estilo CDJ: parte tocada em neon, restante apagada, playhead no cue.
- * SVG puro, gerado de forma determinística a partir do título.
+ * SVG puro (2 caminhos), gerado de forma determinística a partir do título.
  */
 export function Waveform({ seed, bars = 150, className }: Props) {
   const peaks = waveformPeaks(seed, bars);
@@ -85,20 +95,8 @@ export function Waveform({ seed, bars = 150, className }: Props) {
           </linearGradient>
         </defs>
         <line x1="0" x2={bars * step} y1="50" y2="50" stroke="rgb(255 255 255 / 0.12)" strokeWidth="0.6" vectorEffect="non-scaling-stroke" />
-        {peaks.map((p, i) => {
-          const h = p * 94;
-          return (
-            <rect
-              key={i}
-              x={i * step}
-              y={(50 - h / 2).toFixed(2)}
-              width={step - 1}
-              height={h.toFixed(2)}
-              rx="0.6"
-              fill={i < playedBars ? `url(#${gradId})` : "rgb(255 255 255 / 0.22)"}
-            />
-          );
-        })}
+        <path d={barsPath(peaks, 0, playedBars, step)} fill={`url(#${gradId})`} />
+        <path d={barsPath(peaks, playedBars, bars, step)} fill="rgb(255 255 255 / 0.22)" />
       </svg>
       {/* Playhead */}
       <span

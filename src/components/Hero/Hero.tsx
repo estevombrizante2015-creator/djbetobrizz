@@ -1,15 +1,12 @@
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
-import { HeroIntroProvider } from "./HeroIntro";
+import { HeroShell } from "./HeroIntro";
 import { HeroBackground } from "./HeroBackground";
 import { HeroFx } from "./HeroFx";
 import { HeroContent } from "./HeroContent";
 import { HeroBottom } from "./HeroBottom";
 import { HeroTimecode } from "./HeroTimecode";
 import styles from "./Hero.module.css";
-
-/** Sem JavaScript, nada da coreografia pode ficar invisível. */
-const NO_JS_CSS = ".hero-reveal{opacity:1!important;transform:none!important;clip-path:none!important}";
 
 const corner = "absolute h-4 w-4 border-white/35 sm:h-5 sm:w-5";
 
@@ -30,7 +27,8 @@ function HeroHud() {
 
       <div className="hud absolute top-0 left-6 flex -translate-y-1/2 items-center gap-3 text-[0.62rem] text-white/75 sm:left-8">
         <span className="flex items-center gap-1.5">
-          <span className="animate-rec h-1.5 w-1.5 rounded-full bg-red shadow-neon-red" />
+          {/* pisca só no modo completo */}
+          <span className="h-1.5 w-1.5 rounded-full bg-red shadow-neon-red motion-safe:[html[data-perf=full]_&]:animate-rec" />
           REC
         </span>
         <span className="text-white/45">CH-01</span>
@@ -47,47 +45,43 @@ function HeroHud() {
 
 /**
  * HERO — a abertura do show.
- * Camadas (de baixo para cima): foto/vídeo com Ken Burns · sombras e luz colorida · lasers e partículas ·
- * grão + scanlines · moldura HUD · conteúdo (h1 com logo, DJ & VJ, texto, CTAs) · equalizador + scroll.
+ * Camadas (de baixo para cima): foto (Ken Burns + parallax só no modo completo) · sombras e luz colorida ·
+ * lasers e partículas (modo completo) · grão + scanlines · moldura HUD · conteúdo (h1 com logo, DJ & VJ,
+ * texto, CTAs) · equalizador + scroll.
+ * Tudo que é conteúdo nasce visível no HTML do servidor; efeitos são decorativos e só no desktop capaz.
  */
 export function Hero() {
   return (
-    <section
+    <HeroShell
       id="inicio"
       aria-labelledby="hero-title"
-      className="relative isolate flex min-h-[100svh] flex-col overflow-hidden bg-void"
+      className={cn("relative isolate flex min-h-[100svh] flex-col overflow-hidden bg-void", styles.hero)}
     >
-      <HeroIntroProvider>
-        <HeroBackground />
+      <HeroBackground />
 
-        <div aria-hidden className="pointer-events-none absolute inset-0">
-          <div className={cn("absolute inset-0 lg:hidden", styles.shadeBottom)} />
-          <div className={cn("absolute inset-0 hidden lg:block", styles.shadeSide)} />
-          <div className={cn("absolute inset-0 lg:mix-blend-screen", styles.wash)} />
-          <div className={cn("absolute inset-0", styles.vignette)} />
-          <div className="absolute inset-x-0 bottom-0 h-28 bg-linear-to-t from-void to-transparent" />
-        </div>
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div className={cn("absolute inset-0 lg:hidden", styles.shadeBottom)} />
+        <div className={cn("absolute inset-0 hidden lg:block", styles.shadeSide)} />
+        <div className={cn("absolute inset-0", styles.wash)} />
+        <div className={cn("absolute inset-0", styles.vignette)} />
+        <div className="absolute inset-x-0 bottom-0 h-28 bg-linear-to-t from-void to-transparent" />
+      </div>
 
-        <HeroFx />
+      <HeroFx />
 
-        {/* textura CRT: grão + scanlines com blend no desktop; versão leve (sem blend) no touch */}
-        <div aria-hidden className="fx-desktop-only pointer-events-none absolute inset-0">
-          <div className="grain scanlines h-full w-full" />
-        </div>
-        <div aria-hidden className={cn("pointer-events-none absolute inset-0 [@media(hover:hover)]:hidden", styles.scanlinesLite)} />
+      {/* textura CRT: grão + scanlines com blend no modo completo; scanlines simples (sem blend) no leve */}
+      <div aria-hidden className="fx-full-only pointer-events-none absolute inset-0">
+        <div className="grain scanlines h-full w-full" />
+      </div>
+      <div aria-hidden className={cn("fx-lite-only pointer-events-none absolute inset-0", styles.scanlinesLite)} />
 
-        <HeroHud />
+      <HeroHud />
 
-        <div className={cn("container-bb relative z-10 flex flex-1 flex-col justify-end lg:justify-center", styles.stage)}>
-          <HeroContent />
-        </div>
+      <div className={cn("container-bb relative z-10 flex flex-1 flex-col justify-end lg:justify-center", styles.stage)}>
+        <HeroContent />
+      </div>
 
-        <HeroBottom />
-      </HeroIntroProvider>
-
-      <noscript>
-        <style>{NO_JS_CSS}</style>
-      </noscript>
-    </section>
+      <HeroBottom />
+    </HeroShell>
   );
 }

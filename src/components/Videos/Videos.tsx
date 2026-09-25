@@ -1,15 +1,24 @@
 import { videos } from "@/data/videos";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import type { CrtVideo } from "./CrtMonitor";
 import { VideoGrid } from "./VideoGrid";
 import { VideosShowcase } from "./VideosShowcase";
+import { resolveVideoSource } from "./video-source";
+
+/** A partir de quantos vídeos válidos a seção vira grade de cards. */
+const GRID_FROM = 3;
 
 /**
  * 08 // VÍDEOS — "SEE THE VIBE."
- * Com itens em `data/videos`: grade de cards com facade (o player só carrega no clique).
- * Sem itens: telão CRT + reel levando ao Instagram oficial.
+ * 0–2 vídeos válidos em `data/videos`: telão CRT (os vídeos tocam nele; sem vídeos, fotos reais)
+ * + reel levando ao Instagram oficial. 3 ou mais: grade de cards com facade.
+ * Em todos os casos o player só carrega no clique.
  */
 export function Videos() {
-  const hasVideos = videos.length > 0;
+  const playable: CrtVideo[] = videos.flatMap((item) => {
+    const source = resolveVideoSource(item);
+    return source ? [{ item, source }] : [];
+  });
 
   return (
     <section id="videos" aria-labelledby="videos-title" className="section-y relative overflow-hidden">
@@ -38,7 +47,7 @@ export function Videos() {
           <OnAirSign />
         </div>
 
-        {hasVideos ? <VideoGrid items={videos} /> : <VideosShowcase />}
+        {playable.length >= GRID_FROM ? <VideoGrid items={videos} /> : <VideosShowcase videos={playable} />}
       </div>
     </section>
   );

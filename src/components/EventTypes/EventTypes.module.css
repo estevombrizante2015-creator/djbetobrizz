@@ -1,0 +1,77 @@
+/* ==========================================================================
+   TIPOS DE EVENTO — controladora de pads + radar de atendimento.
+   Decoração em CSS estático (menos DOM); o único efeito com tempo é o flash
+   de checagem dos LEDs, disparado uma vez e só no modo completo.
+   ========================================================================== */
+
+/* 4 parafusos do chassi em 1 elemento (antes: 8 spans). */
+.screws {
+  position: absolute;
+  inset: 0.5rem;
+  pointer-events: none;
+  --screw: radial-gradient(
+    circle at 50% 50%,
+    rgb(255 255 255 / 0.26) 0 1.6px,
+    rgb(255 255 255 / 0.1) 2.2px 3.6px,
+    rgb(0 0 0 / 0.65) 4px 4.8px,
+    transparent 5.2px
+  );
+  background:
+    var(--screw) left top / 10px 10px no-repeat,
+    var(--screw) right top / 10px 10px no-repeat,
+    var(--screw) left bottom / 10px 10px no-repeat,
+    var(--screw) right bottom / 10px 10px no-repeat;
+}
+@media (width >= 40rem) {
+  .screws {
+    inset: 0.75rem;
+  }
+}
+
+/* "Sinal" decorativo das cidades: 3 barras num único elemento (antes: 4 spans por cidade). */
+.signal {
+  display: block;
+  width: 10px;
+  height: 14px;
+  margin-left: auto;
+  --bar: linear-gradient(rgb(255 36 20 / 0.7) 0 0);
+  background:
+    var(--bar) 0 100% / 2px 6px no-repeat,
+    var(--bar) 4px 100% / 2px 10px no-repeat,
+    var(--bar) 8px 100% / 2px 14px no-repeat;
+}
+
+/* Ícone neon: o halo acende mais no hover/foco do pad. */
+.icon [data-halo] {
+  transition: opacity 0.3s ease-out;
+}
+:global(.group):hover .icon [data-halo],
+:global(.group):focus-visible .icon [data-halo] {
+  opacity: 0.6;
+}
+/* Núcleo do tubo neon quase branco, halo na cor do pad. */
+.icon [data-core] {
+  stroke: color-mix(in srgb, currentColor 35%, white);
+}
+
+/* Flash único de checagem dos LEDs — [data-flash] é ligado pelo PadDeck (modo completo). */
+@keyframes pad-flash {
+  0% {
+    opacity: 0.15;
+  }
+  35% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.15;
+  }
+}
+[data-flash] .glow {
+  animation: pad-flash 0.55s ease-out calc(150ms + var(--i, 0) * 90ms) 1 backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-flash] .glow {
+    animation: none;
+  }
+}

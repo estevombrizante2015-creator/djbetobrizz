@@ -1,14 +1,14 @@
 "use client";
 
-import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import type { VideoItem } from "@/data/types";
 import { VhsOverlay } from "@/components/Effects/VhsOverlay";
-import { Logo } from "@/components/ui/Logo";
 import { InstagramIcon, PlayIcon } from "@/components/ui/Icons";
 import { track } from "@/lib/analytics";
-import { cn, getImageMeta } from "@/lib/utils";
-import { platformLabel, resolveVideoPoster, type VideoPoster, type VideoSource } from "./video-source";
+import { cn } from "@/lib/utils";
+import { PosterImage } from "./PosterImage";
+import { VideoEmbed } from "./VideoEmbed";
+import { platformLabel, resolveVideoPoster, type VideoSource } from "./video-source";
 
 type Props = {
   item: VideoItem;
@@ -24,14 +24,8 @@ type Props = {
 export function VideoCard({ item, source, index, featured = false }: Props) {
   const [playing, setPlaying] = useState(false);
   const poster = resolveVideoPoster(item);
-  const playerRef = useRef<HTMLIFrameElement & HTMLVideoElement>(null);
   const trackNo = `TRACK ${String(index + 1).padStart(2, "0")}`;
   const sizes = featured ? "(min-width: 1024px) 66vw, (min-width: 640px) 100vw, 100vw" : "(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw";
-
-  // Leva o foco para o player recém-carregado (teclado continua de onde parou).
-  useEffect(() => {
-    if (playing) playerRef.current?.focus({ preventScroll: true });
-  }, [playing]);
 
   const onPlay = () => {
     track("video_play", { platform: item.platform, title: item.title });
@@ -40,7 +34,7 @@ export function VideoCard({ item, source, index, featured = false }: Props) {
 
   const facade = (
     <>
-      <Poster poster={poster} sizes={sizes} />
+      <PosterImage poster={poster} sizes={sizes} />
       <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-void/85 via-void/10 to-void/40" />
       <span
         aria-hidden
@@ -69,26 +63,8 @@ export function VideoCard({ item, source, index, featured = false }: Props) {
   return (
     <figure className="flex flex-col gap-4">
       <div className="relative aspect-video overflow-hidden rounded-2xl border border-line bg-panel shadow-[0_30px_80px_-40px_rgb(255_20_147/0.45)] transition-[border-color,box-shadow] duration-300 hover:border-magenta/60">
-        {playing && source.kind === "iframe" ? (
-          <iframe
-            ref={playerRef}
-            src={source.src}
-            title={`${item.title} — player de vídeo`}
-            allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-            allowFullScreen
-            referrerPolicy="strict-origin-when-cross-origin"
-            className="absolute inset-0 z-20 h-full w-full border-0 bg-black"
-          />
-        ) : playing && source.kind === "file" ? (
-          <video
-            ref={playerRef}
-            src={source.src}
-            poster={poster.kind === "none" ? undefined : poster.src}
-            controls
-            autoPlay
-            playsInline
-            className="absolute inset-0 z-20 h-full w-full bg-black object-contain"
-          />
+        {playing && source.kind !== "link" ? (
+          <VideoEmbed item={item} source={source} className="z-20" />
         ) : source.kind === "link" ? (
           <a
             href={source.href}
@@ -114,46 +90,5 @@ export function VideoCard({ item, source, index, featured = false }: Props) {
         <span className="hud shrink-0 pt-1 text-[0.65rem] text-magenta">{platformLabel[item.platform]}</span>
       </figcaption>
     </figure>
-  );
-}
-
-/** Capa: imagem local otimizada, capa remota (YouTube) ou capa neutra com o logo. */
-function Poster({ poster, sizes }: { poster: VideoPoster; sizes: string }) {
-  if (poster.kind === "optimized") {
-    const meta = getImageMeta(poster.src);
-    return (
-      <Image
-        src={poster.src}
-        alt=""
-        fill
-        sizes={sizes}
-        quality={75}
-        className="object-cover"
-        {...(meta.blurDataURL ? { placeholder: "blur" as const, blurDataURL: meta.blurDataURL } : {})}
-      />
-    );
-  }
-
-  if (poster.kind === "plain") {
-    return (
-      // Capas remotas (ex.: i.ytimg.com) ou fora de /images não passam pelo otimizador do next/image.
-      // eslint-disable-next-line @next/next/no-img-element
-      <img src={poster.src} alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
-    );
-  }
-
-  return (
-    <span
-      aria-hidden
-      className="absolute inset-0 grid place-items-center"
-      style={{
-        background:
-          "radial-gradient(ellipse at 30% 20%, rgb(138 43 226 / 0.45), transparent 60%), radial-gradient(ellipse at 80% 90%, rgb(255 20 147 / 0.35), transparent 55%), var(--color-ink)",
-      }}
-    >
-      <span className="w-1/2 max-w-64 opacity-80">
-        <Logo sizes="256px" alt="" />
-      </span>
-    </span>
   );
 }

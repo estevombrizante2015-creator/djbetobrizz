@@ -17,12 +17,18 @@ PAD = 6
 os.makedirs(OUT, exist_ok=True)
 
 im = Image.open(SRC).convert("RGBA")
-im = im.crop(im.getchannel("A").getbbox())
+im = im.crop(im.getchannel("A").point(lambda v: 255 if v > 8 else 0).getbbox())  # ignora pixels quase transparentes
 logo = Image.new("RGBA", (im.width + 2 * PAD, im.height + 2 * PAD), (0, 0, 0, 0))
 logo.paste(im, (PAD, PAD))
 
 logo.save(f"{OUT}/betobrizz-logo.webp", quality=90, method=6)
+
+# versão leve para usos pequenos (cabeçalho, rodapé, selos) — separa do arquivo do hero (LCP)
+sm = logo.copy()
+sm.thumbnail((640, 640), Image.LANCZOS)
+sm.save(f"{OUT}/betobrizz-logo-sm.webp", quality=90, method=6)
+
 small = logo.copy()
 small.thumbnail((800, 800))
 small.save(f"{OUT}/betobrizz-logo.png", optimize=True)
-print("betobrizz-logo", logo.size, "png", small.size)
+print("betobrizz-logo", logo.size, "sm", sm.size, "png", small.size)

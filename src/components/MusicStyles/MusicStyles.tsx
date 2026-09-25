@@ -11,11 +11,11 @@ export function MusicStyles() {
 
   return (
     <section id="estilos" aria-labelledby="estilos-title" className="section-y relative overflow-x-clip">
-      {/* Fundo: sulcos de um vinil gigante + brilho neon suave */}
+      {/* Fundo: sulcos de um vinil gigante + brilho neon suave (gradientes — sem filter: blur) */}
       <div aria-hidden className="pointer-events-none absolute inset-0">
         <div className="absolute top-[4%] -right-[18rem] size-[36rem] rounded-full bg-[repeating-radial-gradient(circle,rgb(255_255_255/0.035)_0_1px,transparent_1px_7px)] [mask-image:radial-gradient(circle,#000_30%,transparent_70%)] sm:-right-[12rem] lg:size-[46rem]" />
-        <div className="absolute top-1/3 -left-40 size-[28rem] rounded-full bg-cyan/10 blur-[120px]" />
-        <div className="absolute -right-24 bottom-0 size-[26rem] rounded-full bg-magenta/10 blur-[120px]" />
+        <div className="absolute top-[26%] -left-64 size-[40rem] bg-[radial-gradient(closest-side,rgb(0_229_255/0.1),rgb(0_229_255/0.04)_55%,transparent)]" />
+        <div className="absolute -right-48 -bottom-16 size-[38rem] bg-[radial-gradient(closest-side,rgb(255_20_147/0.1),rgb(255_20_147/0.04)_55%,transparent)]" />
       </div>
 
       <div className="container-bb relative">

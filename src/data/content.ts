@@ -1,6 +1,3 @@
-/** @deprecated TEMPORÁRIO — seção de números removida por decisão do cliente; será apagado após a integração. */
-export const stats: { value: string; label: string }[] = [];
-
 export type Accent = "magenta" | "cyan" | "purple" | "blue" | "red";
 
 /** Estilos musicais ("QUAL É A SUA VIBE?") — ajuste conforme o repertório real. */

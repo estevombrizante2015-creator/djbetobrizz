@@ -108,6 +108,18 @@
   60%, 100% { transform: scale(0.85); opacity: 0.55; }
 }
 
+/* Barra de LEDs: segmentos de largura fixa (a quantidade se adapta à largura do tile). */
+.meterBar {
+  background: linear-gradient(
+    to right,
+    var(--color-cyan) 0 58%,
+    var(--color-magenta) 58% 80%,
+    var(--color-red) 80%
+  );
+  -webkit-mask-image: repeating-linear-gradient(to right, #000 0 7px, transparent 7px 10px);
+  mask-image: repeating-linear-gradient(to right, #000 0 7px, transparent 7px 10px);
+}
+
 /* Cobertura que "esconde" os LEDs da direita: o nível sobe e desce em degraus. */
 .meterCover {
   position: absolute;

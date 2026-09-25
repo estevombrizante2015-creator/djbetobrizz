@@ -1,6 +1,8 @@
 /* ==========================================================================
    QUAL É A SUA VIBE? — capas de disco (sleeve) com o vinil saindo no hover.
    Cada card define --acc (cor de destaque) via style.
+   Modo leve (html:not([data-perf="full"])): tudo estático — sem filtros, sem blend,
+   sem giro; o disco já nasce parcialmente fora da capa.
    ========================================================================== */
 
 .card {
@@ -24,17 +26,44 @@
   position: absolute;
   top: 4%;
   bottom: 4%;
-  left: 15%;
+  /* ~1/4 do disco aparece fora da capa em repouso; no hover ele vai até a borda do card */
+  left: 22%;
   aspect-ratio: 1;
   z-index: 0;
   transition: translate 0.9s var(--expo);
+}
+
+/* O vinil "sai" da capa enquanto o card entra na tela (scroll-driven, compositor, só modo completo) */
+.recordOut {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+@supports (animation-timeline: view()) {
+  :global(html[data-perf="full"]) .recordOut {
+    animation: record-out linear both;
+    animation-timeline: view();
+    animation-range: entry 10% cover 45%;
+  }
+}
+@keyframes record-out {
+  from {
+    translate: -24% 0;
+  }
+  to {
+    translate: 0 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .recordOut {
+    animation: none !important;
+  }
 }
 
 .recordSpin {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  transition: rotate 1.6s var(--expo);
   background:
     /* rótulo central + furo */
     radial-gradient(
@@ -99,6 +128,9 @@
     inset 0 1px 0 rgb(255 255 255 / 0.07),
     0 0 0 1px rgb(255 255 255 / 0.08),
     0 28px 50px -28px rgb(0 0 0 / 0.95);
+}
+/* Modo completo: capa levemente "apagada" que acende no hover (filtro só em desktop capaz) */
+:global(html[data-perf="full"]) .sleeve {
   filter: saturate(0.82) contrast(0.97) brightness(0.96);
   transition:
     box-shadow 0.6s var(--expo),
@@ -134,6 +166,23 @@
   line-height: 0.92;
 }
 
+/* Glitch do título: no modo leve as cópias (pseudo-elementos com blend) nem existem;
+   no completo o blend só entra durante o hover (nenhuma camada de blend em repouso). */
+:global(html:not([data-perf="full"])) .title :global(.glitch)::before,
+:global(html:not([data-perf="full"])) .title :global(.glitch)::after {
+  content: none;
+}
+.title :global(.glitch)::before,
+.title :global(.glitch)::after {
+  mix-blend-mode: normal;
+}
+@media (hover: hover) {
+  .card:hover .title :global(.glitch)::before,
+  .card:hover .title :global(.glitch)::after {
+    mix-blend-mode: screen;
+  }
+}
+
 /* ---------- Estampas (uma por card, em ciclo) ---------- */
 
 /* 0 — anéis concêntricos */
@@ -160,7 +209,10 @@
   );
 }
 
-/* 2 — sol synthwave + grid */
+/* 2 — sol synthwave + grid (brilho do sol em gradiente — sem drop-shadow) */
+.p2 {
+  background: radial-gradient(circle at 50% 41%, transparent 0 30%, var(--acc-soft) 33.5%, transparent 46%);
+}
 .p2::before {
   content: "";
   position: absolute;
@@ -182,7 +234,6 @@
     #000 82% 88%,
     transparent 88%
   );
-  filter: drop-shadow(0 0 18px var(--acc-mid));
 }
 .p2::after {
   content: "";
@@ -199,10 +250,10 @@
   mask-image: linear-gradient(to bottom, #000, transparent 90%);
 }
 
-/* 3 — retícula (halftone) */
+/* 3 — retícula (halftone) — nasce do canto direito e deixa o catálogo (canto esquerdo) limpo */
 .p3 {
   background: radial-gradient(circle, var(--acc) 0 1.3px, transparent 1.7px) 0 0 / 9px 9px;
-  mask-image: linear-gradient(210deg, #000 8%, transparent 62%);
+  mask-image: radial-gradient(circle at 100% 22%, #000 14%, transparent 74%);
 }
 
 /* 4 e 5 usam SVG (onda / espectro) — ver StyleCrate.tsx */
@@ -213,7 +264,9 @@
   height: 100%;
 }
 
-/* ---------- Hover (apenas dispositivos com mouse) ---------- */
+/* ---------- Hover (apenas dispositivos com mouse) ----------
+   Leve (PC simples): só transform (compositor) + contorno neon instantâneo.
+   Completo: + giro do disco e a capa "acendendo" (filtro/sombra com transição). */
 
 @media (hover: hover) {
   .card:hover .lift {
@@ -221,24 +274,29 @@
     scale: 1.02;
   }
   .card:hover .recordTrack {
-    translate: 20% 0;
-  }
-  .card:hover .recordSpin {
-    rotate: 250deg;
+    translate: 12% 0;
   }
   .card:hover .sleeve {
-    filter: saturate(1.25) contrast(1.08) brightness(1.04);
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / 0.1),
       0 0 0 1px var(--acc-strong),
       0 0 34px -6px var(--acc-mid),
       0 36px 70px -30px var(--acc-mid);
   }
+  :global(html[data-perf="full"]) .recordSpin {
+    transition: rotate 1.6s var(--expo);
+  }
+  :global(html[data-perf="full"]) .card:hover .recordSpin {
+    rotate: 250deg;
+  }
+  :global(html[data-perf="full"]) .card:hover .sleeve {
+    filter: saturate(1.25) contrast(1.08) brightness(1.04);
+  }
 }
 
 /* Touch: o disco já aparece mais para fora */
 @media (hover: none) {
   .recordTrack {
-    translate: 11% 0;
+    translate: 10% 0;
   }
 }

@@ -6,11 +6,14 @@ import { Reveal } from "@/components/ui/Reveal";
 import { ArrowRightIcon, InstagramIcon, MapPinIcon, WhatsAppIcon } from "@/components/ui/Icons";
 import { cn, safeExternalUrl } from "@/lib/utils";
 import { CtaKnob } from "./CtaKnob";
+import { KnobStatic } from "./KnobStatic";
+import styles from "./CTA.module.css";
 import { TrackedLink } from "./TrackedLink";
 import { formatPhoneBR, whatsappLink } from "./contact";
 
 const BG = "/images/art/betobrizz-arena.webp";
 const NEW_TAB = " (abre em nova aba)";
+const KNOB_CLASS = "w-[min(15rem,66vw)] sm:w-[19rem] lg:w-full lg:max-w-[27rem]";
 
 /** Atalhos de conversão (§45) — cada um abre o WhatsApp com uma mensagem diferente. */
 const quickActions = [
@@ -37,21 +40,23 @@ export function CTA() {
     <section id="contato" aria-labelledby="contato-title" className="relative isolate overflow-hidden bg-void">
       {/* ---------- Palco: arte da arena desfocada, só luz e cor ---------- */}
       <div aria-hidden className="absolute inset-0 -z-10">
+        {/* Arte só como luz e cor: imagem pequena ampliada (já fica suave); o blur real só no modo completo */}
         <Image
           src={BG}
           alt=""
           fill
-          sizes="100vw"
+          sizes="(min-width: 1024px) 75vw, 60vw"
           quality={60}
-          className="scale-110 object-cover object-[62%_50%] opacity-40 lg:object-[40%_50%]"
-          style={{ filter: "saturate(1.15) brightness(0.75) blur(4px)" }}
+          className="object-cover object-[62%_50%] opacity-30 lg:object-[40%_50%] [html[data-perf=full]_&]:scale-110 [html[data-perf=full]_&]:opacity-40 [html[data-perf=full]_&]:[filter:saturate(1.15)_brightness(0.75)_blur(4px)]"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-void via-void/70 to-void" />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgb(5_5_5/0.2),rgb(5_5_5/0.75)_40%,rgb(5_5_5/0.92))] lg:bg-[linear-gradient(90deg,rgb(5_5_5/0.92)_0%,rgb(5_5_5/0.6)_45%,rgb(5_5_5/0.25)_100%)]" />
         <div className="absolute right-[-10%] bottom-[-20%] h-[80%] w-[70%] rounded-full bg-[radial-gradient(closest-side,rgb(255_20_147/0.22),rgb(138_43_226/0.1)_55%,transparent)] max-lg:right-[-35%] max-lg:w-[130%]" />
         {/* chão do palco: grid anos 80 */}
         <div className="absolute inset-x-0 bottom-0 h-[38%] overflow-hidden opacity-60">
-          <div className="retro-grid absolute inset-x-[-50%] top-0 h-[200%] lg:motion-safe:animate-grid" />
+          <div className={styles.floor}>
+            <div className={styles.grid} />
+          </div>
         </div>
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-magenta/60 to-transparent" />
       </div>
@@ -59,7 +64,7 @@ export function CTA() {
       <div className="container-bb section-y grid items-center gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:gap-16">
         {/* ---------- Knob (no mobile vem primeiro, compacto) ---------- */}
         <div className="flex justify-center lg:order-2 lg:justify-end">
-          <CtaKnob className="w-[min(15rem,66vw)] sm:w-[19rem] lg:w-full lg:max-w-[27rem]" />
+          <CtaKnob className={KNOB_CLASS} fallback={<KnobStatic className={KNOB_CLASS} />} />
         </div>
 
         {/* ---------- Conteúdo ---------- */}
@@ -78,9 +83,10 @@ export function CTA() {
           <Reveal className="flex flex-col gap-4">
             {/* Botão principal — protagonista */}
             <div className="relative w-full sm:w-fit">
+              {/* halo: brilho estático (box-shadow) no modo leve; blur pulsando só no modo completo */}
               <span
                 aria-hidden
-                className="pointer-events-none absolute -inset-3 rounded-full bg-magenta/25 blur-xl motion-safe:animate-pulse-glow"
+                className="pointer-events-none absolute -inset-3 rounded-full shadow-[0_0_34px_6px_rgb(255_20_147/0.28)] [html[data-perf=full]_&]:bg-magenta/25 [html[data-perf=full]_&]:shadow-none [html[data-perf=full]_&]:blur-xl [html[data-perf=full]_&]:motion-safe:animate-pulse-glow"
               />
               <span aria-hidden className="pointer-events-none absolute inset-0 rounded-full bg-magenta/15" />
               <NeonButton

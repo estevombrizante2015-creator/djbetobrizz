@@ -2,13 +2,12 @@
 
 import { useRef, useState } from "react";
 import { Logo } from "@/components/ui/Logo";
-import { useExperience } from "@/components/Effects/ExperienceContext";
 import { cn } from "@/lib/utils";
 import { useHeroIntro } from "./HeroIntro";
 import styles from "./Hero.module.css";
 
 /**
- * Mesmo `sizes` nas três cópias → o navegador baixa o logo uma única vez.
+ * Mesmo `sizes` em todas as cópias → o navegador baixa o logo uma única vez.
  * Acompanha os limites do layout: 78vh em telas baixas, 760/700px no desktop, 92vw no celular.
  */
 const SIZES = "(max-height: 500px) 78vh, (min-width: 1280px) 760px, (min-width: 1024px) 700px, 92vw";
@@ -16,17 +15,17 @@ const SIZES = "(max-height: 500px) 78vh, (min-width: 1280px) 760px, (min-width: 
 type Phase = "intro" | "idle" | "glitch";
 
 /**
- * Logo grande do hero com entrada em glitch RGB (fatias com clip-path + cópias deslocadas
- * em ciano/magenta, ~0,5 s). No desktop, passar o mouse repete um glitch curto.
- * Decorativo: o nome acessível fica no texto do <h1>.
+ * Logo grande do hero — a imagem LCP: visível desde a primeira pintura (alta resolução + fetchPriority high),
+ * nunca escondida esperando a intro. No modo completo, um glitch RGB decorativo (cópias ciano/magenta
+ * fatiadas + barra de varredura, ~0,5 s) toca POR CIMA do logo já visível quando o show começa, e
+ * repete curto ao passar o mouse. Decorativo: o nome acessível fica no texto do <h1>.
  */
 export function HeroLogo({ className }: { className?: string }) {
-  const { started, reduced } = useHeroIntro();
-  const { isDesktop } = useExperience();
+  const { fx, started } = useHeroIntro();
   const [phase, setPhase] = useState<Phase>("intro");
   const baseRef = useRef<HTMLSpanElement>(null);
 
-  const state = reduced ? "idle" : started ? phase : "pre";
+  const state = started ? phase : "idle";
 
   return (
     <span
@@ -37,13 +36,13 @@ export function HeroLogo({ className }: { className?: string }) {
         if (e.target === baseRef.current) setPhase("idle");
       }}
       onPointerEnter={() => {
-        if (isDesktop && state === "idle") setPhase("glitch");
+        if (state === "idle" && started) setPhase("glitch");
       }}
     >
-      <span ref={baseRef} className={cn(styles.base, "hero-reveal")}>
+      <span ref={baseRef} className={styles.base}>
         <Logo eager sizes={SIZES} alt="" />
       </span>
-      {reduced ? null : (
+      {fx ? (
         <>
           <span className={cn(styles.slice, styles.sliceA)}>
             <Logo eager sizes={SIZES} alt="" />
@@ -53,7 +52,7 @@ export function HeroLogo({ className }: { className?: string }) {
           </span>
           <span className={styles.scan} />
         </>
-      )}
+      ) : null}
     </span>
   );
 }

@@ -113,7 +113,7 @@ export function TheExperience() {
               subtitle={siteConfig.experienceName}
               accent="cyan"
             />
-            <Reveal delay={0.15}>
+            <Reveal step={2}>
               <p className="flex flex-col gap-1.5 border-l-2 border-line-strong pl-4 font-hud text-base font-bold tracking-[0.16em] text-white uppercase sm:text-lg lg:border-l-0 lg:pl-0 lg:text-right">
                 <span>
                   <span className="text-magenta">Som</span> que envolve.
@@ -131,7 +131,7 @@ export function TheExperience() {
           <ul className="mt-12 grid gap-5 md:mt-16 md:grid-cols-3 lg:gap-6">
             {pillars.map((pillar, i) => (
               <li key={pillar.title}>
-                <Reveal delay={i * 0.1} className="h-full">
+                <Reveal className="h-full">
                   <PillarTile
                     index={i}
                     title={pillar.title}
@@ -240,7 +240,8 @@ function PillarTile({ index, title, text, accent, kind }: PillarProps) {
       {/* Texto */}
       <div className="relative mt-7 flex flex-1 flex-col">
         <h3 className="relative font-display text-[clamp(1.85rem,3.1vw,2.75rem)] leading-none font-black tracking-tight uppercase">
-          <span className="glitch" data-text={title}>
+          <span className="sr-only">{title}</span>
+          <span aria-hidden className="glitch" data-text={title}>
             {title}
           </span>
         </h3>
@@ -307,8 +308,8 @@ function EnergyVisual() {
     { scale: 1.15, delay: "-1.3s" },
   ];
   return (
-    <div className="absolute inset-0 flex items-center justify-center gap-5 px-5 sm:gap-7">
-      <div className="relative size-20 shrink-0 sm:size-24 md:size-20 xl:size-24">
+    <div className="absolute inset-0 flex items-center justify-center gap-5 px-5 sm:gap-7 md:gap-4 md:px-4 xl:gap-7 xl:px-5">
+      <div className="relative size-20 shrink-0 sm:size-24 md:size-16 lg:size-20 xl:size-24">
         {rings.map((r) => (
           <span
             key={r.delay}
@@ -322,13 +323,8 @@ function EnergyVisual() {
         {["L", "R"].map((channel, k) => (
           <div key={channel} className="flex items-center gap-2">
             <span className="hud w-2 shrink-0 text-[0.55rem] text-white/60">{channel}</span>
-            <div className="relative flex h-3 flex-1 gap-[3px]">
-              {Array.from({ length: 14 }, (_, i) => (
-                <span
-                  key={i}
-                  className={cn("flex-1 rounded-[1px]", i < 8 ? "bg-cyan" : i < 11 ? "bg-magenta" : "bg-red")}
-                />
-              ))}
+            <div className="relative h-3 flex-1">
+              <span className={cn("absolute inset-0", styles.meterBar)} />
               <span className={cn("bg-void/85", styles.meterCover, k === 1 && styles.meterCoverAlt)} />
             </div>
           </div>

@@ -1,12 +1,10 @@
-"use client";
-
-import { useRef } from "react";
-import { motion, useInView } from "motion/react";
+import type { CSSProperties } from "react";
 import { siteConfig } from "@/config/site";
-import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 import { ArrowRightIcon, KnobIcon } from "@/components/ui/Icons";
-import { useExperience } from "@/components/Effects/ExperienceContext";
+import { PadDeck } from "./PadDeck";
+import { PadIcon } from "./PadIcons";
+import styles from "./EventTypes.module.css";
 
 type PadColor = "magenta" | "cyan" | "purple" | "blue" | "red";
 
@@ -14,13 +12,14 @@ type PadColor = "magenta" | "cyan" | "purple" | "blue" | "red";
 const cycle: PadColor[] = ["magenta", "cyan", "purple", "red", "blue", "magenta", "cyan", "purple"];
 
 /** Classes por cor (estáticas para o Tailwind encontrar). */
-const tone: Record<PadColor, { rim: string; lit: string; glow: string; text: string; led: string }> = {
+const tone: Record<PadColor, { rim: string; lit: string; glow: string; text: string; led: string; icon: string }> = {
   magenta: {
     rim: "border-magenta/35",
     lit: "group-hover:border-magenta group-focus-visible:border-magenta group-hover:shadow-neon-magenta group-focus-visible:shadow-neon-magenta",
     glow: "bg-[radial-gradient(120%_90%_at_50%_0%,rgb(255_20_147/0.55),transparent_70%)]",
     text: "group-hover:text-glow-magenta group-focus-visible:text-glow-magenta",
     led: "bg-magenta",
+    icon: "text-magenta",
   },
   cyan: {
     rim: "border-cyan/35",
@@ -28,6 +27,7 @@ const tone: Record<PadColor, { rim: string; lit: string; glow: string; text: str
     glow: "bg-[radial-gradient(120%_90%_at_50%_0%,rgb(0_229_255/0.5),transparent_70%)]",
     text: "group-hover:text-glow-cyan group-focus-visible:text-glow-cyan",
     led: "bg-cyan",
+    icon: "text-cyan",
   },
   purple: {
     rim: "border-purple/45",
@@ -35,6 +35,7 @@ const tone: Record<PadColor, { rim: string; lit: string; glow: string; text: str
     glow: "bg-[radial-gradient(120%_90%_at_50%_0%,rgb(138_43_226/0.6),transparent_70%)]",
     text: "group-hover:text-glow-purple group-focus-visible:text-glow-purple",
     led: "bg-purple",
+    icon: "text-[#b066ff]",
   },
   red: {
     rim: "border-red/40",
@@ -42,6 +43,7 @@ const tone: Record<PadColor, { rim: string; lit: string; glow: string; text: str
     glow: "bg-[radial-gradient(120%_90%_at_50%_0%,rgb(255_36_20/0.55),transparent_70%)]",
     text: "group-hover:text-glow-red group-focus-visible:text-glow-red",
     led: "bg-red",
+    icon: "text-red",
   },
   blue: {
     rim: "border-blue/45",
@@ -49,130 +51,124 @@ const tone: Record<PadColor, { rim: string; lit: string; glow: string; text: str
     glow: "bg-[radial-gradient(120%_90%_at_50%_0%,rgb(0_102_255/0.6),transparent_70%)]",
     text: "group-hover:[text-shadow:0_0_18px_rgb(0_102_255/0.7)] group-focus-visible:[text-shadow:0_0_18px_rgb(0_102_255/0.7)]",
     led: "bg-blue",
+    icon: "text-[#3d8bff]",
   },
 };
 
 /** Link do WhatsApp com a mensagem já citando o tipo de evento escolhido. */
 function whatsappFor(title: string) {
-  const text = `Olá Beto! Vi seu site e gostaria de consultar a disponibilidade para um evento: ${title}.`;
+  const text = `Olá Beto! Vi seu site e gostaria de verificar sua disponibilidade para um evento: ${title}.`;
   return `https://wa.me/${siteConfig.whatsapp}?text=${encodeURIComponent(text)}`;
 }
 
 const HOT_CUES = "ABCDEFGH";
 
-/** `icon` é opcional: sem ele o pad mostra o número grande do hot cue. */
-type Props = { items: ReadonlyArray<{ icon?: string; title: string }> };
+/** `icon` (emoji dos dados antigos) é ignorado: o pad usa o ícone neon pelo título. */
+type Props = { items: ReadonlyArray<{ title: string }> };
 
 /**
- * Grade de pads de controladora (HOT CUE). Cada pad é um link para o WhatsApp
- * com o tipo de evento na mensagem. Ao entrar na tela os pads piscam uma vez
- * em sequência, como a checagem de LEDs ao ligar o equipamento.
+ * Grade de pads de controladora (HOT CUE) — HTML do servidor, sem hidratação por pad.
+ * Cada pad é um link para o WhatsApp com o tipo de evento na mensagem. No modo completo,
+ * ao entrar na tela os pads piscam uma vez em sequência (checagem de LEDs, via CSS).
  */
 export function PadGrid({ items }: Props) {
-  const ref = useRef<HTMLUListElement>(null);
-  const inView = useInView(ref, { once: true, amount: 0.4 });
-  const { reducedMotion } = useExperience();
-  // O flash é sempre renderizado (markup igual no SSR e no cliente); com
-  // prefers-reduced-motion ele simplesmente não acende.
-  const flash = inView && !reducedMotion;
-
   // Pads "apagados" completam a última fileira (4 colunas; 2 no celular).
   const fill4 = (4 - (items.length % 4)) % 4;
   const fill2 = (2 - (items.length % 2)) % 2;
 
   return (
-    <ul ref={ref} className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
-      {items.map((item, i) => {
-        const color = cycle[i % cycle.length];
-        const t = tone[color];
-        return (
-          <li key={item.title} className="min-w-0">
-            <a
-              href={whatsappFor(item.title)}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={`${item.title}: consultar disponibilidade no WhatsApp (abre em nova aba)`}
-              onClick={() => track("whatsapp_click", { source: "tipos_de_evento", tipo: item.title })}
-              className="group relative block h-full rounded-xl outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan"
-            >
-              <span
-                className={cn(
-                  "@container relative flex aspect-[5/4] h-full flex-col justify-between overflow-hidden rounded-xl border p-3 sm:p-4 lg:aspect-square",
-                  "bg-gradient-to-b from-panel-2 to-ink",
-                  "shadow-[inset_0_1px_0_rgb(255_255_255/0.07),inset_0_-10px_24px_rgb(0_0_0/0.55)]",
-                  "transition-[border-color,box-shadow,transform] duration-300 ease-out group-active:scale-[0.96]",
-                  t.rim,
-                  t.lit,
-                )}
+    <PadDeck>
+      <ul className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+        {items.map((item, i) => {
+          const color = cycle[i % cycle.length];
+          const t = tone[color];
+          return (
+            <li key={item.title} className="min-w-0">
+              <a
+                href={whatsappFor(item.title)}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-tipo={item.title}
+                aria-label={`${item.title}: verificar disponibilidade no WhatsApp (abre em nova aba)`}
+                className="group relative block h-full rounded-xl outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan"
               >
-                {/* Luz de fundo do pad: fraca em repouso, acesa no hover/foco */}
                 <span
-                  aria-hidden
+                  style={{ "--i": i } as CSSProperties}
                   className={cn(
-                    "absolute inset-0 opacity-15 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100",
-                    t.glow,
-                  )}
-                />
-                {/* Flash único de checagem dos LEDs */}
-                <motion.span
-                  aria-hidden
-                  className={cn("absolute inset-0", t.glow)}
-                  initial={{ opacity: 0 }}
-                  animate={flash ? { opacity: [0, 1, 0] } : { opacity: 0 }}
-                  transition={{ duration: 0.5, delay: 0.15 + i * 0.09, ease: "easeOut" }}
-                />
-
-                <span aria-hidden className="relative flex items-center justify-between">
-                  <span className="hud text-[0.6rem] text-white/55">
-                    PAD {String(i + 1).padStart(2, "0")}
-                    <span className="text-white/35"> · {HOT_CUES[i % HOT_CUES.length]}</span>
-                  </span>
-                  {/* LED em repouso → seta "abrir" no hover/foco */}
-                  <span className="relative grid h-4 w-5 place-items-center">
-                    <span
-                      className={cn(
-                        "h-1 w-4 rounded-full opacity-70 transition-opacity duration-300 group-hover:opacity-0 group-focus-visible:opacity-0",
-                        t.led,
-                      )}
-                    />
-                    <ArrowRightIcon
-                      size={16}
-                      className="absolute -rotate-45 text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100"
-                    />
-                  </span>
-                </span>
-
-                <span
-                  aria-hidden
-                  className="relative text-[1.75rem] leading-none brightness-110 grayscale-[0.85] transition-[filter,transform] duration-300 group-hover:scale-110 group-hover:grayscale-0 group-focus-visible:grayscale-0 sm:text-4xl"
-                >
-                  {item.icon ?? <span className="font-vhs text-4xl text-white/70">{HOT_CUES[i % HOT_CUES.length]}</span>}
-                </span>
-
-                {/* Tamanho pela largura do pad (cqi): a palavra mais longa cabe inteira;
-                    overflow-wrap só como rede de segurança para textos futuros. */}
-                <span
-                  className={cn(
-                    "relative font-hud text-[clamp(0.75rem,10cqi,1.05rem)] leading-tight font-bold tracking-[0.04em] text-balance text-white uppercase [overflow-wrap:anywhere]",
-                    t.text,
+                    "@container relative flex aspect-[5/4] h-full flex-col justify-between overflow-hidden rounded-xl border p-3 sm:p-4 lg:aspect-square",
+                    "bg-gradient-to-b from-panel-2 to-ink",
+                    "shadow-[inset_0_1px_0_rgb(255_255_255/0.07),inset_0_-10px_24px_rgb(0_0_0/0.55)]",
+                    "transition-[border-color,box-shadow,scale] duration-300 ease-out group-active:scale-[0.96]",
+                    t.rim,
+                    t.lit,
                   )}
                 >
-                  {item.title}
+                  {/* Luz de fundo do pad: fraca em repouso, acesa no hover/foco (e no flash dos LEDs) */}
+                  <span
+                    aria-hidden
+                    className={cn(
+                      styles.glow,
+                      "absolute inset-0 opacity-15 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100",
+                      t.glow,
+                    )}
+                  />
+
+                  <span aria-hidden className="relative flex items-center justify-between">
+                    <span className="hud text-[0.6rem] text-white/55">
+                      PAD {String(i + 1).padStart(2, "0")}
+                      <span className="text-white/35"> · {HOT_CUES[i % HOT_CUES.length]}</span>
+                    </span>
+                    {/* LED em repouso → seta "abrir" no hover/foco */}
+                    <span className="relative grid h-4 w-5 place-items-center">
+                      <span
+                        className={cn(
+                          "h-1 w-4 rounded-full opacity-70 transition-opacity duration-300 group-hover:opacity-0 group-focus-visible:opacity-0",
+                          t.led,
+                        )}
+                      />
+                      <ArrowRightIcon
+                        size={16}
+                        className="absolute -rotate-45 text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100"
+                      />
+                    </span>
+                  </span>
+
+                  <span
+                    aria-hidden
+                    className={cn(
+                      styles.icon,
+                      "relative block w-fit transition-[scale] duration-300 group-hover:scale-110 group-focus-visible:scale-110",
+                      t.icon,
+                    )}
+                  >
+                    <PadIcon title={item.title} index={i} className="size-8 sm:size-9" />
+                  </span>
+
+                  {/* Tamanho pela largura do pad (cqi): a palavra mais longa cabe inteira;
+                      overflow-wrap só como rede de segurança para textos futuros. */}
+                  <span
+                    className={cn(
+                      "relative font-hud text-[clamp(0.75rem,10cqi,1.05rem)] leading-tight font-bold tracking-[0.04em] text-balance text-white uppercase [overflow-wrap:anywhere]",
+                      t.text,
+                    )}
+                  >
+                    {item.title}
+                  </span>
                 </span>
-              </span>
-            </a>
+              </a>
+            </li>
+          );
+        })}
+
+        {Array.from({ length: fill4 }, (_, k) => (
+          <li key={`vazio-${k}`} aria-hidden className={cn(k >= fill2 && "hidden sm:block")}>
+            <span className="flex aspect-[5/4] h-full flex-col items-center justify-center gap-2 rounded-xl border border-line bg-gradient-to-b from-panel to-void shadow-[inset_0_1px_0_rgb(255_255_255/0.05),inset_0_-10px_24px_rgb(0_0_0/0.6)] lg:aspect-[1/0.9]">
+              <KnobIcon size={26} className="text-white/25" />
+              <span className="hud text-[0.6rem] text-white/30">Shift</span>
+            </span>
           </li>
-        );
-      })}
-
-      {Array.from({ length: fill4 }, (_, k) => (
-        <li key={`vazio-${k}`} aria-hidden className={cn(k >= fill2 && "hidden sm:block")}>
-          <span className="flex aspect-[5/4] h-full flex-col items-center justify-center gap-2 rounded-xl border border-line lg:aspect-[1/0.9] bg-gradient-to-b from-panel to-void shadow-[inset_0_1px_0_rgb(255_255_255/0.05),inset_0_-10px_24px_rgb(0_0_0/0.6)]">
-            <KnobIcon size={26} className="text-white/25" />
-            <span className="hud text-[0.6rem] text-white/30">Shift</span>
-          </span>
-        </li>
-      ))}
-    </ul>
+        ))}
+      </ul>
+    </PadDeck>
   );
 }

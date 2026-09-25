@@ -35,6 +35,12 @@ const STATUS_LABEL: Record<Status, string> = {
 
 const SC_ORIGIN = "https://w.soundcloud.com";
 
+/** Marcas da régua (x de 0 a 100): longas a cada 5, curtas no resto. Bordas recuadas meio pixel. */
+const RULER_PATH = Array.from({ length: 11 }, (_, i) => {
+  const x = Math.min(99.7, Math.max(0.3, i * 10));
+  return `M${x} 0V${i % 5 === 0 ? 10 : 6}`;
+}).join("");
+
 function widgetSrc(url: string, autoPlay: boolean) {
   return (
     `${SC_ORIGIN}/player/?url=${encodeURIComponent(url)}` +
@@ -188,18 +194,26 @@ export function SetsDeck({ tracks, className }: { tracks: DeckTrack[]; className
           </div>
         </div>
 
-        {/* Spectrum — mais intenso quando o set está tocando */}
+        {/* Spectrum — mais intenso quando o set está tocando (boost no próprio canvas; brilho = gradiente estático) */}
         <div className="mt-8 flex items-center gap-3 lg:mt-10">
           <span aria-hidden className="hud hidden text-[0.6rem] text-dim sm:block">
             L
           </span>
-          <div
-            className={cn(
-              "flex-1 origin-center transition-[opacity,transform,filter] duration-700 ease-out",
-              playing ? "scale-y-100 opacity-100 lg:drop-shadow-[0_0_10px_rgb(255_20_147/0.45)]" : "scale-y-[0.8] opacity-75",
-            )}
-          >
-            <Visualizer bars={isDesktop ? 72 : 32} height="4.5rem" palette={playing ? "neon" : "red"} mirror />
+          <div className={cn("relative flex-1 transition-opacity duration-700 ease-out", playing ? "opacity-100" : "opacity-75")}>
+            <span
+              aria-hidden
+              className={cn(
+                "pointer-events-none absolute -inset-x-4 -inset-y-6 bg-[radial-gradient(ellipse_closest-side,rgb(255_20_147/0.22),transparent)] transition-opacity duration-700",
+                playing ? "opacity-100" : "opacity-0",
+              )}
+            />
+            <Visualizer
+              bars={isDesktop ? 72 : 32}
+              height="4.5rem"
+              palette={playing ? "neon" : "red"}
+              mirror
+              boost={playing ? 1.4 : 0.85}
+            />
           </div>
           <span aria-hidden className="hud hidden text-[0.6rem] text-dim sm:block">
             R
@@ -270,11 +284,10 @@ function DeckFacade({
 
       <div className="relative mt-auto">
         <Waveform seed={t.title} className="h-20 sm:h-24" />
-        <div aria-hidden className="mt-2 flex justify-between">
-          {Array.from({ length: 11 }, (_, i) => (
-            <span key={i} className={cn("w-px bg-white/25", i % 5 === 0 ? "h-2.5" : "h-1.5")} />
-          ))}
-        </div>
+        {/* Régua de tempo: 11 marcas (a cada 5, uma longa) num único SVG */}
+        <svg aria-hidden viewBox="0 0 100 10" preserveAspectRatio="none" className="mt-2 block h-2.5 w-full" focusable="false">
+          <path d={RULER_PATH} stroke="rgb(255 255 255 / 0.25)" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+        </svg>
       </div>
 
       <div className="relative mt-5 flex items-center gap-4 sm:mt-6 sm:gap-5">

@@ -1,29 +1,18 @@
-"use client";
-
-import { motion, type Variants } from "motion/react";
-import { fadeUp, inViewOnce } from "@/lib/animations";
+import { cn } from "@/lib/utils";
 
 type Props = {
   children: React.ReactNode;
   className?: string;
-  variants?: Variants;
-  delay?: number;
+  /** Escalona a entrada: 1 (padrão), 2 ou 3 entram um pouco depois ao rolar. */
+  step?: 1 | 2 | 3;
   as?: "div" | "li" | "article" | "p" | "span";
 };
 
-/** Entrada suave ao rolar (fade + slide). Respeita prefers-reduced-motion via MotionConfig. */
-export function Reveal({ children, className, variants = fadeUp, delay = 0, as = "div" }: Props) {
-  const Component = motion[as];
-  return (
-    <Component
-      className={className}
-      variants={variants}
-      initial="hidden"
-      whileInView="show"
-      viewport={inViewOnce}
-      transition={delay ? { delay } : undefined}
-    >
-      {children}
-    </Component>
-  );
+/**
+ * Entrada suave ao rolar (fade + slide) em CSS puro — `animation-timeline: view()`,
+ * sem JavaScript e sem custo por frame. Só anima no modo completo (html[data-perf="full"]);
+ * no modo leve, com movimento reduzido ou sem suporte, o conteúdo já nasce visível.
+ */
+export function Reveal({ children, className, step = 1, as: Tag = "div" }: Props) {
+  return <Tag className={cn("reveal", step === 2 && "reveal-2", step === 3 && "reveal-3", className)}>{children}</Tag>;
 }

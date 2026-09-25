@@ -1,0 +1,154 @@
+/* ==========================================================================
+   EVENTOS — mesa de corte multicâmera.
+   Toda a decoração é CSS estático (sem blend, filtro ou animação no modo leve).
+   Efeitos de hover só existem no modo completo (html[data-perf="full"]).
+   ========================================================================== */
+
+/* Cor de destaque do tile (tripla RGB), definida inline por tile. */
+.tile {
+  --acc: 255 20 147;
+}
+
+/* Scanlines do monitor: gradiente estático, sem mix-blend-mode em nenhum modo. */
+.lines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(to bottom, rgb(255 255 255 / 0.03) 0 1px, transparent 1px 3px);
+}
+
+/* Cantoneiras do visor: 1 elemento, 8 gradientes (antes eram 5 spans por tile). */
+.viewfinder {
+  --arm: 1rem;
+  position: absolute;
+  inset: 0.75rem;
+  pointer-events: none;
+  color: rgb(255 255 255 / 0.45);
+  background:
+    linear-gradient(currentColor 0 0) left top / var(--arm) 1px,
+    linear-gradient(currentColor 0 0) left top / 1px var(--arm),
+    linear-gradient(currentColor 0 0) right top / var(--arm) 1px,
+    linear-gradient(currentColor 0 0) right top / 1px var(--arm),
+    linear-gradient(currentColor 0 0) left bottom / var(--arm) 1px,
+    linear-gradient(currentColor 0 0) left bottom / 1px var(--arm),
+    linear-gradient(currentColor 0 0) right bottom / var(--arm) 1px,
+    linear-gradient(currentColor 0 0) right bottom / 1px var(--arm);
+  background-repeat: no-repeat;
+}
+@media (width >= 40rem) {
+  .viewfinder {
+    --arm: 1.25rem;
+    inset: 1rem;
+  }
+}
+
+/* Wash duotone neon e brilho interno: só existem no modo completo. */
+.wash,
+.edgeGlow {
+  display: none;
+}
+
+/* Ponto REC: aceso e parado no modo leve; pisca no completo. */
+@keyframes rec {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0.15;
+  }
+}
+
+/* ===== Modo completo: hover do tile (transform/opacity; nada de layout) ===== */
+:global(html[data-perf="full"]) .rec {
+  animation: rec 1.2s steps(1) infinite;
+}
+
+:global(html[data-perf="full"]) .img {
+  transition: scale 0.9s var(--ease-out-expo);
+}
+:global(html[data-perf="full"]) .tile:hover .img {
+  scale: 1.07;
+}
+
+:global(html[data-perf="full"]) .wash {
+  display: block;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(135deg, var(--color-magenta), var(--color-purple) 48%, var(--color-cyan));
+  mix-blend-mode: color;
+  opacity: 0;
+  transition: opacity 0.5s var(--ease-out-expo);
+}
+:global(html[data-perf="full"]) .tile:hover .wash {
+  opacity: 0.6;
+}
+
+/* Brilho neon da borda: sombra interna fixa, só a opacidade anima. */
+:global(html[data-perf="full"]) .edgeGlow {
+  display: block;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 1px rgb(var(--acc) / 0.65),
+    inset 0 0 42px rgb(var(--acc) / 0.28);
+  opacity: 0;
+  transition: opacity 0.5s var(--ease-out-expo);
+}
+:global(html[data-perf="full"]) .tile:hover .edgeGlow {
+  opacity: 1;
+}
+
+:global(html[data-perf="full"]) .viewfinder {
+  transition:
+    scale 0.5s var(--ease-out-expo),
+    color 0.5s var(--ease-out-expo);
+}
+:global(html[data-perf="full"]) .tile:hover .viewfinder {
+  scale: 0.97;
+  color: var(--color-cyan);
+}
+
+.bar {
+  transform-origin: left center;
+}
+:global(html[data-perf="full"]) .bar {
+  transition: scale 0.5s var(--ease-out-expo);
+}
+:global(html[data-perf="full"]) .tile:hover .bar {
+  scale: 2 1;
+}
+
+:global(html[data-perf="full"]) .title {
+  transition: text-shadow 0.3s ease-out;
+}
+:global(html[data-perf="full"]) .tile:hover .title {
+  text-shadow:
+    0 0 18px rgb(var(--acc) / 0.6),
+    0 0 42px rgb(var(--acc) / 0.28);
+}
+
+/* Tally e "LIVE" acendem no hover (qualquer modo com mouse: custo mínimo). */
+.tile:hover .tally {
+  background-color: var(--color-red);
+}
+.tile:hover .live {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rec {
+    animation: none !important;
+  }
+}
+
+.tally {
+  transition: background-color 0.3s ease-out;
+}
+.live {
+  transition: opacity 0.3s ease-out;
+}

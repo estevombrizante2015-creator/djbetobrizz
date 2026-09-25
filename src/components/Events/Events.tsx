@@ -6,6 +6,7 @@ import type { EventItem } from "@/data/types";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Reveal } from "@/components/ui/Reveal";
 import { cn, getImageMeta } from "@/lib/utils";
+import styles from "./Events.module.css";
 
 /* ==========================================================================
    Layout "justified": cada fileira soma as proporções reais das fotos, então
@@ -62,34 +63,26 @@ function buildRows(items: EventItem[]): Row[] {
 }
 
 const accents = [
-  { bar: "bg-magenta shadow-neon-magenta", text: "text-magenta", glow: "group-hover/tile:text-glow-magenta" },
-  { bar: "bg-cyan shadow-neon-cyan", text: "text-cyan", glow: "group-hover/tile:text-glow-cyan" },
-  { bar: "bg-red shadow-neon-red", text: "text-red", glow: "group-hover/tile:text-glow-red" },
-  { bar: "bg-purple shadow-neon-purple", text: "text-purple", glow: "group-hover/tile:text-glow-purple" },
+  { bar: "bg-magenta shadow-neon-magenta", text: "text-magenta", rgb: "255 20 147" },
+  { bar: "bg-cyan shadow-neon-cyan", text: "text-cyan", rgb: "0 229 255" },
+  { bar: "bg-red shadow-neon-red", text: "text-red", rgb: "255 36 20" },
+  { bar: "bg-purple shadow-neon-purple", text: "text-purple", rgb: "138 43 226" },
 ] as const;
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
 
-/** Cantoneiras de visor de câmera — fecham levemente no hover. */
-function Viewfinder() {
-  const corner =
-    "absolute size-4 border-white/45 transition-all duration-500 ease-out group-hover/tile:size-6 group-hover/tile:border-cyan sm:size-5";
-  return (
-    <span aria-hidden className="pointer-events-none absolute inset-3 sm:inset-4">
-      <span className={cn(corner, "top-0 left-0 border-t border-l")} />
-      <span className={cn(corner, "top-0 right-0 border-t border-r")} />
-      <span className={cn(corner, "bottom-0 left-0 border-b border-l")} />
-      <span className={cn(corner, "right-0 bottom-0 border-r border-b")} />
-    </span>
-  );
-}
-
+/**
+ * Um "feed" da mesa de corte. Server component, sem JS: a decoração é CSS estático
+ * (cantoneiras e scanlines em 1 elemento cada, sem blend/filtro) e os efeitos de hover
+ * (zoom, wash neon, brilho da borda) só existem no modo completo — ver Events.module.css.
+ */
 function EventTile({ tile, rowSum, total }: { tile: Tile; rowSum: number; total: number }) {
   const { item, index, weight, mobileRatio } = tile;
   const meta = getImageMeta(item.image.src);
   const accent = accents[index % accents.length];
   const share = weight / rowSum;
-  const sizes = `(min-width: 1280px) ${Math.round(share * CONTAINER_PX)}px, (min-width: 640px) ${Math.round(share * 100)}vw, 100vw`;
+  // celular: largura do container (100vw − 2rem de padding)
+  const sizes = `(min-width: 1280px) ${Math.round(share * CONTAINER_PX)}px, (min-width: 640px) ${Math.round(share * 100)}vw, calc(100vw - 2rem)`;
   const details = [item.location, item.date].filter(Boolean).join(" · ");
   const label = item.title ?? item.type;
   // Com nome de evento vira "EVENTO DESTACADO" (§18); o tipo passa a ser o rótulo de cima.
@@ -100,14 +93,16 @@ function EventTile({ tile, rowSum, total }: { tile: Tile; rowSum: number; total:
   const style = {
     "--m-ar": mobileRatio,
     "--tile-flex": `${weight} 1 0%`,
+    "--acc": accent.rgb,
   } as CSSProperties;
 
   return (
     <figure
       style={style}
       className={cn(
-        "group/tile relative isolate aspect-(--m-ar) min-w-0 overflow-hidden rounded-sm bg-ink",
-        "ring-1 ring-line transition-[box-shadow] duration-500 hover:ring-magenta/60 hover:shadow-neon-magenta",
+        styles.tile,
+        "relative isolate aspect-(--m-ar) min-w-0 overflow-hidden rounded-sm bg-ink ring-1 ring-line",
+        "hover:ring-magenta/60",
         "sm:flex-(--tile-flex) sm:aspect-auto",
       )}
     >
@@ -116,8 +111,9 @@ function EventTile({ tile, rowSum, total }: { tile: Tile; rowSum: number; total:
         alt={item.image.alt}
         fill
         sizes={sizes}
+        quality={60}
         {...(meta.blurDataURL ? { placeholder: "blur" as const, blurDataURL: meta.blurDataURL } : {})}
-        className="object-cover transition-transform duration-[900ms] ease-out group-hover/tile:scale-[1.07]"
+        className={cn(styles.img, "object-cover")}
       />
 
       {/* leitura: base escura + vinheta */}
@@ -125,14 +121,10 @@ function EventTile({ tile, rowSum, total }: { tile: Tile; rowSum: number; total:
         aria-hidden
         className="pointer-events-none absolute inset-0 bg-gradient-to-t from-void/90 via-void/15 to-void/35"
       />
-      {/* wash duotone neon (só em dispositivos com hover) */}
-      <span
-        aria-hidden
-        className="fx-desktop-only pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,var(--color-magenta),var(--color-purple)_48%,var(--color-cyan))] opacity-0 mix-blend-color transition-opacity duration-500 group-hover/tile:opacity-60"
-      />
-      <span aria-hidden className="scanlines pointer-events-none absolute! inset-0 opacity-70" />
-
-      <Viewfinder />
+      <span aria-hidden className={styles.wash} />
+      <span aria-hidden className={styles.lines} />
+      <span aria-hidden className={styles.edgeGlow} />
+      <span aria-hidden className={styles.viewfinder} />
 
       {/* HUD do monitor: câmera + tally (acende no hover) + contador */}
       <span
@@ -140,11 +132,9 @@ function EventTile({ tile, rowSum, total }: { tile: Tile; rowSum: number; total:
         className="pointer-events-none absolute inset-x-6 top-5 flex items-center justify-between sm:inset-x-8 sm:top-6"
       >
         <span className="hud flex items-center gap-2 text-[0.65rem] text-white/85">
-          <span className="size-1.5 rounded-full bg-white/50 transition-colors duration-300 group-hover/tile:bg-red group-hover/tile:shadow-neon-red" />
+          <span className={cn(styles.tally, "size-1.5 rounded-full bg-white/50")} />
           CAM {pad2(index + 1)}
-          <span className="hidden text-red opacity-0 transition-opacity duration-300 group-hover/tile:opacity-100 sm:inline">
-            · LIVE
-          </span>
+          <span className={cn(styles.live, "hidden text-red opacity-0 sm:inline")}>· LIVE</span>
         </span>
         <span className="font-vhs text-base leading-none text-white/70 tabular-nums">
           {pad2(index + 1)}/{pad2(total)}
@@ -154,18 +144,15 @@ function EventTile({ tile, rowSum, total }: { tile: Tile; rowSum: number; total:
       {label ? (
         <figcaption className="absolute inset-x-0 bottom-0 flex flex-col gap-2 p-6 sm:p-8">
           <span className="flex items-center gap-3">
-            <span
-              aria-hidden
-              className={cn("h-px w-6 transition-all duration-500 group-hover/tile:w-12", accent.bar)}
-            />
+            <span aria-hidden className={cn(styles.bar, "h-px w-6", accent.bar)} />
             {kicker ? <span className={cn("hud", accent.text)}>{kicker}</span> : null}
           </span>
           {/* Rajdhani: o til do Orbitron vira um traço inclinado ("TELÃO" parece "TELÀO") */}
           <span
             className={cn(
-              "font-hud leading-[0.95] font-bold tracking-[0.04em] text-balance text-white uppercase transition-[text-shadow] duration-500",
+              styles.title,
+              "font-hud leading-[0.95] font-bold tracking-[0.04em] text-balance text-white uppercase",
               big ? "text-[2rem] sm:text-[2.4rem] lg:text-[2.8rem]" : "text-[1.7rem] sm:text-[1.9rem] lg:text-[2.15rem]",
-              accent.glow,
             )}
           >
             {label}
@@ -187,14 +174,17 @@ export function Events() {
 
   return (
     <section id="eventos" aria-labelledby="eventos-titulo" className="section-y relative overflow-hidden">
+      {/* Atmosfera: brilhos em gradiente radial (sem filter: blur — barato na rolagem) */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-40 -left-40 size-[36rem] rounded-full bg-magenta/10 blur-3xl"
+        className="pointer-events-none absolute top-16 -left-56 size-[40rem] bg-[radial-gradient(closest-side,rgb(255_20_147/0.12),rgb(255_20_147/0.04)_55%,transparent)]"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute right-[-12rem] bottom-0 size-[32rem] rounded-full bg-cyan/[0.06] blur-3xl"
+        className="pointer-events-none absolute right-[-14rem] bottom-0 size-[36rem] bg-[radial-gradient(closest-side,rgb(0_229_255/0.08),transparent)]"
       />
+      {/* Entrada vinda do preto: sem emenda dura sob o palco do Flashback */}
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-void to-transparent" />
 
       <div className="container-bb relative">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
@@ -208,7 +198,7 @@ export function Events() {
           />
           <Reveal className="flex shrink-0 flex-col gap-2 lg:items-end lg:pb-3 lg:text-right">
             <p className="hud flex items-center gap-2 text-mute">
-              <span aria-hidden className="size-1.5 animate-rec rounded-full bg-red" />
+              <span aria-hidden className={cn(styles.rec, "size-1.5 rounded-full bg-red")} />
               MULTICAM · {pad2(events.length)} FEEDS
             </p>
             <p className="font-hud text-lg font-semibold tracking-[0.12em] text-white/90 uppercase">

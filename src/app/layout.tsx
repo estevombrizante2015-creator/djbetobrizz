@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Orbitron, Rajdhani, VT323 } from "next/font/google";
 import { siteConfig } from "@/config/site";
 import { Providers } from "@/components/Providers";
+import { PERF_TIER_SCRIPT } from "@/lib/perf-tier";
 import { Analytics } from "@/components/Analytics";
 import "./globals.css";
 
@@ -103,12 +104,18 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="pt-BR"
+      data-perf="lite"
+      suppressHydrationWarning
       className={`${orbitron.variable} ${rajdhani.variable} ${inter.variable} ${vt323.variable} antialiased`}
     >
+      <head>
+        {/* Decide o nível de efeitos (lite/full) antes da primeira pintura — ver ExperienceContext. */}
+        <script dangerouslySetInnerHTML={{ __html: PERF_TIER_SCRIPT }} />
+      </head>
       <body className="min-h-dvh bg-void text-white">
         <a
           href="#conteudo"
-          className="hud fixed top-3 left-3 z-[100] -translate-y-20 rounded-full bg-cyan px-4 py-2 text-void transition-transform focus:translate-y-0"
+          className="hud sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:rounded-full focus:bg-cyan focus:px-4 focus:py-2 focus:text-void"
         >
           Pular para o conteúdo
         </a>

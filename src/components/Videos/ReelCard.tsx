@@ -7,13 +7,23 @@ import { InstagramIcon, PlayIcon } from "@/components/ui/Icons";
 import { track } from "@/lib/analytics";
 import { cn, imageProps } from "@/lib/utils";
 
-const POSTER = "/images/art/betobrizz-poster-vertical.webp";
+/** Capa padrão: arte vertical oficial (9:16). */
+const DEFAULT_POSTER = {
+  src: "/images/art/betobrizz-poster-vertical.webp",
+  alt: "Arte promocional DJ BetoBrizz — Music Video Entertainment",
+};
+
+type Props = {
+  /** Troca a capa (ex.: foto da pista quando o telão ao lado já mostra a arte do logo). */
+  poster?: { src: string; alt: string };
+  className?: string;
+};
 
 /**
  * "Reel" em moldura de celular (9:16) — leva para o Instagram oficial.
  * Não finge ser um vídeo específico: é a porta de entrada para os vídeos no perfil.
  */
-export function ReelCard({ className }: { className?: string }) {
+export function ReelCard({ poster = DEFAULT_POSTER, className }: Props) {
   return (
     <div className={cn("relative", className)}>
       <a
@@ -44,9 +54,9 @@ export function ReelCard({ className }: { className?: string }) {
         >
           <div className="relative aspect-[9/16] overflow-hidden rounded-[1.9rem] bg-black">
             <Image
-              {...imageProps(POSTER)}
-              alt="Arte promocional DJ BetoBrizz — Music Video Entertainment"
-              sizes="(min-width: 1280px) 380px, (min-width: 1024px) 30vw, 250px"
+              {...imageProps(poster.src)}
+              alt={poster.alt}
+              sizes="(min-width: 1280px) 380px, (min-width: 1024px) 30vw, (min-width: 640px) 300px, 270px"
               quality={75}
               className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
             />
