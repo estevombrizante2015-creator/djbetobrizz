@@ -13,6 +13,7 @@ const CHANNELS = [
   { src: "/images/events/betobrizz-telao-vermelho.webp", label: "DJ + VJ" },
   { src: "/images/events/betobrizz-palco-telas-retro.webp", label: "Telões" },
   { src: "/images/events/betobrizz-mixagem-close.webp", label: "Mixagem" },
+  { src: "/images/events/betobrizz-set-pioneer.webp", label: "Cabine" },
   { src: "/images/art/betobrizz-arena.webp", label: "Sound & Visual" },
 ].map((c) => ({ ...c, alt: gallery.find((p) => p.src === c.src)?.alt ?? `DJ BetoBrizz — ${c.label}` }));
 
@@ -23,6 +24,9 @@ function blur(src: string) {
   return blurDataURL ? { placeholder: "blur" as const, blurDataURL } : {};
 }
 const pad = (n: number) => String(n + 1).padStart(2, "0");
+
+/** Posição do knob seletor: de -135° a +135°, um "clique" por canal. */
+const knobAngle = (i: number) => -135 + (270 / Math.max(1, CHANNELS.length - 1)) * i;
 
 /** Ruído de "troca de canal" (SVG inline, sem requisição). */
 const NOISE =
@@ -200,7 +204,7 @@ export function CrtMonitor({ className }: { className?: string }) {
                   aria-label={`Canal ${pad(i)}: ${c.label}`}
                   onClick={() => tune(i, true)}
                   className={cn(
-                    "grid h-9 w-9 place-items-center rounded-md border font-vhs text-lg leading-none transition-[color,border-color,background-color,box-shadow] duration-200 sm:h-8 sm:w-10",
+                    "grid size-10 place-items-center rounded-md border font-vhs text-lg leading-none transition-[color,border-color,background-color,box-shadow] duration-200 sm:h-9",
                     i === channel
                       ? "border-magenta bg-magenta/15 text-white shadow-neon-magenta"
                       : "border-line-strong bg-void/60 text-mute hover:border-white/50 hover:text-white",
@@ -219,7 +223,7 @@ export function CrtMonitor({ className }: { className?: string }) {
               <KnobIcon
                 size={26}
                 className="transition-transform duration-500 ease-out"
-                style={{ transform: `rotate(${channel * 90}deg)` }}
+                style={{ transform: `rotate(${knobAngle(channel)}deg)` }}
               />
             </button>
           </div>

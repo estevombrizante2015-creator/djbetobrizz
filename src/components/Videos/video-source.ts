@@ -51,18 +51,22 @@ export function resolveVideoSource(item: VideoItem): VideoSource | null {
   }
 }
 
-/** Capa do card: local (next/image), remota (<img>) ou nenhuma (capa neutra). */
-export type VideoPoster = { kind: "local"; src: string } | { kind: "remote"; src: string } | { kind: "none" };
+/**
+ * Capa do card: otimizada pelo next/image (só /images/**, o padrão liberado em next.config),
+ * <img> simples (outros caminhos locais ou URLs remotas) ou nenhuma (capa neutra).
+ */
+export type VideoPoster = { kind: "optimized"; src: string } | { kind: "plain"; src: string } | { kind: "none" };
 
 export function resolveVideoPoster(item: VideoItem): VideoPoster {
   const poster = item.poster?.trim();
   if (poster) {
-    if (isLocalPath(poster)) return { kind: "local", src: poster };
+    if (poster.startsWith("/images/")) return { kind: "optimized", src: poster };
+    if (isLocalPath(poster)) return { kind: "plain", src: poster };
     const url = safeExternalUrl(poster);
-    if (url) return { kind: "remote", src: url };
+    if (url) return { kind: "plain", src: url };
   }
   if (item.platform === "youtube" && YOUTUBE_ID.test(item.id.trim())) {
-    return { kind: "remote", src: `https://i.ytimg.com/vi/${item.id.trim()}/hqdefault.jpg` };
+    return { kind: "plain", src: `https://i.ytimg.com/vi/${item.id.trim()}/hqdefault.jpg` };
   }
   return { kind: "none" };
 }

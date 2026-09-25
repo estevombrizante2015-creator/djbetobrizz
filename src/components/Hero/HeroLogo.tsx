@@ -7,8 +7,11 @@ import { cn } from "@/lib/utils";
 import { useHeroIntro } from "./HeroIntro";
 import styles from "./Hero.module.css";
 
-/** Mesmo `sizes` nas três cópias → o navegador baixa o logo uma única vez. */
-const SIZES = "(min-width: 1024px) 700px, 92vw";
+/**
+ * Mesmo `sizes` nas três cópias → o navegador baixa o logo uma única vez.
+ * Acompanha os limites do layout: 78vh em telas baixas, 760/700px no desktop, 92vw no celular.
+ */
+const SIZES = "(max-height: 500px) 78vh, (min-width: 1280px) 760px, (min-width: 1024px) 700px, 92vw";
 
 type Phase = "intro" | "idle" | "glitch";
 

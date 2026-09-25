@@ -260,7 +260,7 @@ export function Lightbox({ photos, startIndex, onClose, returnFocus }: Props) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25, ease: ease.out }}
-      className="fixed inset-0 z-[90] flex flex-col overscroll-contain bg-void/[0.96] text-white outline-none"
+      className="fixed inset-0 z-[90] flex flex-col overscroll-contain bg-void text-white outline-none"
     >
       {/* Atmosfera: brilho neon + scanlines (decorativo) */}
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -300,6 +300,10 @@ export function Lightbox({ photos, startIndex, onClose, returnFocus }: Props) {
         animate={{ scaleY: 1, opacity: 1 }}
         exit={{ scaleY: 0.04, opacity: 0 }}
         transition={{ duration: 0.38, ease: ease.out }}
+        // clique na margem do palco (fora da área da foto) também fecha
+        onClick={(e) => {
+          if (e.target === e.currentTarget) requestClose();
+        }}
         className="relative min-h-0 flex-1 overflow-hidden"
       >
         <div
@@ -396,11 +400,11 @@ export function Lightbox({ photos, startIndex, onClose, returnFocus }: Props) {
           ) : null}
         </div>
 
-        <p aria-hidden className="hud mt-3 hidden text-center text-[0.6rem] text-white/45 sm:text-left [@media(hover:hover)]:block">
+        <p aria-hidden className="hud mt-3 hidden text-center text-[0.6rem] tracking-[0.2em] text-white/45 sm:text-left [@media(hover:hover)]:block">
           Clique para ampliar · ← → navegar · Esc fechar
         </p>
-        <p aria-hidden className="hud mt-3 text-center text-[0.6rem] text-white/45 [@media(hover:hover)]:hidden">
-          Toque duas vezes para ampliar · deslize para navegar
+        <p aria-hidden className="hud mt-3 text-center text-[0.6rem] tracking-[0.14em] text-white/45 [@media(hover:hover)]:hidden">
+          Toque 2× para ampliar · deslize para navegar
         </p>
       </div>
 

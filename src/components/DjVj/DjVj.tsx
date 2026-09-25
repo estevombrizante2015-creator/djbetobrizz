@@ -1,12 +1,19 @@
 import { siteConfig } from "@/config/site";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { Reveal } from "@/components/ui/Reveal";
+import { cn } from "@/lib/utils";
 import { DjVjStage } from "./DjVjStage";
+
+/** Cores do slogan: som (lado DJ) · vídeo (lado VJ) · entretenimento (o resultado). */
+const taglineColors = ["text-red", "text-cyan", "text-white"];
 
 /**
  * 02 — DJ + VJ: palco dividido em duas metades que se conectam no scroll.
  * Âncora "experiencia" do menu.
  */
 export function DjVj() {
+  const tagline = siteConfig.tagline.split("•").map((part) => part.trim()).filter(Boolean);
+
   return (
     <section id="experiencia" aria-labelledby="djvj-title" className="section-y relative isolate overflow-hidden">
       {/* Luz ambiente: magenta do lado DJ, ciano do lado VJ */}
@@ -17,14 +24,23 @@ export function DjVj() {
       <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-line-strong to-transparent" />
 
       <div className="container-bb">
-        <SectionHeading
-          id="djvj-title"
-          kicker="02 // DJ + VJ"
-          title="DJ + VJ"
-          subtitle={siteConfig.tagline}
-          accent="purple"
-          align="center"
-        />
+        <SectionHeading id="djvj-title" kicker="02 // DJ + VJ" title="DJ + VJ" accent="red" align="center">
+          {tagline.length ? (
+            <Reveal
+              as="p"
+              delay={0.2}
+              className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 font-hud text-base font-semibold tracking-[0.14em] uppercase min-[400px]:text-lg sm:gap-x-4 sm:text-xl sm:tracking-[0.18em]"
+            >
+              <span className="sr-only">{siteConfig.tagline}</span>
+              {tagline.map((part, i) => (
+                <span key={part} aria-hidden className="inline-flex items-center gap-2.5 sm:gap-4">
+                  {i > 0 ? <span className="text-dim">•</span> : null}
+                  <span className={cn(taglineColors[i % taglineColors.length])}>{part}</span>
+                </span>
+              ))}
+            </Reveal>
+          ) : null}
+        </SectionHeading>
         <DjVjStage />
       </div>
     </section>

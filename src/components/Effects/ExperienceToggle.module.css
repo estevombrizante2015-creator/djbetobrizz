@@ -54,15 +54,22 @@
   will-change: opacity;
 }
 
-/* Feixe: cunha estreita no topo que abre para baixo, girando a partir do canto */
+/* Feixe: cone de luz com bordas suaves (conic-gradient) saindo do canto, que some ao descer */
 .beam {
   position: absolute;
   top: -6vh;
   width: 36vmax;
   height: 150vh;
   transform-origin: 50% 0;
-  background: linear-gradient(to bottom, var(--beam) 0%, transparent 80%);
-  clip-path: polygon(48.5% 0, 51.5% 0, 100% 100%, 0 100%);
+  background: conic-gradient(
+    from 171deg at 50% 0%,
+    transparent 0deg,
+    var(--beam) 7deg,
+    var(--beam) 11deg,
+    transparent 18deg
+  );
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, rgb(0 0 0 / 0.55) 45%, transparent 85%);
+  mask-image: linear-gradient(to bottom, #000 0%, rgb(0 0 0 / 0.55) 45%, transparent 85%);
   opacity: 0.3;
   will-change: transform;
   animation-duration: calc(var(--beat) * 8);
@@ -114,11 +121,11 @@
 }
 .full .left,
 .full .right {
-  opacity: 0.4;
+  opacity: 0.34;
 }
 .full .left2,
 .full .right2 {
-  opacity: 0.3;
+  opacity: 0.24;
 }
 
 /* Mobile: mais leve (sem blend, feixes mais largos e fracos) */

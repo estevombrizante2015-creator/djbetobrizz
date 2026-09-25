@@ -66,7 +66,7 @@ export function DjVjStage() {
   const reducedMotion = useHydrated() && prefersReduced;
   const inView = useInView(stageRef, { amount: 0.1 });
 
-  const { scrollYProgress } = useScroll({ target: stageRef, offset: ["start 0.95", "center 0.68"] });
+  const { scrollYProgress } = useScroll({ target: stageRef, offset: ["start 0.95", "center 0.58"] });
   const djX = useTransform(scrollYProgress, [0, 0.75], [-120, 0]);
   const vjX = useTransform(scrollYProgress, [0, 0.75], [120, 0]);
   const deckOpacity = useTransform(scrollYProgress, [0, 0.55], [0.3, 1]);
@@ -213,7 +213,7 @@ function Deck({ side, style, linked, jolt = false, onJoltEnd }: DeckProps) {
 
       <div
         className={cn(
-          "relative isolate aspect-[4/5] overflow-hidden rounded-2xl border bg-ink sm:aspect-[16/11] lg:aspect-auto lg:h-full lg:min-h-[36rem]",
+          "relative isolate aspect-[4/5] overflow-hidden rounded-2xl border bg-ink sm:aspect-[16/11] lg:aspect-auto lg:h-full lg:min-h-[max(30rem,min(36rem,calc(100svh_-_12rem)))]",
           isDj ? "border-magenta/35" : "border-cyan/35",
         )}
       >
@@ -226,7 +226,7 @@ function Deck({ side, style, linked, jolt = false, onJoltEnd }: DeckProps) {
               "h-full w-full object-cover transition-transform duration-700 ease-out-expo group-hover:scale-[1.04]",
               isDj
                 ? "object-[62%_50%] brightness-[.62] contrast-[1.1] saturate-[1.15]"
-                : "object-[45%_50%] brightness-[.5] contrast-[1.35] saturate-[1.2]",
+                : "object-[45%_50%] [filter:sepia(.6)_hue-rotate(172deg)_saturate(1.9)_brightness(.48)_contrast(1.3)]",
             )}
           />
         </div>
@@ -239,7 +239,6 @@ function Deck({ side, style, linked, jolt = false, onJoltEnd }: DeckProps) {
           </>
         ) : (
           <>
-            <div aria-hidden className="absolute inset-0 bg-blue/25 mix-blend-color max-lg:hidden" />
             <div aria-hidden className="absolute inset-0 bg-[radial-gradient(90%_70%_at_100%_100%,rgb(0_102_255/0.4),transparent_65%)]" />
             <div aria-hidden className="absolute inset-0 bg-[radial-gradient(70%_60%_at_0%_0%,rgb(0_229_255/0.22),transparent_70%)]" />
             <div aria-hidden className="scanlines absolute inset-0" />

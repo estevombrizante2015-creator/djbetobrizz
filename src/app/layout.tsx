@@ -87,7 +87,7 @@ const jsonLd = {
   description,
   url: siteConfig.url,
   image: `${siteConfig.url}/social-preview.jpg`,
-  logo: `${siteConfig.url}${siteConfig.logo.src}`,
+  logo: `${siteConfig.url}${siteConfig.logo.png}`,
   telephone: `+${siteConfig.whatsapp}`,
   address: {
     "@type": "PostalAddress",

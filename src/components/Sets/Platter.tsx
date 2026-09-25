@@ -10,7 +10,10 @@ type Props = {
   className?: string;
 };
 
-const LABEL_TEXT = "BETOBRIZZ • SOUND & VISUAL EXPERIENCE • MUSIC VIDEO ENTERTAINMENT • ";
+/** Texto do anel do selo (o logo já está no centro). Ajustado para fechar a volta sem cortar. */
+const LABEL_TEXT = "SOUND & VISUAL EXPERIENCE • MUSIC VIDEO ENTERTAINMENT • ";
+/** Circunferência do caminho do anel (r = 40 no viewBox 100) menos uma folga mínima. */
+const RING_LENGTH = (2 * Math.PI * 40 - 1.5).toFixed(1);
 
 /**
  * Prato/vinil com o logo como selo. Gira só quando o set está tocando
@@ -65,7 +68,9 @@ export function Platter({ spinning, armDown, className }: Props) {
               <path id="sets-label-ring" d="M50,50 m-40,0 a40,40 0 1,1 80,0 a40,40 0 1,1 -80,0" />
             </defs>
             <text className="font-hud" fill="rgb(255 255 255 / 0.62)" fontSize="6.4" fontWeight="700" letterSpacing="1.1">
-              <textPath href="#sets-label-ring">{LABEL_TEXT}</textPath>
+              <textPath href="#sets-label-ring" textLength={RING_LENGTH} lengthAdjust="spacing">
+                {LABEL_TEXT}
+              </textPath>
             </text>
           </svg>
           <Image

@@ -60,7 +60,8 @@ function whatsappFor(title: string) {
 
 const HOT_CUES = "ABCDEFGH";
 
-type Props = { items: ReadonlyArray<{ icon: string; title: string }> };
+/** `icon` é opcional: sem ele o pad mostra o número grande do hot cue. */
+type Props = { items: ReadonlyArray<{ icon?: string; title: string }> };
 
 /**
  * Grade de pads de controladora (HOT CUE). Cada pad é um link para o WhatsApp
@@ -145,7 +146,7 @@ export function PadGrid({ items }: Props) {
                   aria-hidden
                   className="relative text-[1.75rem] leading-none brightness-110 grayscale-[0.85] transition-[filter,transform] duration-300 group-hover:scale-110 group-hover:grayscale-0 group-focus-visible:grayscale-0 sm:text-4xl"
                 >
-                  {item.icon}
+                  {item.icon ?? <span className="font-vhs text-4xl text-white/70">{HOT_CUES[i % HOT_CUES.length]}</span>}
                 </span>
 
                 {/* Tamanho pela largura do pad (cqi): a palavra mais longa cabe inteira;

@@ -51,8 +51,8 @@ export function ExperienceToggle({ className, labelClassName, size = "sm", withO
         <span className="sr-only">Experience mode</span>
         {/* Os dois rótulos ocupam a mesma célula: a largura do botão não muda ao alternar. */}
         <span aria-hidden className={cn("grid", labelClassName)}>
-          <span className={cn("[grid-area:1/1]", experienceMode && "invisible")}>Enter experience</span>
-          <span className={cn("[grid-area:1/1]", !experienceMode && "invisible")}>
+          <span className={cn("whitespace-nowrap [grid-area:1/1]", experienceMode && "invisible")}>Enter experience</span>
+          <span className={cn("whitespace-nowrap [grid-area:1/1]", !experienceMode && "invisible")}>
             Experience <span className="text-magenta text-glow-magenta">on</span>
           </span>
         </span>

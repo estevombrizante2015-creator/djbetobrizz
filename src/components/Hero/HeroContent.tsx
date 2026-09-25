@@ -58,8 +58,8 @@ function TypedTitle({ started, reduced }: { started: boolean; reduced: boolean }
           animate={{ clipPath: started ? CLIP_SHOWN : CLIP_HIDDEN }}
           transition={typing}
         >
-          {parts.map((part) => (
-            <span key={part.text} className={part.tone}>
+          {parts.map((part, i) => (
+            <span key={`${i}-${part.text}`} className={part.tone}>
               {part.text}
             </span>
           ))}
@@ -106,19 +106,20 @@ export function HeroContent() {
   return (
     <motion.div
       className={cn(
-        "relative mx-auto w-full max-w-[700px] text-center lg:mr-0 lg:ml-auto lg:text-left",
+        "relative mx-auto w-full max-w-[700px] text-center lg:mr-0 lg:ml-auto lg:text-left xl:max-w-[760px]",
         parallax && "will-change-transform",
       )}
       style={parallax ? { y, opacity } : undefined}
     >
       <h1 id="hero-title">
         <span className="sr-only">{`${siteConfig.name} — `}</span>
-        {/* limitado pela altura também: telas baixas (celular deitado, notebook 720p) */}
-        <HeroLogo className="mx-auto w-full max-w-[90svh] lg:mx-0" />
+        {/* limitado pela altura também: telas baixas (celular deitado, notebook 720p/768p) */}
+        <HeroLogo className={cn("mx-auto w-full lg:mx-0", styles.logoFit)} />
         <TypedTitle started={started} reduced={reduced} />
       </h1>
 
       <motion.p
+        lang="en"
         className="hud hero-reveal mt-5 flex items-center justify-center gap-3 text-[0.7rem] text-white/80 sm:text-xs lg:justify-start"
         variants={rise}
         initial="hidden"

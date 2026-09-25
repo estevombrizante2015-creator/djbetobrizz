@@ -70,7 +70,15 @@ export function Header() {
   // Menu aberto: foco no primeiro link, Esc fecha e Tab circula dentro do header.
   useEffect(() => {
     if (!open) return;
-    const raf = requestAnimationFrame(() => firstLinkRef.current?.focus({ preventScroll: true }));
+    // O painel sai de `visibility: hidden` ao longo da transição: tenta focar por alguns frames.
+    let raf = 0;
+    let tries = 0;
+    const focusFirst = () => {
+      const link = firstLinkRef.current;
+      link?.focus({ preventScroll: true });
+      if (link && document.activeElement !== link && ++tries < 20) raf = requestAnimationFrame(focusFirst);
+    };
+    raf = requestAnimationFrame(focusFirst);
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {

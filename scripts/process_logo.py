@@ -1,48 +1,28 @@
-"""Gera versões transparentes do logo a partir de trabalho/minhalogo.jpeg.
+"""Prepara o logo oficial a partir de trabalho/novologo.png (PNG com fundo transparente).
 
-Fundo original: cinza uniforme (247). Contorno: branco puro (255).
-- logo-original.png: cores originais, fundo removido (para fundos claros)
-- logo-dark.png: variante para fundos escuros (preto -> branco, vermelho mantido)
+Gera em public/images/logo/:
+- betobrizz-logo.webp: logo principal do site (resolução total, recortado).
+- betobrizz-logo.png: versão 800px para JSON-LD / compartilhamento.
+
+Uso: python scripts/process_logo.py   (depois rode `npm run images` para atualizar os metadados)
 """
-import numpy as np
+import os
+
 from PIL import Image
 
-SRC = "trabalho/minhalogo.jpeg"
-BG = 247.0
+SRC = "trabalho/novologo.png"
+OUT = "public/images/logo"
+PAD = 6
 
-im = np.asarray(Image.open(SRC).convert("RGB")).astype(np.float32)
-r, g, b = im[..., 0], im[..., 1], im[..., 2]
-lum = (r + g + b) / 3
-chroma = im.max(axis=2) - im.min(axis=2)
+os.makedirs(OUT, exist_ok=True)
 
-alpha = np.zeros(lum.shape, np.float32)
-darker = lum < BG
-alpha[darker] = (BG - lum[darker]) / BG          # composto com preto
-lighter = ~darker
-alpha[lighter] = np.clip((lum[lighter] - BG) / (255 - BG), 0, 1)  # composto com branco
-colored = chroma > 40
-alpha[colored] = 1.0
-alpha = np.clip(alpha * 1.15, 0, 1)  # leve reforço nas bordas
+im = Image.open(SRC).convert("RGBA")
+im = im.crop(im.getchannel("A").getbbox())
+logo = Image.new("RGBA", (im.width + 2 * PAD, im.height + 2 * PAD), (0, 0, 0, 0))
+logo.paste(im, (PAD, PAD))
 
-# cor "limpa": preto onde era escuro, branco onde era claro, cor original onde colorido
-rgb = np.zeros_like(im)
-rgb[lighter] = 255
-rgb[colored] = im[colored]
-
-def save(rgb_arr, name):
-    out = np.dstack([rgb_arr, alpha * 255]).astype(np.uint8)
-    img = Image.fromarray(out, "RGBA")
-    bbox = img.getchannel("A").point(lambda v: 255 if v > 8 else 0).getbbox()
-    img = img.crop((max(bbox[0]-4,0), max(bbox[1]-4,0), bbox[2]+4, bbox[3]+4))
-    img.save(f"public/images/logo/{name}.png", optimize=True)
-    img.save(f"public/images/logo/{name}.webp", quality=92, method=6)
-    print(name, img.size)
-
-import os
-os.makedirs("public/images/logo", exist_ok=True)
-save(rgb, "logo-original")
-
-# variante escura: inverte preto/branco, mantém o vermelho
-dark = 255 - rgb
-dark[colored] = im[colored]
-save(dark, "logo-dark")
+logo.save(f"{OUT}/betobrizz-logo.webp", quality=90, method=6)
+small = logo.copy()
+small.thumbnail((800, 800))
+small.save(f"{OUT}/betobrizz-logo.png", optimize=True)
+print("betobrizz-logo", logo.size, "png", small.size)

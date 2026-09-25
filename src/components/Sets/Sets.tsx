@@ -19,9 +19,13 @@ function soundcloudUrl(url: string) {
   return host === "soundcloud.com" || host.endsWith(".soundcloud.com") ? safe : undefined;
 }
 
-/** "DJ BetoBrizz — Set Flashback" → "SET — FLASHBACK" (o display já mostra "DJ BETOBRIZZ"). */
+/**
+ * "DJ BetoBrizz — Set Flashback" / "BETO BRIZZ DJ - Set house" → "SET — FLASHBACK" / "SET — HOUSE"
+ * (o display já mostra "DJ BETOBRIZZ").
+ */
 function deckTitle(title: string) {
-  const t = title.replace(/^\s*dj\s*beto\s*brizz\s*[—–-]\s*/i, "").trim();
+  const t = title.replace(/^\s*(?:dj\s*)?beto\s*brizz(?:\s*dj)?\s*[—–:-]?\s*/i, "").trim();
+  if (!t) return title.trim();
   if (/^set\s*[—–-]/i.test(t)) return t;
   if (/^set\s+/i.test(t)) return t.replace(/^set\s+/i, "Set — ");
   return `Set — ${t}`;
@@ -42,7 +46,9 @@ function toDeckTracks(items: SetItem[]): DeckTrack[] {
 export function Sets() {
   const fromData = toDeckTracks(sets);
   const tracks: DeckTrack[] =
-    fromData.length > 0 ? fromData : [{ url: siteConfig.soundcloud, title: PROFILE_TITLE, display: PROFILE_TITLE }];
+    fromData.length > 0
+      ? fromData
+      : [{ url: siteConfig.soundcloud, title: PROFILE_TITLE, display: PROFILE_TITLE, note: "Perfil oficial" }];
 
   return (
     <section id="sets" aria-labelledby="sets-title" className="section-y relative overflow-hidden">
@@ -73,8 +79,10 @@ export function Sets() {
             className="lg:col-span-7"
           />
           <Reveal className="lg:col-span-5 lg:pb-2">
-            <p className="text-lg text-white">Sinta a vibe antes da festa: sets e mixes do {siteConfig.soundcloudName}.</p>
-            <p className="mt-2 text-sm text-mute">O player só carrega quando você aperta ▶ — nada toca sozinho.</p>
+            <p className="max-w-md text-lg text-balance text-white">
+              Sinta a vibe antes da festa: sets e mixes do {siteConfig.soundcloudName}.
+            </p>
+            <p className="mt-2 max-w-md text-sm text-pretty text-mute">O player só carrega quando você aperta ▶ — nada toca sozinho.</p>
             <NeonButton
               href={siteConfig.soundcloud}
               external

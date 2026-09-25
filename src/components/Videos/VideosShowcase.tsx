@@ -34,7 +34,7 @@ export function VideosShowcase() {
             <p className="mt-4 font-display text-xl leading-snug font-bold text-balance text-white uppercase sm:text-2xl">
               Os vídeos das apresentações estão no Instagram.
             </p>
-            <p className="mt-3 text-base text-mute">
+            <p className="mt-3 text-base text-pretty text-mute">
               Siga <span className="text-white">{siteConfig.instagramHandle}</span> e veja a experiência DJ + VJ em
               movimento.
             </p>

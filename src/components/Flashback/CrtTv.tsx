@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { VhsOverlay } from "@/components/Effects/VhsOverlay";
 import { KnobIcon } from "@/components/ui/Icons";
@@ -12,6 +13,8 @@ type Props = {
   /** Estado do "videocassete" mostrado no OSD. */
   mode: "PLAY" | "PAUSE";
   reducedMotion: boolean;
+  /** Mídia física da década (fita, CD…) — posicionada em relação à TV, sem cobrir o OSD. */
+  children?: ReactNode;
 };
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -21,7 +24,7 @@ const pad = (n: number) => String(n).padStart(2, "0");
  * O knob da marca (o "O" de BETO) é o seletor de canal — gira a cada década.
  * Puramente decorativa: o conteúdo acessível fica no painel de texto ao lado.
  */
-export function CrtTv({ scene, index, total, mode, reducedMotion }: Props) {
+export function CrtTv({ scene, index, total, mode, reducedMotion, children }: Props) {
   const knobAngle = total > 1 ? -135 + (270 * index) / (total - 1) : 0;
 
   return (
@@ -51,7 +54,8 @@ export function CrtTv({ scene, index, total, mode, reducedMotion }: Props) {
               <span key={`osd-${index}`} className={cn("vhs", styles.osd)}>
                 CH {pad(index + 1)}
               </span>
-              <VhsOverlay mode={mode} track={`TRACK ${pad(index + 1)}`} start={92 + index * 47} />
+              {/* key: cada canal é uma "fita" nova — o timecode recomeça do ponto da faixa */}
+              <VhsOverlay key={`vhs-${index}`} mode={mode} track={`TRACK ${pad(index + 1)}`} start={92 + index * 47} />
             </div>
           </div>
 
@@ -79,6 +83,9 @@ export function CrtTv({ scene, index, total, mode, reducedMotion }: Props) {
         <span />
         <span />
       </div>
+      {/* Espaço para a mídia "apoiada" na frente da TV (medido em cqi da própria TV) */}
+      <div className={styles.propSpace} />
+      {children ? <div className={styles.propSlot}>{children}</div> : null}
     </div>
   );
 }

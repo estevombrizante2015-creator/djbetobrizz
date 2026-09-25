@@ -13,12 +13,15 @@ const NO_JS_CSS = ".hero-reveal{opacity:1!important;transform:none!important;cli
 
 const corner = "absolute h-4 w-4 border-white/35 sm:h-5 sm:w-5";
 
-/** Moldura de monitor de VJ (continua a do Loader): cantos, REC, canal/local e timecode. Decorativa. */
+/**
+ * Moldura de monitor de VJ (continua a do Loader): cantos, REC, canal/local e timecode. Decorativa.
+ * A base da moldura "pousa" sobre o piso de LED (HeroBottom) em vez de cruzar as barras.
+ */
 function HeroHud() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-x-3 top-[84px] bottom-3 z-10 sm:inset-x-6 sm:bottom-6 lg:inset-x-8 lg:top-[96px]"
+      className="pointer-events-none absolute inset-x-3 top-[84px] bottom-[3.25rem] z-10 sm:inset-x-6 md:bottom-[4.5rem] lg:inset-x-8 lg:top-[96px] [@media(max-height:500px)]:bottom-[2.75rem]"
     >
       <span className={cn(corner, "top-0 left-0 border-t border-l")} />
       <span className={cn(corner, "top-0 right-0 border-t border-r")} />
@@ -75,7 +78,7 @@ export function Hero() {
 
         <HeroHud />
 
-        <div className="container-bb relative z-10 flex flex-1 flex-col justify-end pt-32 pb-36 sm:pb-40 lg:justify-center lg:pt-36 lg:pb-40 [@media(max-height:500px)]:pt-24 [@media(max-height:500px)]:pb-28">
+        <div className={cn("container-bb relative z-10 flex flex-1 flex-col justify-end lg:justify-center", styles.stage)}>
           <HeroContent />
         </div>
 

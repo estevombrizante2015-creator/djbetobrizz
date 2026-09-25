@@ -9,4 +9,12 @@ import type { VideoItem } from "./types";
  *
  * Enquanto a lista estiver vazia, a seção mostra um convite para assistir no Instagram.
  */
-export const videos: VideoItem[] = [];
+export const videos: VideoItem[] = [
+  {
+    title: "BetoBrizz — Sound & Visual",
+    subtitle: "Abertura / VJ",
+    platform: "file",
+    id: "/videos/betobrizz-intro.mp4",
+    poster: "/images/art/betobrizz-intro-poster.webp",
+  },
+];

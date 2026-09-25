@@ -53,11 +53,11 @@ export function About() {
           <Reveal delay={0.12} className="max-w-xl">
             <div className="relative border-y border-line py-4">
               <span aria-hidden className="absolute top-[-1px] left-0 h-px w-16 bg-magenta shadow-neon-magenta" />
-              <p className="hud flex flex-wrap items-center gap-x-3 gap-y-2 text-[0.8rem] text-white sm:text-sm">
+              <p className="hud flex flex-wrap items-center gap-x-2 gap-y-2 text-[0.7rem] tracking-[0.16em] text-white min-[400px]:text-[0.8rem] sm:gap-x-3 sm:text-sm sm:tracking-[0.28em]">
                 {signalChain.map((item, i) => (
                   <Fragment key={item.label}>
                     {i > 0 ? <span className="text-dim">+</span> : null}
-                    <span className="inline-flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 sm:gap-2">
                       <span aria-hidden className={cn("size-1.5 rounded-full", item.led)} />
                       {item.label}
                     </span>

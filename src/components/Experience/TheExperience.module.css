@@ -108,31 +108,31 @@
   60%, 100% { transform: scale(0.85); opacity: 0.55; }
 }
 
-/* Cobertura que "esconde" os LEDs de cima: o nível sobe e desce em degraus. */
+/* Cobertura que "esconde" os LEDs da direita: o nível sobe e desce em degraus. */
 .meterCover {
   position: absolute;
   inset: 0;
-  transform-origin: top;
-  transform: scaleY(0.42);
+  transform-origin: right;
+  transform: scaleX(0.42);
   animation: meter 1.3s steps(1, end) infinite;
 }
 
 .meterCoverAlt {
   animation-duration: 1.1s;
   animation-delay: -0.35s;
-  transform: scaleY(0.25);
+  transform: scaleX(0.25);
 }
 
 @keyframes meter {
-  0% { transform: scaleY(0.25); }
-  12% { transform: scaleY(0.5); }
-  24% { transform: scaleY(0.084); }
-  36% { transform: scaleY(0.334); }
-  48% { transform: scaleY(0.167); }
-  60% { transform: scaleY(0.584); }
-  72% { transform: scaleY(0.25); }
-  84% { transform: scaleY(0.084); }
-  100% { transform: scaleY(0.417); }
+  0% { transform: scaleX(0.285); }
+  12% { transform: scaleX(0.5); }
+  24% { transform: scaleX(0.071); }
+  36% { transform: scaleX(0.357); }
+  48% { transform: scaleX(0.143); }
+  60% { transform: scaleX(0.571); }
+  72% { transform: scaleX(0.214); }
+  84% { transform: scaleX(0.071); }
+  100% { transform: scaleX(0.428); }
 }
 
 /* ---------- Marquee da frase ---------- */

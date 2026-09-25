@@ -232,7 +232,8 @@
     transform: scale(1.06) translate3d(0, 0, 0);
   }
   to {
-    transform: scale(1.16) translate3d(-1.6%, -1.2%, 0);
+    /* zoom contido: as fotos de evento têm resolução limitada, ampliar demais amolece o DJ */
+    transform: scale(1.12) translate3d(-1.2%, -1%, 0);
   }
 }
 
@@ -287,9 +288,9 @@
     to top,
     var(--color-void) 6%,
     rgb(5 5 5 / 0.86) 34%,
-    rgb(5 5 5 / 0.35) 64%,
-    rgb(5 5 5 / 0.25) 80%,
-    rgb(5 5 5 / 0.7) 100%
+    rgb(5 5 5 / 0.3) 64%,
+    rgb(5 5 5 / 0.12) 80%,
+    rgb(5 5 5 / 0.62) 100%
   );
 }
 
@@ -313,7 +314,8 @@
 }
 
 :global(html[data-experience="on"]) .wash {
-  opacity: 1;
+  /* o overlay do Experience Mode já soma luz por cima — não saturar a foto */
+  opacity: 0.9;
 }
 
 .vignette {
@@ -323,4 +325,73 @@
 /* scanlines sem mix-blend (barato para touch/mobile) */
 .scanlinesLite {
   background: repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.22) 0 1px, transparent 1px 3px);
+}
+
+/* ---------- Palco: respiro para o header/HUD e para a base (scroll + piso de LED) ---------- */
+
+.stage {
+  padding-top: 8rem;
+  padding-bottom: 9rem;
+}
+
+@media (min-width: 40rem) {
+  .stage {
+    padding-bottom: 9.5rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  .stage {
+    padding-top: 8.5rem;
+    padding-bottom: 10rem;
+  }
+}
+
+/* notebooks 720p/768p: tudo (inclusive o piso de LED) cabe na primeira dobra */
+@media (min-width: 64rem) and (max-height: 820px) {
+  .stage {
+    padding-top: 7rem;
+    padding-bottom: 9rem;
+  }
+}
+
+/* celular deitado */
+@media (max-height: 500px) {
+  .stage {
+    padding-top: 5.5rem;
+    padding-bottom: 6.5rem;
+  }
+}
+
+/* ---------- Piso de LED: barras segmentadas (VU de equipamento) que somem nas bordas ---------- */
+
+.ledFloor {
+  opacity: 0.8;
+  -webkit-mask-image:
+    repeating-linear-gradient(to top, #000 0 3px, transparent 3px 5px),
+    radial-gradient(ellipse 72% 140% at 50% 100%, #000 30%, transparent 100%);
+  mask-image:
+    repeating-linear-gradient(to top, #000 0 3px, transparent 3px 5px),
+    radial-gradient(ellipse 72% 140% at 50% 100%, #000 30%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+
+@media (min-width: 48rem) {
+  .ledFloor {
+    opacity: 0.75;
+  }
+}
+
+/* ---------- Logo do hero: largura limitada também pela altura da tela ---------- */
+
+.logoFit {
+  max-width: 78svh;
+}
+
+/* notebook 720p: logo um pouco menor para os CTAs e o scroll respirarem */
+@media (min-width: 64rem) and (max-height: 740px) {
+  .logoFit {
+    max-width: 68svh;
+  }
 }

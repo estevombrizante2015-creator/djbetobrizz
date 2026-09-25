@@ -38,7 +38,9 @@ export const siteConfig = {
   soundcloudName: "Beto Brizz DJ",
 
   logo: {
-    src: "/images/logo/logo-dark.png",
+    src: "/images/logo/betobrizz-logo.webp",
+    /** PNG para JSON-LD / compartilhamento. */
+    png: "/images/logo/betobrizz-logo.png",
     alt: "DJ BetoBrizz",
   },
   profileImage: "/images/profile/betobrizz-perfil.webp",
@@ -46,6 +48,7 @@ export const siteConfig = {
   /**
    * Vídeo de fundo do hero (opcional). Coloque os arquivos em public/videos/
    * e preencha os caminhos. Sem vídeo, o hero usa `heroImage` + efeitos.
+   * Ex.: { desktop: "/videos/betobrizz-intro.mp4", poster: "/images/art/betobrizz-intro-poster.webp" }
    */
   heroVideo: null as null | { desktop: string; mobile?: string; poster: string },
   heroImage: {

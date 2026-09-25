@@ -114,7 +114,7 @@ export function MobileMenu({ id, open, items, active, firstLinkRef, onNavigate }
                       </span>
                       <span
                         className={cn(
-                          "truncate font-display text-[1.35rem] leading-tight font-black tracking-tight uppercase",
+                          "font-display text-[1.35rem] leading-tight font-black tracking-tight uppercase",
                           isActive ? "text-white text-glow-cyan" : "text-white/90",
                         )}
                       >

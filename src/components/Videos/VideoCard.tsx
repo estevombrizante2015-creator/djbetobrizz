@@ -8,7 +8,7 @@ import { Logo } from "@/components/ui/Logo";
 import { InstagramIcon, PlayIcon } from "@/components/ui/Icons";
 import { track } from "@/lib/analytics";
 import { cn, getImageMeta } from "@/lib/utils";
-import { platformLabel, resolveVideoPoster, type VideoSource } from "./video-source";
+import { platformLabel, resolveVideoPoster, type VideoPoster, type VideoSource } from "./video-source";
 
 type Props = {
   item: VideoItem;
@@ -23,6 +23,7 @@ type Props = {
  */
 export function VideoCard({ item, source, index, featured = false }: Props) {
   const [playing, setPlaying] = useState(false);
+  const poster = resolveVideoPoster(item);
   const playerRef = useRef<HTMLIFrameElement & HTMLVideoElement>(null);
   const trackNo = `TRACK ${String(index + 1).padStart(2, "0")}`;
   const sizes = featured ? "(min-width: 1024px) 66vw, (min-width: 640px) 100vw, 100vw" : "(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw";
@@ -39,7 +40,7 @@ export function VideoCard({ item, source, index, featured = false }: Props) {
 
   const facade = (
     <>
-      <Poster item={item} sizes={sizes} />
+      <Poster poster={poster} sizes={sizes} />
       <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-void/85 via-void/10 to-void/40" />
       <span
         aria-hidden
@@ -74,13 +75,15 @@ export function VideoCard({ item, source, index, featured = false }: Props) {
             src={source.src}
             title={`${item.title} — player de vídeo`}
             allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+            allowFullScreen
+            referrerPolicy="strict-origin-when-cross-origin"
             className="absolute inset-0 z-20 h-full w-full border-0 bg-black"
           />
         ) : playing && source.kind === "file" ? (
           <video
             ref={playerRef}
             src={source.src}
-            poster={item.poster}
+            poster={poster.kind === "none" ? undefined : poster.src}
             controls
             autoPlay
             playsInline
@@ -115,10 +118,8 @@ export function VideoCard({ item, source, index, featured = false }: Props) {
 }
 
 /** Capa: imagem local otimizada, capa remota (YouTube) ou capa neutra com o logo. */
-function Poster({ item, sizes }: { item: VideoItem; sizes: string }) {
-  const poster = resolveVideoPoster(item);
-
-  if (poster.kind === "local") {
+function Poster({ poster, sizes }: { poster: VideoPoster; sizes: string }) {
+  if (poster.kind === "optimized") {
     const meta = getImageMeta(poster.src);
     return (
       <Image
@@ -133,9 +134,9 @@ function Poster({ item, sizes }: { item: VideoItem; sizes: string }) {
     );
   }
 
-  if (poster.kind === "remote") {
+  if (poster.kind === "plain") {
     return (
-      // Capas remotas (ex.: i.ytimg.com) não passam pelo otimizador do next/image.
+      // Capas remotas (ex.: i.ytimg.com) ou fora de /images não passam pelo otimizador do next/image.
       // eslint-disable-next-line @next/next/no-img-element
       <img src={poster.src} alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
     );

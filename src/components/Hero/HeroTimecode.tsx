@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { timecode } from "@/lib/utils";
 import { useHeroIntro } from "./HeroIntro";
 
-/** Timecode VHS que começa a correr quando o show abre; pausa fora da tela. */
+/** Timecode VHS que começa a correr quando o show abre; pausa fora da tela e com a aba oculta. */
 export function HeroTimecode() {
   const { started, reduced } = useHeroIntro();
   const [seconds, setSeconds] = useState(0);
@@ -14,13 +14,21 @@ export function HeroTimecode() {
     const el = ref.current;
     if (!el || !started || reduced) return;
     let id = 0;
-    const io = new IntersectionObserver(([entry]) => {
+    let inView = false;
+    const sync = () => {
       window.clearInterval(id);
-      if (entry.isIntersecting) id = window.setInterval(() => setSeconds((s) => s + 1), 1000);
+      id = 0;
+      if (inView && !document.hidden) id = window.setInterval(() => setSeconds((s) => s + 1), 1000);
+    };
+    const io = new IntersectionObserver(([entry]) => {
+      inView = entry.isIntersecting;
+      sync();
     });
     io.observe(el);
+    document.addEventListener("visibilitychange", sync);
     return () => {
       io.disconnect();
+      document.removeEventListener("visibilitychange", sync);
       window.clearInterval(id);
     };
   }, [started, reduced]);

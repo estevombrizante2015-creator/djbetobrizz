@@ -32,7 +32,7 @@
   position: absolute;
   inset: 0;
   z-index: 2;
-  background: repeating-linear-gradient(to bottom, rgb(255 255 255 / 0.035) 0 1px, transparent 1px 3px);
+  background: repeating-linear-gradient(to bottom, rgb(255 255 255 / 0.022) 0 1px, transparent 1px 3px);
 }
 
 /* A linha brilhante que sobra quando a tela "desliga" */
@@ -111,7 +111,7 @@
   align-items: center;
   gap: 0.16em;
   padding-bottom: 0.5rem;
-  font-size: clamp(1.45rem, 6.6vw, 2.6rem);
+  font-size: clamp(1.5rem, 6.8vw, 2.9rem);
   line-height: 1;
   transform: skewX(-8deg);
   opacity: 0;
@@ -251,7 +251,7 @@
   }
   22%,
   100% {
-    opacity: 0.05;
+    opacity: 0.03;
   }
 }
 

@@ -24,7 +24,7 @@ export function AboutPortrait() {
   const outlineB = useTransform(scrollYProgress, [0, 1], [-16, 16]);
 
   return (
-    <div ref={ref} className="group relative mx-auto w-full max-w-[25rem] lg:max-w-none">
+    <div ref={ref} className="group relative mx-auto w-full max-w-[25rem] lg:max-w-[27rem] xl:max-w-[28.5rem]">
       {/* Contornos neon deslocados (profundidade) */}
       <motion.div
         aria-hidden
@@ -45,7 +45,7 @@ export function AboutPortrait() {
             <Image
               {...imageProps(siteConfig.profileImage)}
               alt="Retrato de DJ BetoBrizz de jaqueta de couro diante de um painel de LED"
-              sizes="(min-width: 1024px) 560px, (min-width: 640px) 440px, 100vw"
+              sizes="(min-width: 1024px) 520px, (min-width: 640px) 460px, 100vw"
               className="h-full w-full object-cover object-[50%_22%]"
             />
           </motion.div>

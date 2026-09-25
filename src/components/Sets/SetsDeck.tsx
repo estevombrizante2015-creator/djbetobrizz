@@ -19,28 +19,40 @@ export type DeckTrack = {
   display: string;
   genre?: string;
   duration?: string;
+  /** Rótulo extra do display (ex.: "Perfil oficial"). */
+  note?: string;
 };
 
-type Status = "idle" | "playing" | "paused";
+/** idle: só a facade · cued: player carregado sem tocar (CUE) · playing/paused: eventos do widget. */
+type Status = "idle" | "cued" | "playing" | "paused";
+
+const STATUS_LABEL: Record<Status, string> = {
+  idle: "Standby",
+  cued: "Cue",
+  playing: "On air",
+  paused: "Pause",
+};
 
 const SC_ORIGIN = "https://w.soundcloud.com";
 
-function widgetSrc(url: string) {
+function widgetSrc(url: string, autoPlay: boolean) {
   return (
     `${SC_ORIGIN}/player/?url=${encodeURIComponent(url)}` +
-    "&color=%23ff1493&auto_play=true&hide_related=true&show_comments=false&show_user=true&show_reposts=false&visual=true"
+    `&color=%23ff1493&auto_play=${autoPlay}&hide_related=true&show_comments=false&show_user=true&show_reposts=false&visual=true`
   );
 }
 
 /**
- * Deck estilo CDJ: prato com vinil + display com forma de onda + ▶.
- * Nada toca antes do clique (§48): o widget oficial do SoundCloud só é inserido no ▶.
+ * Deck estilo CDJ: prato com vinil + display com forma de onda + ▶ e CUE.
+ * Nada toca antes do clique (§48): o widget oficial do SoundCloud só é inserido no ▶
+ * (tocando) ou no CUE (carregado, sem tocar).
  * Eventos play/pause do widget (postMessage) controlam o giro do disco e o visualizer.
  */
 export function SetsDeck({ tracks, className }: { tracks: DeckTrack[]; className?: string }) {
   const { isDesktop } = useExperience();
   const [index, setIndex] = useState(0);
   const [status, setStatus] = useState<Status>("idle");
+  const [autoPlay, setAutoPlay] = useState(true);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const playRef = useRef<HTMLButtonElement>(null);
   const focusPlayRef = useRef(false);
@@ -49,12 +61,13 @@ export function SetsDeck({ tracks, className }: { tracks: DeckTrack[]; className
   const loaded = status !== "idle";
   const playing = status === "playing";
 
-  const load = (i: number) => {
+  const load = (i: number, play = true) => {
     const t = tracks[i];
     if (!t) return;
-    track("soundcloud_click", { source: "sets_player", title: t.title });
+    track("soundcloud_click", { source: "sets_player", title: t.title, mode: play ? "play" : "cue" });
     setIndex(i);
-    setStatus("playing");
+    setAutoPlay(play);
+    setStatus(play ? "playing" : "cued");
   };
 
   const eject = () => {
@@ -130,16 +143,17 @@ export function SetsDeck({ tracks, className }: { tracks: DeckTrack[]; className
             Deck A
             <span aria-hidden className="hidden text-dim sm:inline">
               {"// "}
-              {playing ? "On air" : loaded ? "Pause" : "Standby"}
+              {STATUS_LABEL[status]}
             </span>
           </p>
           {loaded ? (
             <button
               type="button"
               onClick={eject}
-              className="hud rounded-full border border-line-strong px-3 py-1.5 text-[0.65rem] text-mute transition-colors hover:border-white/60 hover:text-white"
+              className="hud inline-flex h-10 items-center gap-2 rounded-full border border-line-strong px-4 text-[0.65rem] text-mute transition-colors hover:border-white/60 hover:text-white sm:h-9"
             >
-              <span aria-hidden>⏏ </span>Fechar player
+              <span aria-hidden>⏏</span>
+              Fechar player
             </button>
           ) : (
             <p className="hud flex items-center gap-2 text-[0.65rem] text-mute">
@@ -161,7 +175,7 @@ export function SetsDeck({ tracks, className }: { tracks: DeckTrack[]; className
               <iframe
                 key={current.url}
                 ref={iframeRef}
-                src={widgetSrc(current.url)}
+                src={widgetSrc(current.url, autoPlay)}
                 title={`Player do SoundCloud — ${current.title}`}
                 loading="lazy"
                 allow="autoplay; encrypted-media"
@@ -169,7 +183,7 @@ export function SetsDeck({ tracks, className }: { tracks: DeckTrack[]; className
                 className="absolute inset-0 h-full w-full border-0"
               />
             ) : (
-              <DeckFacade track={current} playRef={playRef} onPlay={() => load(index)} />
+              <DeckFacade track={current} playRef={playRef} onPlay={() => load(index)} onCue={() => load(index, false)} />
             )}
           </div>
         </div>
@@ -213,11 +227,19 @@ function DeckFacade({
   track: t,
   playRef,
   onPlay,
+  onCue,
 }: {
   track: DeckTrack;
   playRef: React.RefObject<HTMLButtonElement | null>;
   onPlay: () => void;
+  onCue: () => void;
 }) {
+  const chips = [
+    t.genre ? { text: t.genre, className: "border-cyan/50 text-cyan" } : null,
+    t.duration ? { text: t.duration, className: "border-line-strong text-mute" } : null,
+    t.note ? { text: t.note, className: "border-magenta/50 text-white" } : null,
+  ].filter((c) => c !== null);
+
   return (
     <div className="relative flex h-full flex-col p-5 sm:p-7">
       {/* Textura de LCD */}
@@ -235,14 +257,13 @@ function DeckFacade({
         <h3 className="mt-2 font-display text-[1.35rem] leading-tight font-black text-balance text-white uppercase sm:text-3xl">
           {t.display}
         </h3>
-        {t.genre || t.duration ? (
+        {chips.length > 0 ? (
           <p className="mt-3 flex flex-wrap gap-2">
-            {t.genre ? (
-              <span className="hud rounded-full border border-cyan/50 px-2.5 py-1 text-[0.65rem] text-cyan">{t.genre}</span>
-            ) : null}
-            {t.duration ? (
-              <span className="hud rounded-full border border-line-strong px-2.5 py-1 text-[0.65rem] text-mute">{t.duration}</span>
-            ) : null}
+            {chips.map((c) => (
+              <span key={c.text} className={cn("hud rounded-full border px-2.5 py-1 text-[0.65rem]", c.className)}>
+                {c.text}
+              </span>
+            ))}
           </p>
         ) : null}
       </div>
@@ -269,17 +290,29 @@ function DeckFacade({
             <PlayIcon size={28} className="translate-x-[2px]" />
           </button>
           <span aria-hidden className="hud text-[0.55rem] whitespace-nowrap text-dim">
-            Play / Pause
+            Play
           </span>
         </div>
-        <div aria-hidden className="flex flex-col items-center gap-1.5">
-          <span className="grid size-12 place-items-center rounded-full border-2 border-white/25 font-hud text-xs font-bold tracking-[0.15em] text-mute">
+        <div className="flex flex-col items-center gap-1.5">
+          <button
+            type="button"
+            onClick={onCue}
+            aria-label={`Carregar ${t.title} no player do SoundCloud sem tocar (CUE)`}
+            title="CUE — carrega o player sem tocar"
+            className="grid size-12 place-items-center rounded-full border-2 border-white/25 font-hud text-xs font-bold tracking-[0.15em] text-mute transition-[border-color,color,box-shadow] duration-300 hover:border-cyan hover:text-cyan hover:shadow-neon-cyan focus-visible:border-cyan focus-visible:text-cyan active:scale-95"
+          >
             CUE
+          </button>
+          <span aria-hidden className="hud text-[0.55rem] whitespace-nowrap text-dim">
+            Load
           </span>
-          <span className="hud invisible text-[0.55rem]">Cue</span>
         </div>
-        <p className="ml-1 max-w-[16rem] text-sm leading-snug text-mute">
-          Toque <span className="text-white">▶</span> para ouvir aqui mesmo. Nada toca sozinho.
+        <p className="ml-1 max-w-[15rem] text-sm leading-snug text-pretty text-mute">
+          Aperte <span className="text-white">▶</span> para ouvir aqui<span className="sm:hidden">.</span>
+          <span className="hidden sm:inline">
+            {" "}
+            mesmo. <span className="text-white">CUE</span> só carrega o player.
+          </span>
         </p>
       </div>
     </div>

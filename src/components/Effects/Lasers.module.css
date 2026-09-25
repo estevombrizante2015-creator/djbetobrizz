@@ -16,6 +16,11 @@
   opacity: 1;
 }
 
+/* fora do desktop: sem blend (composição cara em GPU de celular); linhas claras sobre fundo escuro ficam quase iguais */
+.root[data-fx="lo"] {
+  mix-blend-mode: normal;
+}
+
 .beam {
   position: absolute;
   left: var(--x);

@@ -19,12 +19,22 @@ function visualFor(title: string, index: number): VisualKind {
 
 const accents: Record<
   Accent,
-  { text: string; led: string; bar: string; hover: string; stroke: string; palette: "neon" | "red" | "cyan" }
+  {
+    text: string;
+    led: string;
+    bar: string;
+    /** Filete de cor no topo do canal (código de cor da mesa). */
+    edge: string;
+    hover: string;
+    stroke: string;
+    palette: "neon" | "red" | "cyan";
+  }
 > = {
   magenta: {
     text: "text-magenta",
     led: "bg-magenta shadow-neon-magenta",
     bar: "bg-magenta shadow-neon-magenta",
+    edge: "via-magenta",
     hover: "hover:border-magenta/55 hover:shadow-[0_24px_70px_-28px_rgb(255_20_147/0.75)]",
     stroke: "group-hover:[-webkit-text-stroke-color:var(--color-magenta)]",
     palette: "red",
@@ -33,6 +43,7 @@ const accents: Record<
     text: "text-cyan",
     led: "bg-cyan shadow-neon-cyan",
     bar: "bg-cyan shadow-neon-cyan",
+    edge: "via-cyan",
     hover: "hover:border-cyan/55 hover:shadow-[0_24px_70px_-28px_rgb(0_229_255/0.7)]",
     stroke: "group-hover:[-webkit-text-stroke-color:var(--color-cyan)]",
     palette: "cyan",
@@ -41,6 +52,7 @@ const accents: Record<
     text: "text-purple",
     led: "bg-purple shadow-neon-purple",
     bar: "bg-purple shadow-neon-purple",
+    edge: "via-purple",
     hover: "hover:border-purple/60 hover:shadow-[0_24px_70px_-28px_rgb(138_43_226/0.8)]",
     stroke: "group-hover:[-webkit-text-stroke-color:var(--color-purple)]",
     palette: "neon",
@@ -49,6 +61,7 @@ const accents: Record<
     text: "text-blue",
     led: "bg-blue shadow-neon-cyan",
     bar: "bg-blue shadow-neon-cyan",
+    edge: "via-blue",
     hover: "hover:border-blue/60 hover:shadow-[0_24px_70px_-28px_rgb(0_102_255/0.8)]",
     stroke: "group-hover:[-webkit-text-stroke-color:var(--color-blue)]",
     palette: "cyan",
@@ -57,6 +70,7 @@ const accents: Record<
     text: "text-red",
     led: "bg-red shadow-neon-red",
     bar: "bg-red shadow-neon-red",
+    edge: "via-red",
     hover: "hover:border-red/55 hover:shadow-[0_24px_70px_-28px_rgb(255_36_20/0.75)]",
     stroke: "group-hover:[-webkit-text-stroke-color:var(--color-red)]",
     palette: "red",
@@ -181,6 +195,14 @@ function PillarTile({ index, title, text, accent, kind }: PillarProps) {
         a.hover,
       )}
     >
+      <span
+        aria-hidden
+        className={cn(
+          "pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent to-transparent opacity-70 transition-opacity duration-500 group-hover:opacity-100",
+          a.edge,
+        )}
+      />
+
       {/* Cabeçalho do canal */}
       <div aria-hidden className="hud flex items-center justify-between text-[0.62rem] text-mute">
         <span>
@@ -285,8 +307,8 @@ function EnergyVisual() {
     { scale: 1.15, delay: "-1.3s" },
   ];
   return (
-    <div className="absolute inset-0 flex items-center justify-center gap-8 px-4 lg:gap-10">
-      <div className="relative size-20 shrink-0">
+    <div className="absolute inset-0 flex items-center justify-center gap-5 px-5 sm:gap-7">
+      <div className="relative size-20 shrink-0 sm:size-24 md:size-20 xl:size-24">
         {rings.map((r) => (
           <span
             key={r.delay}
@@ -296,19 +318,19 @@ function EnergyVisual() {
         ))}
         <span className={cn("absolute inset-[36%] rounded-full bg-red shadow-neon-red", styles.beat)} />
       </div>
-      <div className="flex h-[74%] items-stretch gap-2">
-        {[false, true].map((alt) => (
-          <div key={String(alt)} className="flex flex-col items-center gap-1.5">
-            <div className="relative flex w-3.5 flex-1 flex-col-reverse gap-[3px]">
-              {Array.from({ length: 12 }, (_, i) => (
+      <div className="flex min-w-0 flex-1 flex-col gap-3 sm:max-w-[11rem]">
+        {["L", "R"].map((channel, k) => (
+          <div key={channel} className="flex items-center gap-2">
+            <span className="hud w-2 shrink-0 text-[0.55rem] text-white/60">{channel}</span>
+            <div className="relative flex h-3 flex-1 gap-[3px]">
+              {Array.from({ length: 14 }, (_, i) => (
                 <span
                   key={i}
-                  className={cn("flex-1 rounded-[1px]", i < 7 ? "bg-cyan" : i < 10 ? "bg-magenta" : "bg-red")}
+                  className={cn("flex-1 rounded-[1px]", i < 8 ? "bg-cyan" : i < 11 ? "bg-magenta" : "bg-red")}
                 />
               ))}
-              <span className={cn("bg-void/85", styles.meterCover, alt && styles.meterCoverAlt)} />
+              <span className={cn("bg-void/85", styles.meterCover, k === 1 && styles.meterCoverAlt)} />
             </div>
-            <span className="hud text-[0.5rem] text-white/60">{alt ? "R" : "L"}</span>
           </div>
         ))}
       </div>
