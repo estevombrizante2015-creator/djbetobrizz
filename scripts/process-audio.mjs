@@ -20,6 +20,11 @@ const OUT_AUDIO = path.join(ROOT, "public", "audio");
 const OUT_COVER = path.join(ROOT, "public", "images", "music");
 const FFMPEG = process.env.FFMPEG || "ffmpeg";
 
+/** Correções de tags por arquivo (faixas que chegam com título/artista trocados ou errados). */
+const TAG_FIXES = {
+  "WhatsApp Audio 2026-09-26 at 12.07.19.mpeg": { title: "How Does It Feel (Extended Mix)", artist: "Dubdogz, FEZZO & Zaark" },
+};
+
 const slugify = (s) =>
   s
     .normalize("NFD")
@@ -44,13 +49,20 @@ fs.mkdirSync(OUT_AUDIO, { recursive: true });
 fs.mkdirSync(OUT_COVER, { recursive: true });
 
 const tracks = [];
+const seen = new Set();
 for (const name of fs.readdirSync(SRC).sort()) {
   if (!/\.(mp3|mpeg|m4a|wav|ogg|flac)$/i.test(name)) continue;
   const file = path.join(SRC, name);
-  const tags = readTags(file);
+  const tags = { ...readTags(file), ...TAG_FIXES[name] };
   const title = (tags.title || path.parse(name).name).trim();
   const artist = (tags.artist || "").replace(/^\/+/, "").trim();
   const slug = slugify(`${artist.split(",")[0] || "faixa"}-${title}`);
+  // mesma faixa enviada duas vezes (mesmas tags) → uma só na playlist
+  if (seen.has(slug)) {
+    console.log(`${name} — repetida (${title} / ${artist}), ignorada`);
+    continue;
+  }
+  seen.add(slug);
 
   const mp3 = path.join(OUT_AUDIO, `${slug}.mp3`);
   execFileSync(FFMPEG, ["-v", "error", "-y", "-i", file, "-map", "0:a:0", "-map_metadata", "-1", "-codec:a", "libmp3lame", "-b:a", "128k", "-ac", "2", mp3]);

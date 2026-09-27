@@ -37,6 +37,7 @@ const SOURCES = [
   ["WhatsApp Image 2026-09-25 at 13.14.00 (6).jpeg", "events/betobrizz-pista-dourada.webp"],
   ["WhatsApp Image 2026-09-25 at 13.14.00 (7).jpeg", "events/betobrizz-pista-danca.webp"],
   ["WhatsApp Image 2026-09-25 at 13.14.00.jpeg", "events/betobrizz-pista-registro.webp"],
+  ["WhatsApp Image 2026-09-27 at 12.29.19.jpeg", "events/betobrizz-logo-telao.webp"],
 ];
 
 const MAX = 1920;

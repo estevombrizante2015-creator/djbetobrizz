@@ -33,6 +33,8 @@ type Row = { tiles: Tile[]; sum: number; natural: number };
  */
 const FOCAL: Record<string, string> = {
   "/images/events/betobrizz-controladora.webp": "50% 8%",
+  // o terço de baixo é só a mesa preta: o corte sai dali e preserva o logo no telão e o DJ
+  "/images/events/betobrizz-logo-telao.webp": "50% 40%",
 };
 const focalPoint = (image: Photo): string | undefined =>
   (image as Photo & { position?: string }).position ?? FOCAL[image.src];

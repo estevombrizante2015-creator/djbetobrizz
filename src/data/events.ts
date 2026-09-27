@@ -64,4 +64,11 @@ export const events: EventItem[] = [
       alt: "DJ BetoBrizz mixando em uma controladora Pioneer com fones de ouvido sob luz verde",
     },
   },
+  {
+    type: "Marca no telão",
+    image: {
+      src: "/images/events/betobrizz-logo-telao.webp",
+      alt: "DJ BetoBrizz mixando de fones e notebook diante de um telão de LED com o logo BetoBrizz DJ e o slogan Music Video Entertainment",
+    },
+  },
 ];
