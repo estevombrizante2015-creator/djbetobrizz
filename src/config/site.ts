@@ -36,7 +36,7 @@ export const siteConfig = {
 
   instagram: "https://www.instagram.com/djbetobrizzoficial/",
   instagramHandle: "@djbetobrizzoficial",
-  facebook: "https://www.facebook.com/djbetobrizz/",
+  facebook: "https://www.facebook.com/djbetobrizzoficial/",
   facebookName: "Beto Brizz DJ VJ",
   soundcloud: "https://soundcloud.com/beto-brizz-dj",
   soundcloudName: "Beto Brizz DJ",
