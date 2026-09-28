@@ -4,7 +4,10 @@ import { cn, getImageMeta } from "@/lib/utils";
 import { HeroVideo } from "./HeroVideo";
 import styles from "./Hero.module.css";
 
-/** Paisagem (desktop, tablet deitado, celular deitado) usa a foto horizontal; retrato usa a vertical. */
+/**
+ * Paisagem (desktop, tablet deitado, celular deitado) usa `heroImage.desktop`; retrato usa `heroImage.mobile`.
+ * Hoje as duas são a mesma foto horizontal: em retrato o recorte (20% 50%) fica no DJ, à esquerda da foto.
+ */
 const LANDSCAPE = "(orientation: landscape)";
 
 /**
@@ -15,22 +18,27 @@ const LANDSCAPE = "(orientation: landscape)";
 function HeroPicture() {
   const { desktop, mobile, alt } = siteConfig.heroImage;
   const common = { alt, fill: true, sizes: "100vw" } as const;
+  const portrait = getImageMeta(mobile);
+  // Foto horizontal em tela retrato cobre pela altura e fica mais larga que a tela: o `sizes`
+  // acompanha essa largura para o navegador não baixar uma versão pequena e ampliá-la.
+  const ratio = portrait.width / portrait.height;
+  const portraitSizes = ratio > 1 ? `${Math.ceil(ratio * 100)}vh` : common.sizes;
   const {
     props: { srcSet: landscapeSrcSet },
   } = getImageProps({ ...common, src: desktop, quality: 75 });
   const {
     props: { srcSet: portraitSrcSet, ...rest },
-  } = getImageProps({ ...common, src: mobile, quality: 60, loading: "eager", fetchPriority: "high" });
+  } = getImageProps({ ...common, sizes: portraitSizes, src: mobile, quality: 60, loading: "eager", fetchPriority: "high" });
 
   const blurLandscape = getImageMeta(desktop).blurDataURL;
-  const blurPortrait = getImageMeta(mobile).blurDataURL;
+  const blurPortrait = portrait.blurDataURL;
 
   return (
     <>
       {blurPortrait ? (
         <div
           aria-hidden
-          className="absolute inset-0 bg-cover bg-center landscape:hidden"
+          className="absolute inset-0 bg-cover bg-position-[20%_50%] landscape:hidden"
           style={{ backgroundImage: `url("${blurPortrait}")` }}
         />
       ) : null}
@@ -43,7 +51,7 @@ function HeroPicture() {
       ) : null}
       <picture>
         <source media={LANDSCAPE} srcSet={landscapeSrcSet} sizes="100vw" />
-        <img {...rest} srcSet={portraitSrcSet} alt={alt} className="object-cover object-[50%_30%] landscape:object-[50%_28%]" />
+        <img {...rest} srcSet={portraitSrcSet} alt={alt} className="object-cover object-[20%_50%] landscape:object-[50%_28%]" />
       </picture>
     </>
   );

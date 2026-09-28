@@ -59,10 +59,10 @@ export const siteConfig = {
    */
   heroVideo: null as null | { desktop: string; mobile?: string; poster: string },
   heroImage: {
-    desktop: "/images/events/betobrizz-telao-vermelho.webp",
-    mobile: "/images/events/betobrizz-pista-magenta.webp",
-    // Vale para os dois recortes (desktop: telões de LED; celular: pista lotada vista do palco).
-    alt: "DJ BetoBrizz se apresentando ao vivo em um evento",
+    desktop: "/images/events/betobrizz-dj-telao-neon.webp",
+    mobile: "/images/events/betobrizz-dj-telao-neon.webp",
+    // Mesma foto nos dois recortes; no celular ela é cortada no DJ (ver HeroBackground).
+    alt: "DJ BetoBrizz mixando de fones e notebook diante de um telão de LED com visuais neon azuis e vermelhos",
   },
 
   /** ID do Google Analytics 4 (ex.: "G-XXXXXXX"). Também pode vir de NEXT_PUBLIC_GA_ID. */

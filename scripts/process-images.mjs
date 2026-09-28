@@ -38,6 +38,8 @@ const SOURCES = [
   ["WhatsApp Image 2026-09-25 at 13.14.00 (7).jpeg", "events/betobrizz-pista-danca.webp"],
   ["WhatsApp Image 2026-09-25 at 13.14.00.jpeg", "events/betobrizz-pista-registro.webp"],
   ["WhatsApp Image 2026-09-27 at 12.29.19.jpeg", "events/betobrizz-logo-telao.webp"],
+  // Fundo do início (hero)
+  ["Imagem do ChatGPT 28 de set. de 2026, 10_34_55.png", "events/betobrizz-dj-telao-neon.webp"],
 ];
 
 const MAX = 1920;
